@@ -1,0 +1,36 @@
+﻿@page "/login"
+@using StriveUp.Shared.DTOs
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<h3>Zaloguj się</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+    <InputText @bind-Value="loginModel.Username" placeholder="Nazwa użytkownika" />
+    <InputText @bind-Value="loginModel.Password" type="password" placeholder="Hasło" />
+    <button type="submit">Zaloguj</button>
+
+    <button @onclick="registerClick">Zarejestruj</button>
+</EditForm>
+
+@code {
+    private LoginRequest loginModel = new();
+
+    private async Task HandleLogin()
+    {
+        var res = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+        if (res.IsSuccessStatusCode)
+        {
+            Nav.NavigateTo("/");
+        }
+        else
+        {
+            // wyświetl komunikat
+        }
+    }
+
+    private void registerClick()
+    {
+        Nav.NavigateTo("/register");
+    }
+}

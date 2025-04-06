@@ -1,0 +1,32 @@
+﻿@page "/register"
+@using StriveUp.Shared.DTOs
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<h3>Rejestracja</h3>
+
+<EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+    <InputText @bind-Value="registerModel.Username" placeholder="Nazwa użytkownika" />
+    <InputText @bind-Value="registerModel.Email" placeholder="Email" />
+    <InputText @bind-Value="registerModel.FirstName" placeholder="FirstName" />
+    <InputText @bind-Value="registerModel.LastName" placeholder="LastName" />
+    <InputText @bind-Value="registerModel.Password" type="password" placeholder="Hasło" />
+    <button type="submit">Zarejestruj</button>
+</EditForm>
+
+@code {
+    private RegisterRequest registerModel = new();
+
+    private async Task HandleRegister()
+    {
+        var res = await Http.PostAsJsonAsync("api/auth/register", registerModel);
+        if (res.IsSuccessStatusCode)
+        {
+            Nav.NavigateTo("/login");
+        }
+        else
+        {
+            Console.WriteLine(await res.Content.ReadAsStringAsync());
+        }
+    }
+}
