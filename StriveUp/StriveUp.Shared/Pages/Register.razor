@@ -1,7 +1,8 @@
 ﻿@page "/register"
 @using StriveUp.Shared.DTOs
-@inject HttpClient Http
+@using StriveUp.Shared.Interfaces
 @inject NavigationManager Nav
+@inject IAuthService AuthService
 
 <h3>Rejestracja</h3>
 
@@ -19,14 +20,8 @@
 
     private async Task HandleRegister()
     {
-        var res = await Http.PostAsJsonAsync("api/auth/register", registerModel);
-        if (res.IsSuccessStatusCode)
-        {
-            Nav.NavigateTo("/login");
-        }
-        else
-        {
-            Console.WriteLine(await res.Content.ReadAsStringAsync());
-        }
+        var success = await AuthService.RegisterAsync(registerModel);
+        if (success)
+            Nav.NavigateTo("/");
     }
 }

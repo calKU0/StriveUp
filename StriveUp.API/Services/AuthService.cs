@@ -7,43 +7,71 @@ using Microsoft.EntityFrameworkCore;
 using LoginRequest = StriveUp.Shared.DTOs.LoginRequest;
 using RegisterRequest = StriveUp.Shared.DTOs.RegisterRequest;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 public class AuthService : IAuthService
 {
     private readonly SignInManager<AppUser> _signInManager;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IConfiguration _configuration;
 
-    public AuthService(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager)
+    public AuthService(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IConfiguration configuration)
     {
         _signInManager = signInManager;
         _userManager = userManager;
+        _configuration = configuration;
     }
 
-    public async Task<IdentityResult> RegisterAsync(RegisterRequest request)
+    public async Task<(bool Success, string Token)> LoginAsync(LoginRequest request)
+    {
+        var user = await _userManager.FindByNameAsync(request.Username);
+        if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
+            return (false, null);
+
+        var token = await GenerateJwtToken(user);
+        return (true, token);
+    }
+
+    public async Task<(IdentityResult Result, string Token)> RegisterAsync(RegisterRequest request)
     {
         var user = new AppUser
         {
             UserName = request.Username,
             Email = request.Email,
-            LastName = request.LastName,
-            FirstName = request.FirstName
+            FirstName = request.FirstName,
+            LastName = request.LastName
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
-        return result;
+        if (!result.Succeeded)
+            return (result, null);
+
+        var token = await GenerateJwtToken(user);
+        return (result, token);
     }
 
-    public async Task<bool> LoginAsync(LoginRequest request, HttpContext httpContext)
+    private async Task<string> GenerateJwtToken(AppUser user)
     {
-        var user = await _userManager.FindByNameAsync(request.Username);
-        if (user == null) return false;
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Name, user.UserName)
+        };
 
-        var isCorrect = await _userManager.CheckPasswordAsync(user, request.Password);
-        if (!isCorrect) return false;
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claimsPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
-        await httpContext.SignInAsync(IdentityConstants.ApplicationScheme, claimsPrincipal);
+        var token = new JwtSecurityToken(
+            issuer: _configuration["Jwt:Issuer"],
+            audience: _configuration["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: creds
+        );
 
-        return true;
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

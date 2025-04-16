@@ -1,4 +1,4 @@
-namespace StriveUp.Shared.Services
+namespace StriveUp.Shared.Interfaces
 {
     public interface IFormFactor
     {

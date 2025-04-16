@@ -1,7 +1,9 @@
 using StriveUp.Web.Components;
-using StriveUp.Shared.Services;
+using StriveUp.Shared.Interfaces;
 using StriveUp.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components;
+using Blazored.LocalStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,16 +12,10 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Add device-specific services used by the StriveUp.Shared project
-builder.Services.AddSingleton<IFormFactor, FormFactor>();
-
-
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/login";
-        options.AccessDeniedPath = "/account/access-denied";
-        options.SlidingExpiration = true;
-    });
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddScoped<IFormFactor, FormFactor>();
+builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using StriveUp.Shared.Services;
+using StriveUp.Shared.Interfaces;
 using StriveUp.Services;
+using Microsoft.AspNetCore.Components;
 
 namespace StriveUp;
 
@@ -18,6 +19,9 @@ public static class MauiProgram
 
         // Add device-specific services used by the StriveUp.Shared project
         builder.Services.AddSingleton<IFormFactor, FormFactor>();
+
+        builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
 
         builder.Services.AddScoped(sp => new HttpClient
         {

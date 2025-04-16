@@ -8,7 +8,7 @@ namespace StriveUp.API.Services
 {
     public interface IAuthService
     {
-        Task<bool> LoginAsync(LoginRequest request, HttpContext httpContext);
-        Task<IdentityResult> RegisterAsync(RegisterRequest request);
+        Task<(bool Success, string Token)> LoginAsync(LoginRequest request);
+        Task<(IdentityResult Result, string Token)> RegisterAsync(RegisterRequest request);
     }
 }

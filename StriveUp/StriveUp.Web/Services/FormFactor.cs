@@ -1,4 +1,4 @@
-using StriveUp.Shared.Services;
+using StriveUp.Shared.Interfaces;
 
 namespace StriveUp.Web.Services;
 

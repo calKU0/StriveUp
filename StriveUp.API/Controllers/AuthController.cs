@@ -17,35 +17,26 @@ namespace StriveUp.API.Controllers
             _authService = authService;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterRequest request)
-        {
-            var result = await _authService.RegisterAsync(request);
-            if (result.Succeeded)
-            {
-                return Ok();
-            }
-            else
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-
-                return BadRequest($"Rejestracja nie powiodła się: {errors}");
-            }
-        }
-
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
-            var result = await _authService.LoginAsync(request, HttpContext);
-            return result ? Ok() : Unauthorized("Nieprawidłowe dane logowania.");
+            var (success, token) = await _authService.LoginAsync(request);
+            return success ? Ok(new JwtResponse { Token = token }) : Unauthorized("Invalid credentials.");
         }
 
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegisterRequest request)
         {
-            await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
-            return Ok();
+            var (result, token) = await _authService.RegisterAsync(request);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return BadRequest($"Registration failed: {errors}");
+            }
+
+            return Ok(new JwtResponse { Token = token });
         }
+
 
     }
 }
