@@ -53,6 +53,11 @@ public class AuthService : IAuthService
         return (result, token);
     }
 
+    public async Task LogoutAsync()
+    {
+        await _signInManager.SignOutAsync();
+    }
+
     private async Task<string> GenerateJwtToken(AppUser user)
     {
         var claims = new List<Claim>

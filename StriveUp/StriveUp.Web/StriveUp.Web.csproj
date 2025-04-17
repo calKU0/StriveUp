@@ -14,4 +14,10 @@
     <ProjectReference Include="..\StriveUp.Shared\StriveUp.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\images\StriveUp-logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -1,12 +1,21 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ICustomAuthStateProvider AuthStateProvider
 
-<NavMenu />
+<AuthorizeView>
+    <Authorized>
+        <NavMenu />
+    </Authorized>
+    <NotAuthorized>
+        <MinimalNav />
+    </NotAuthorized>
+</AuthorizeView>
 
-<div class="page container-fluid">
+<div class="page">
     <main>
-        <article class="content px-4">
+        <div class="content">
             @Body
-        </article>
+        </div>
     </main>
 </div>
 

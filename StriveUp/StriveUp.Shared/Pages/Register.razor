@@ -4,16 +4,50 @@
 @inject NavigationManager Nav
 @inject IAuthService AuthService
 
-<h3>Rejestracja</h3>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="container text-center pt-0 pt-md-5">
+        <img class="mb-4" src="images/StriveUp-logo.png" alt="Logo" width="72" height="57">
+        <h2 class="fw-bolder">StriveUp</h2>
+        <h5 class="fw-bold">Register</h5>
+        <p>Enter your email and password</p>
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+            <div class="row register-form-row justify-content-center g-3 pb-3">
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="username" class="form-control" @bind-Value="registerModel.Username" placeholder="Username" />
+                    <label for="username">Username</label>
+                </div>
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="email" class="form-control" @bind-Value="registerModel.Email" type="email" placeholder="Email" />
+                    <label for="email">Email</label>
+                </div>
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="firstName" class="form-control" @bind-Value="registerModel.FirstName" placeholder="First Name" />
+                    <label for="firstName">First Name</label>
+                </div>
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="lastName" class="form-control" @bind-Value="registerModel.LastName" placeholder="Last Name" />
+                    <label for="lastName">Last Name</label>
+                </div>
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="password" class="form-control" @bind-Value="registerModel.Password" type="password" placeholder="Password" />
+                    <label for="password">Password</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Register</button>
+        </EditForm>
 
-<EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
-    <InputText @bind-Value="registerModel.Username" placeholder="Nazwa użytkownika" />
-    <InputText @bind-Value="registerModel.Email" placeholder="Email" />
-    <InputText @bind-Value="registerModel.FirstName" placeholder="FirstName" />
-    <InputText @bind-Value="registerModel.LastName" placeholder="LastName" />
-    <InputText @bind-Value="registerModel.Password" type="password" placeholder="Hasło" />
-    <button type="submit">Zarejestruj</button>
-</EditForm>
+
+
+        <p class="text-muted text-center mb-2">or</p>
+        <div class="text-center mb-2">
+            <p class="text-muted">Have and account?</p>
+            <a href="" @onclick="LoginClick">Login here!</a>
+        </div>
+
+        <button class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Continue with Google</button>
+        <button class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Continue with apple</button>
+    </div>
+</div>
 
 @code {
     private RegisterRequest registerModel = new();
@@ -23,5 +57,10 @@
         var success = await AuthService.RegisterAsync(registerModel);
         if (success)
             Nav.NavigateTo("/");
+    }
+
+    private void LoginClick()
+    {
+        Nav.NavigateTo("/login");
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace StriveUp
+﻿using System.Diagnostics;
+
+namespace StriveUp
 {
     public partial class MainPage : ContentPage
     {
@@ -6,5 +8,6 @@
         {
             InitializeComponent();
         }
+
     }
 }

@@ -8,12 +8,12 @@ namespace StriveUp.Services
     public class AuthService : IAuthService
     {
         private readonly HttpClient _http;
-        private readonly ITokenStorageService _tokenStorage;
+        private readonly CustomAuthStateProvider _authStateProvider;
 
-        public AuthService(HttpClient http, ITokenStorageService tokenStorage)
+        public AuthService(HttpClient http, CustomAuthStateProvider authStateProvider)
         {
             _http = http;
-            _tokenStorage = tokenStorage;
+            _authStateProvider = authStateProvider;
         }
 
         public async Task<bool> LoginAsync(LoginRequest request)
@@ -24,15 +24,16 @@ namespace StriveUp.Services
             var jwt = await response.Content.ReadFromJsonAsync<JwtResponse>();
             if (jwt == null) return false;
 
-            await _tokenStorage.StoreToken(jwt.Token);
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt.Token);
+            await _authStateProvider.NotifyUserAuthentication(jwt.Token);
+
             return true;
         }
 
         public async Task LogoutAsync()
         {
-            await _tokenStorage.ClearToken();
             _http.DefaultRequestHeaders.Authorization = null;
+            await _authStateProvider.NotifyUserLogout();
         }
 
         public async Task<bool> RegisterAsync(RegisterRequest request)
@@ -41,5 +42,4 @@ namespace StriveUp.Services
             return response.IsSuccessStatusCode;
         }
     }
-
 }

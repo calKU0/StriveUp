@@ -1,7 +1,5 @@
-﻿@inject IAuthService AuthService;
-
-<nav class="navbar">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
+﻿<nav class="navbar">
+    <div class="container-fluid justify-content-between align-items-center">
         <!-- Left section: Brand + NavLinks -->
         <div class="d-flex align-items-center">
             <a class="navbar-brand" href="">
@@ -9,13 +7,7 @@
             </a>
             <div class="d-flex">
                 <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All">
-                    test
-                </NavLink>
-                <NavLink class="nav-link text-black" href="counter">
-                    test
-                </NavLink>
-                <NavLink class="nav-link text-black" href="weather">
-                    test
+                    Home
                 </NavLink>
             </div>
         </div>
@@ -23,16 +15,8 @@
         <!-- Right section: Login -->
         <div class="d-flex">
             <NavLink class="nav-link text-black" href="login">
-                <a href="" @onclick="HandleLogout">Logout</a>
+                Login
             </NavLink>
         </div>
     </div>
 </nav>
-
-@code {
-    private async Task HandleLogout()
-    {
-        await AuthService.LogoutAsync();
-    }
-}
-

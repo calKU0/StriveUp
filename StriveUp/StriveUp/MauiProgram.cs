@@ -2,6 +2,7 @@
 using StriveUp.Shared.Interfaces;
 using StriveUp.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace StriveUp;
 
@@ -22,6 +23,11 @@ public static class MauiProgram
 
         builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<CustomAuthStateProvider>();
+        builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
+        builder.Services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
+        builder.Services.AddAuthorizationCore();
+
 
         builder.Services.AddScoped(sp => new HttpClient
         {

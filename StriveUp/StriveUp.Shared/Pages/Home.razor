@@ -1,22 +1,12 @@
 ﻿@page "/"
-@using StriveUp.Shared.Interfaces
-@inject IFormFactor FormFactor
 @inject NavigationManager Nav
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app running on <em>@factor</em> using <em>@platform</em>.
-
-<button @onclick="ButtonClick"></button>
+<div class="container-full">
+    <img class="img-fluid w-100 d-block home-image" src="images/running-woman.jpg" alt="Running woman" />
+</div>
 
 @code {
-    private string factor => FormFactor.GetFormFactor();
-    private string platform => FormFactor.GetPlatform();
 
-    private async Task ButtonClick()
-    {
-        Nav.NavigateTo("/login");
-    }
 }

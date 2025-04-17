@@ -19,9 +19,6 @@ namespace StriveUp.Infrastructure.Identity
         [Required]
         [MaxLength(50)]
         public string Email { get; set; }
-        [Required]
-        [MaxLength(25)]
-        public string Username { get; set; }
         public string? Avatar { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

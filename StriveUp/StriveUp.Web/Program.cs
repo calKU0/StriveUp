@@ -4,6 +4,7 @@ using StriveUp.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,11 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<IFormFactor, FormFactor>();
 builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<CustomAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
+builder.Services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 
 builder.Services.AddScoped(sp => new HttpClient
 {
