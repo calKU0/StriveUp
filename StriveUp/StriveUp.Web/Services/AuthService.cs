@@ -8,18 +8,18 @@ namespace StriveUp.Web.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly HttpClient _http;
+        private readonly HttpClient _httpClient;
         private readonly CustomAuthStateProvider _authStateProvider;
 
-        public AuthService(HttpClient http, CustomAuthStateProvider authStateProvider)
+        public AuthService(HttpClient httpClient, CustomAuthStateProvider authStateProvider)
         {
-            _http = http;
+            _httpClient = httpClient;
             _authStateProvider = authStateProvider;
         }
 
         public async Task<bool> LoginAsync(LoginRequest request)
         {
-            var response = await _http.PostAsJsonAsync("api/auth/login", request);
+            var response = await _httpClient.PostAsJsonAsync("auth/login", request);
             if (!response.IsSuccessStatusCode) return false;
 
             var jwt = await response.Content.ReadFromJsonAsync<JwtResponse>();
@@ -29,17 +29,15 @@ namespace StriveUp.Web.Services
             return true;
         }
 
-
         public async Task LogoutAsync()
         {
-            await _http.PostAsync("api/auth/logout", null);
+            await _httpClient.PostAsync("auth/logout", null);
             await _authStateProvider.NotifyUserLogout();
         }
 
-
         public async Task<bool> RegisterAsync(RegisterRequest request)
         {
-            var response = await _http.PostAsJsonAsync("api/auth/register", request);
+            var response = await _httpClient.PostAsJsonAsync("auth/register", request);
             return response.IsSuccessStatusCode;
         }
     }

@@ -1,1 +1,21 @@
 ﻿
+.google-play-badge {
+    margin-top: 20px;
+    height: 60px;
+    object-fit: contain;
+    transition: transform 0.2s ease-in-out;
+}
+
+.google-play-badge:hover {
+    transform: scale(1.03);
+}
+
+.explore-under-hero {
+    position: absolute;
+    top: calc(36% + 300px);
+    left: calc(12% + 150px);
+}
+
+.explore-under-hero a {
+    text-decoration: none;
+}

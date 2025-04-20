@@ -1,0 +1,192 @@
+﻿@page "/feed"
+@inject IActivityService ActivityService
+@inject NavigationManager Navigation
+@inject ICustomAuthStateProvider AuthStateProvider
+@using StriveUp.Shared.DTOs
+@using System.Security.Claims
+
+
+<PageTitle>Activity Feed</PageTitle>
+<div class="container d-flex flex-column justify-content-center">
+    <button class="btn btn-primary" @onclick="NavigateToEdit">Add</button>
+    @if (activities == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var activity in activities)
+            {
+                <!-- linkowanie do activity details -->
+                <div class="col-12 col-md-6">
+                    <div class="card activity-card shadow-lg border-0 rounded-4 overflow-hidden h-100">
+                        <div class="card-body d-flex flex-column justify-content-between">
+
+                            <!-- linkowanie do profilu -->
+                            <a class="text-black fw-bold row activity-card-user"> 
+                                <img src="/icons/run-icon.svg" alt="icon" width="40" height="40" class="col-auto"/>
+                                <span class="col-auto">@activity.UserName</span>
+                            </a>
+
+                            <span class="card-text text-black activity-card-date pt-1">@activity.DateStart - @activity.DateEnd</span>
+                            <span class="card-text text-black fw-bolder activity-card-title pt-3">@activity.Title</span>
+                            <p class="card-text text-muted">@activity.Description</p>
+
+                            <!-- Stats Row -->
+                            <div class="row text-center text-secondary mb-3">
+                                <div class="col">
+                                    <strong>@activity.DurationMinutes</strong><br />
+                                    <small>mins</small>
+                                </div>
+                                <div class="col">
+                                    <strong>@activity.CaloriesBurned</strong><br />
+                                    <small>kcal</small>
+                                </div>
+                                <div class="col">
+                                    <strong>@activity.ActivityName</strong><br />
+                                    <small>Activity</small>
+                                </div>
+                            </div>
+
+                            <!-- Details Button -->
+                            <!-- <div class="d-flex justify-content-end mb-2">
+                                <a href="/activities/@activity.ActivityId" class="btn btn-outline-primary btn-sm px-4">Details</a>
+                            </div> -->
+
+                            <!-- Like Button -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <button class="btn btn-sm @(activity.IsLikedByCurrentUser ? "btn-danger" : "btn-outline-danger")"
+                                        @onclick="() => ToggleLike(activity)">
+                                    ❤️ @activity.LikeCount
+                                </button>
+                            </div>
+
+                            <!-- Comments Section -->
+                            <!-- linkowanie do komentarzy -->
+                            <div class="mt-auto">
+                                <strong>Comments:</strong>
+                                @if (activity.Comments != null && activity.Comments.Any())
+                                {
+                                    @foreach (var comment in activity.Comments.Take(2))
+                                    {
+                                        <div class="text-muted small">
+                                            <strong>@comment.UserName:</strong> @comment.Content
+                                        </div>
+                                    }
+
+                                    @if (activity.Comments.Count > 2)
+                                    {
+                                        <div class="text-muted small fst-italic">+@((activity.Comments.Count - 2)) more...</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-muted small fst-italic">No comments yet.</div>
+                                }
+
+                                <input class="form-control mt-2" placeholder="Write a comment..."
+                                       @bind="commentInputs[activity.Id]" />
+                                <button class="btn btn-sm btn-primary mt-1" @onclick="() => AddComment(activity.Id)">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<UserActivityDto> activities = new();
+    private string? errorMessage;
+    private Dictionary<int, string> commentInputs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated ?? false)
+            {
+                activities = await ActivityService.GetUserActivitiesAsync();
+
+                foreach (var activity in activities)
+                {
+                    if (!commentInputs.ContainsKey(activity.Id))
+                    {
+                        commentInputs[activity.Id] = "";
+                    }
+                }
+            }
+            else
+            {
+                errorMessage = "You are not authenticated.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching activities: {ex}");
+            errorMessage = $"An error occurred: {ex.Message}";
+        }     
+    }
+
+    private async Task ToggleLike(UserActivityDto activity)
+    {
+        try
+        {
+            await ActivityService.LikeActivityAsync(activity.Id);
+
+            // Optimistically update UI
+            if (activity.IsLikedByCurrentUser)
+            {
+                activity.LikeCount--;
+            }
+            else
+            {
+                activity.LikeCount++;
+            }
+
+            activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Like toggle error: {ex}");
+        }
+    }
+
+    private async Task AddComment(int activityId)
+    {
+        try
+        {
+            if (commentInputs.TryGetValue(activityId, out var content) && !string.IsNullOrWhiteSpace(content))
+            {
+                await ActivityService.AddCommentAsync(activityId, content);
+
+                var activity = activities.FirstOrDefault(a => a.Id == activityId);
+                if (activity != null)
+                {
+                    activity.Comments.Add(new CommentDto
+                        {
+                            UserName = "You",
+                            Content = content,
+                            CreatedAt = DateTime.Now
+                        });
+                }
+
+                commentInputs[activityId] = string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error {ex}");
+        }
+    }
+
+    private void NavigateToEdit()
+    {
+        Navigation.NavigateTo("/edit-activity");
+    }
+}

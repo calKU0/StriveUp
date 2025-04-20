@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250420091105_Add_activity-Date")]
+    partial class Add_activityDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -266,89 +269,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.ToTable("Activities");
                 });
 
-            modelBuilder.Entity("StriveUp.Infrastructure.Models.ActivityComment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserActivityId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ActivityComments");
-                });
-
-            modelBuilder.Entity("StriveUp.Infrastructure.Models.ActivityLike", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("LikedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserActivityId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ActivityLikes");
-                });
-
-            modelBuilder.Entity("StriveUp.Infrastructure.Models.Friendship", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FriendId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Friendships");
-                });
-
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserActivity", b =>
                 {
                     b.Property<int>("Id")
@@ -376,7 +296,7 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("int");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -444,44 +364,6 @@ namespace StriveUp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StriveUp.Infrastructure.Models.ActivityComment", b =>
-                {
-                    b.HasOne("StriveUp.Infrastructure.Models.UserActivity", "UserActivity")
-                        .WithMany("ActivityComments")
-                        .HasForeignKey("UserActivityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StriveUp.Infrastructure.Identity.AppUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-
-                    b.Navigation("UserActivity");
-                });
-
-            modelBuilder.Entity("StriveUp.Infrastructure.Models.ActivityLike", b =>
-                {
-                    b.HasOne("StriveUp.Infrastructure.Models.UserActivity", "UserActivity")
-                        .WithMany("ActivityLikes")
-                        .HasForeignKey("UserActivityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StriveUp.Infrastructure.Identity.AppUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-
-                    b.Navigation("UserActivity");
-                });
-
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserActivity", b =>
                 {
                     b.HasOne("StriveUp.Infrastructure.Models.Activity", "Activity")
@@ -504,13 +386,6 @@ namespace StriveUp.Infrastructure.Migrations
             modelBuilder.Entity("StriveUp.Infrastructure.Models.Activity", b =>
                 {
                     b.Navigation("UserActivities");
-                });
-
-            modelBuilder.Entity("StriveUp.Infrastructure.Models.UserActivity", b =>
-                {
-                    b.Navigation("ActivityComments");
-
-                    b.Navigation("ActivityLikes");
                 });
 #pragma warning restore 612, 618
         }

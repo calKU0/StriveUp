@@ -16,5 +16,25 @@ namespace StriveUp.Infrastructure.Data
 
         public DbSet<Activity> Activities { get; set; }
         public DbSet<UserActivity> UserActivities { get; set; }
+        public DbSet<Friendship> Friendships { get; set; }
+        public DbSet<ActivityLike> ActivityLikes { get; set; }
+        public DbSet<ActivityComment> ActivityComments { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ActivityComment>()
+                .HasOne(c => c.UserActivity)
+                .WithMany(a => a.ActivityComments)
+                .HasForeignKey(c => c.UserActivityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ActivityLike>()
+                .HasOne(l => l.UserActivity)
+                .WithMany(a => a.ActivityLikes)
+                .HasForeignKey(l => l.UserActivityId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

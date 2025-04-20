@@ -63,7 +63,7 @@ public class AuthService : IAuthService
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName)
+            new(ClaimTypes.Name, user.UserName),
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
@@ -73,7 +73,7 @@ public class AuthService : IAuthService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: DateTime.UtcNow.AddHours(5),
             signingCredentials: creds
         );
 

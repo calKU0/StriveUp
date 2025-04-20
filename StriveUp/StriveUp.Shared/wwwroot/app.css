@@ -1,9 +1,65 @@
+:root {
+    --header-height: 3rem;
+    --hue: 0;
+    --sat: 0%;
+    --title-color: hsl(var(--hue), var(--sat), 20%);
+    --title-color-dark: hsl(var(--hue), var(--sat), 0%);
+    --text-color: hsl(var(--hue), var(--sat), 46%);
+    --body-color: hsl(var(--hue), var(--sat), 98%);
+    --icon-color: #8c4bd6;
+    --container-color: #fff;
+    --body-font: "Poppins", sans-serif;
+    --big-font-size: 3.5rem;
+    --h1-font-size: 2.25rem;
+    --h2-font-size: 1.5rem;
+    --h3-font-size: 1.25rem;
+    --normal-font-size: 1rem;
+    --small-font-size: 0.875rem;
+    --smaller-font-size: 0.813rem;
+    --tiny-font-size: 0.625rem;
+    --font-normal: 400;
+    --font-mediom: 500;
+    --font-semi-bold: 600;
+    --z-tooltip: 10;
+    --z-fixed: 100;
+    --z-modal: 1000;
+    --vh: 100vh;
+}
+
+@media screen and (max-width: 992px) {
+    :root {
+        --big-font-size: 2.75rem;
+        --h1-font-size: 1.8rem;
+        --h2-font-size: 1.7rem;
+        --h3-font-size: 1.5rem;
+        --normal-font-size: 0.938rem;
+        --small-font-size: 0.813rem;
+        --smaller-font-size: 0.75rem;
+    }
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 a, .btn-link {
     color: #006bb7;
+    text-decoration: none;
+}
+
+
+.navbar {
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    background-color: #FFA726;
+    padding: 2px;
+}
+
+.navbar-brand img {
+    max-height: 45px;
+    height: 100%;
+    object-fit: contain;
 }
 
 .container-full {
@@ -11,26 +67,38 @@ a, .btn-link {
     padding: 0;
     overflow: hidden;
     flex-grow: 1;
+    position: relative;
 }
 
-.navbar {
-    position: fixed;
+.image-overlay {
+    position: relative;
     width: 100%;
-    z-index: 1000;
+    height: 100%;
 }
 
-.navbar-brand img {
-    max-height: 50px;
+.image-overlay img {
+    width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
 }
+
+.hero-text {
+    max-width: 400px;
+    top: 36% !important;
+    left: 12%;
+    position: absolute;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+}
+
+.content {
+    margin-top: 59px !important;
+}
+
 
 .btn-warning {
     background-color: #FFA726 !important;
-}
-
-.navbar {
-    background-color: #FFA726;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {

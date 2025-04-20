@@ -15,7 +15,7 @@ namespace StriveUp.Infrastructure.Data
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnectionString"));
+            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnectionString"),options => options.EnableRetryOnFailure());
 
             return new AppDbContext(optionsBuilder.Options);
         }

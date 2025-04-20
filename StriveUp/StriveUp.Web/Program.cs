@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,14 +21,12 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
-builder.Services.AddScoped<IAuthService, AuthService>();
-
+builder.Services.AddScoped<IActivityService, ActivityService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7116")
+    BaseAddress = new Uri("https://localhost:7116/api/"),
 });
-
 
 var app = builder.Build();
 

@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using StriveUp.Shared.Interfaces;
+using Microsoft.JSInterop;
 
 namespace StriveUp.Web.Services
 {
@@ -68,6 +69,7 @@ namespace StriveUp.Web.Services
 
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
         {
+            Console.WriteLine($"JWT Token: {jwt}");
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(jwt);
             return token.Claims;
