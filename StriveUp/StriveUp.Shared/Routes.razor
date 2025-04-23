@@ -1,10 +1,21 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Blazorise
+@using Blazorise.Bootstrap5;
+@using Blazorise.Icons.FontAwesome
 
-<CascadingAuthenticationState>
-    <Router AppAssembly="typeof(Layout.MainLayout).Assembly">
-        <Found Context="routeData">
-            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-            <FocusOnNavigate RouteData="routeData" Selector="h1" />
-        </Found>
-    </Router>
-</CascadingAuthenticationState>
+
+
+
+    <CascadingAuthenticationState>
+        <Router AppAssembly="typeof(Layout.MainLayout).Assembly">
+            <Found Context="routeData">
+                <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+                <FocusOnNavigate RouteData="routeData" Selector="h1" />
+            </Found>
+            <NotFound>
+                <LayoutView Layout="typeof(Layout.MainLayout)">
+                    <h1>Page not found</h1>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    </CascadingAuthenticationState>

@@ -27,12 +27,14 @@ public static class MauiProgram
         builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
         builder.Services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
         builder.Services.AddAuthorizationCore();
+        builder.Services.AddScoped<IActivityService, ActivityService>();
+        builder.Services.AddSingleton<IPlatformService, MauiPlatformService>();
 
+        var devSslHelper = new DevHttpsConnectionHelper(sslPort: 7116);
+        var http = devSslHelper.HttpClient;
+        http.BaseAddress = new Uri(devSslHelper.DevServerRootUrl + "/api/");
 
-        builder.Services.AddScoped(sp => new HttpClient
-        {
-            BaseAddress = new Uri("https://localhost:7116")
-        });
+        builder.Services.AddScoped(sp => http);
 
         builder.Services.AddMauiBlazorWebView();
 

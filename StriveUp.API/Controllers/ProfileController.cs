@@ -8,7 +8,6 @@ namespace StriveUp.API.Controllers
 {
     [ApiController]
     [Route("api/user/[controller]")]
-    [Authorize]
     public class ProfileController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -23,7 +22,6 @@ namespace StriveUp.API.Controllers
         {
             var headers = Request.Headers;
 
-            Console.WriteLine("Request Headers: ");
             foreach (var header in headers)
             {
                 Console.WriteLine($"{header.Key}: {header.Value}");
@@ -44,7 +42,8 @@ namespace StriveUp.API.Controllers
                 .Select(ua => new UserActivityDto
                 {
                     ActivityId = ua.Activity.Id,
-                    Title = ua.Activity.Name,
+                    Title = ua.Title,
+                    ActivityName = ua.Activity.Name,
                     Description = ua.Activity.Description,
                     DurationMinutes = ua.DurationMinutes
                 })
@@ -55,7 +54,8 @@ namespace StriveUp.API.Controllers
                 Id = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
-                Activities = activities
+                Activities = activities,
+                Avatar = user.Avatar
             };
 
             return Ok(userProfile);

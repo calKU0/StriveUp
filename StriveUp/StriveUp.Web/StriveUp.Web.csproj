@@ -8,11 +8,19 @@
 
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="Blazorise" Version="1.7.6" />
+    <PackageReference Include="Blazorise.Bootstrap5" Version="1.7.6" />
+    <PackageReference Include="Blazorise.Cropper" Version="1.7.6" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.7.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\StriveUp.Shared\StriveUp.Shared.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+  <Content Include="Assets\**\*" CopyToOutputDirectory="Always" />
+</ItemGroup>
 
   <ItemGroup>
     <Content Update="wwwroot\images\StriveUp-logo.png">

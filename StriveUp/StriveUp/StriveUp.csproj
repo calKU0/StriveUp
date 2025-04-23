@@ -61,14 +61,35 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AndroidResource Remove="Platforms\Android\Resources\xml\network-security-config.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiImage Remove="Resources\Images\running-woman.jpg" />
+    <MauiImage Remove="Resources\Images\StriveUp-logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.4" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.60" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\StriveUp.Shared\StriveUp.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\images\running-woman.jpg" />
+    <None Include="wwwroot\images\StriveUp-logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\images\StriveUp-logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

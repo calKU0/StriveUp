@@ -11,18 +11,21 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using StriveUp.Infrastructure.Services;
 
 public class AuthService : IAuthService
 {
     private readonly SignInManager<AppUser> _signInManager;
     private readonly UserManager<AppUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly IImageService _imageService;
 
-    public AuthService(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IConfiguration configuration)
+    public AuthService(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IConfiguration configuration, IImageService imageService)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _configuration = configuration;
+        _imageService = imageService;
     }
 
     public async Task<(bool Success, string Token)> LoginAsync(LoginRequest request)
@@ -37,12 +40,29 @@ public class AuthService : IAuthService
 
     public async Task<(IdentityResult Result, string Token)> RegisterAsync(RegisterRequest request)
     {
+        string avatarUrl = null;
+
+        if (!string.IsNullOrEmpty(request.AvatarBase64))
+        {
+            var bytes = Convert.FromBase64String(request.AvatarBase64);
+            var stream = new MemoryStream(bytes);
+            stream.Position = 0;
+
+            var file = new FormFile(stream, 0, bytes.Length, "avatar", "avatar.png")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "image/png"
+            };
+            avatarUrl = await _imageService.UploadImageAsync(file);
+        }
+
         var user = new AppUser
         {
             UserName = request.Username,
             Email = request.Email,
             FirstName = request.FirstName,
-            LastName = request.LastName
+            LastName = request.LastName,
+            Avatar = avatarUrl,
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);

@@ -8,58 +8,71 @@
 
 <PageTitle>User Profile</PageTitle>
 
-<div class="container-fluid">
-    @* Loading and error states *@
+<div class="container my-5 pt-2">
     @if (isLoading)
     {
-        <p>Loading...</p>
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     }
     else if (errorMessage != null)
     {
-        <p class="text-danger">@errorMessage</p>
+        <div class="alert alert-danger">@errorMessage</div>
     }
     else
     {
-        <h3>User Profile</h3>
+        <div class="card shadow-lg p-4 rounded">
+            <div class="d-flex align-items-center mb-4">
+                <img src="@GetAvatarUrl()" alt="Avatar" class="rounded-circle me-3" style="width: 100px; height: 100px; object-fit: cover;" />
+                <div>
+                    <h3 class="mb-0">@userProfile.FirstName @userProfile.LastName</h3>
+                    <small class="text-muted">@userProfile.UserName</small>
+                    <p class="mb-0 text-muted">@userProfile.Email</p>
+                </div>
+                <div class="ms-auto">
+                    <button class="btn btn-outline-danger" @onclick="HandleLogout">Logout</button>
+                    @if (isEditable)
+                    {
+                        <button class="btn btn-primary ms-2" @onclick="ToggleEditMode">@(isEditing ? "Cancel" : "Edit")</button>
+                    }
+                </div>
+            </div>
 
-        @* Profile Details *@
-        <div>
-            <p><strong>Name:</strong> @userProfile.FirstName</p>
-            <p><strong>Email:</strong> @userProfile.Email</p>
-            <p><strong>Username:</strong> @userProfile.UserName</p>
+            <hr />
 
-            @if (isEditable)
+            <h4 class="mt-4">Activity Log</h4>
+            @if (userProfile.Activities != null && userProfile.Activities.Any())
             {
-                <button @onclick="ToggleEditMode">Edit</button>
+                <div class="list-group">
+                    @foreach (var activity in userProfile.Activities)
+                    {
+                        <div class="list-group-item mb-3 shadow-sm rounded border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <h5 class="mb-1">@activity.Title</h5>
+                                    <small class="text-muted">@activity.DateStart.ToShortDateString() - @activity.DateEnd.ToShortDateString()</small>
+                                </div>
+                                <span class="badge bg-secondary">@activity.DurationMinutes min</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(activity.Description))
+                            {
+                                <p class="mb-1"><em>@activity.Description</em></p>
+                            }
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small>Calories Burned: <strong>@activity.CaloriesBurned</strong></small>
+                                <small>Likes: <strong>@activity.LikeCount</strong></small>
+                            </div>
+                        </div>
+                    }
+                </div>
             }
-
-            @if (isEditing)
+            else
             {
-                <EditProfileComponent UserProfile="@userProfile" OnSave="OnProfileSaved" />
+                <p class="text-muted">No activities found.</p>
             }
         </div>
-
-        @* Display Activities *@
-        <h4>Activities</h4>
-        @if (userProfile.Activities != null && userProfile.Activities.Any())
-        {
-            <ul>
-                @foreach (var activity in userProfile.Activities)
-                {
-                    <li>
-                        <strong>@activity.Title</strong> - @activity.DurationMinutes minutes
-                        @if (!string.IsNullOrEmpty(activity.Description))
-                        {
-                            <p><em>@activity.Description</em></p>
-                        }
-                    </li>
-                }
-            </ul>
-        }
-        else
-        {
-            <p>No activities found.</p>
-        }
     }
 </div>
 
@@ -80,7 +93,6 @@
 
             if (currentUser.Identity?.IsAuthenticated ?? false)
             {
-                // Get the current user's profile information from the API
                 userId = currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var response = await Http.GetFromJsonAsync<UserProfileDto>($"user/profile/{userId}");
 
@@ -114,14 +126,22 @@
         isEditing = !isEditing;
     }
 
-    private void NavigateToEditProfile()
-    {
-        Navigation.NavigateTo("/edit-profile");
-    }
-
     private void OnProfileSaved(UserProfileDto updatedProfile)
     {
         userProfile = updatedProfile;
         isEditing = false;
     }
+
+    private async Task HandleLogout(MouseEventArgs args)
+    {
+        await AuthService.LogoutAsync();
+    }
+
+    private string GetAvatarUrl()
+    {
+        return string.IsNullOrWhiteSpace(userProfile.Avatar)
+            ? "https://via.placeholder.com/100"
+            : userProfile.Avatar;
+    }
+
 }

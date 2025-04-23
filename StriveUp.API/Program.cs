@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using StriveUp.API.Services;
+using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Extensions;
+using StriveUp.Infrastructure.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +48,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.AddScoped<IImageService, ImageService>();
 
 var app = builder.Build();
 

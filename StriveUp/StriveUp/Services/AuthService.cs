@@ -1,5 +1,6 @@
 ﻿using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -18,16 +19,24 @@ namespace StriveUp.Services
 
         public async Task<bool> LoginAsync(LoginRequest request)
         {
-            var response = await _http.PostAsJsonAsync("api/auth/login", request);
-            if (!response.IsSuccessStatusCode) return false;
+            try
+            {
+                var response = await _http.PostAsJsonAsync("auth/login", request);
+                Debug.WriteLine(response);
+                if (!response.IsSuccessStatusCode) return false;
 
-            var jwt = await response.Content.ReadFromJsonAsync<JwtResponse>();
-            if (jwt == null) return false;
+                var jwt = await response.Content.ReadFromJsonAsync<JwtResponse>();
+                if (jwt == null) return false;
 
-            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt.Token);
-            await _authStateProvider.NotifyUserAuthentication(jwt.Token);
+                await _authStateProvider.NotifyUserAuthentication(jwt.Token);
 
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return false;
+            }
         }
 
         public async Task LogoutAsync()
@@ -38,7 +47,7 @@ namespace StriveUp.Services
 
         public async Task<bool> RegisterAsync(RegisterRequest request)
         {
-            var response = await _http.PostAsJsonAsync("api/auth/register", request);
+            var response = await _http.PostAsJsonAsync("auth/register", request);
             return response.IsSuccessStatusCode;
         }
     }

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +21,9 @@ builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<IActivityService, ActivityService>();
+builder.Services.AddSingleton<IPlatformService, WebPlatformService>();
+
+
 
 builder.Services.AddScoped(sp => new HttpClient
 {
@@ -47,4 +49,5 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddAdditionalAssemblies(typeof(StriveUp.Shared._Imports).Assembly);
 
+app.UseStaticFiles();
 app.Run();

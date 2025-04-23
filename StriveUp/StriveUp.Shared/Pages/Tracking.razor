@@ -1,0 +1,94 @@
+﻿@page "/tracking"
+@inject IJSRuntime JSRuntime
+@using Microsoft.Maui
+@using Microsoft.Maui.ApplicationModel
+@using Microsoft.Maui.Devices.Sensors
+
+<h3>Start Activity</h3>
+
+
+<div id="map" style="height: 500px;"></div>
+<div>
+    <p><strong>Distance: </strong>@Distance km</p>
+    <p><strong>Speed: </strong>@Speed km/h</p>
+    <p><strong>Heart Rate: </strong>@HeartRate bpm</p>
+    <p><strong>Duration: </strong>@Duration</p>
+</div>
+
+<button @onclick="StartTracking">Start Tracking</button>
+<button @onclick="StopTracking" disabled="@(!isTracking)">Stop Tracking</button>
+
+
+@code {
+    private bool isTracking = false;
+    private double Distance = 0;
+    private double Speed = 0;
+    private int HeartRate = 0;
+    private TimeSpan Duration = TimeSpan.Zero;
+    private DateTime startTime;
+    private Location currentLocation;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Initialize the map only once when the component is first rendered
+            await JSRuntime.InvokeVoidAsync("initializeMap", "map");
+        }
+    }
+
+    private async Task StartTracking()
+    {
+        isTracking = true;
+        startTime = DateTime.Now;
+
+        // Start tracking user location
+        await StartLocationTracking();
+    }
+
+    private async Task StartLocationTracking()
+    {
+        try
+        {
+            // Ensure that the location permission is granted
+            var requestStatus = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+            if (requestStatus != PermissionStatus.Granted)
+            {
+                // If permission is denied, notify the user
+                Console.WriteLine("Location permission denied");
+                return;
+            }
+
+            // Start receiving location updates
+            Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(5)))
+                .ContinueWith(locationTask =>
+                {
+                    if (locationTask.IsCompletedSuccessfully)
+                    {
+                        currentLocation = locationTask.Result;
+                        UpdateMapLocation(currentLocation.Latitude, currentLocation.Longitude);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error getting location: " + locationTask.Exception?.Message);
+                    }
+                }, TaskScheduler.Default);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting location tracking: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateMapLocation(double latitude, double longitude)
+    {
+        // Send the updated GPS coordinates to JavaScript for map update
+        await JSRuntime.InvokeVoidAsync("updateMap", latitude, longitude);
+    }
+
+    private void StopTracking()
+    {
+        isTracking = false;
+    }
+}
+}

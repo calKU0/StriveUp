@@ -1,4 +1,5 @@
 ﻿@inject IAuthService AuthService;
+@inject IPlatformService PlatformService
 
 <nav class="navbar">
     <div class="container-fluid d-flex justify-content-between align-items-center">
@@ -14,6 +15,12 @@
                 <NavLink class="nav-link text-black" href="feed">
                     Feed
                 </NavLink>
+                @if (PlatformService.IsNativeApp())
+                {
+                    <NavLink class="nav-link text-black" href="tracking">
+                        Start Activity
+                    </NavLink>
+                }
             </div>
         </div>
 

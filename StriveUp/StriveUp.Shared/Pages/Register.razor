@@ -1,6 +1,7 @@
 ﻿@page "/register"
 @using StriveUp.Shared.DTOs
-@using StriveUp.Shared.Interfaces
+@using System.Drawing
+@using System.IO
 @inject NavigationManager Nav
 @inject IAuthService AuthService
 
@@ -11,6 +12,8 @@
         <h5 class="fw-bold">Register</h5>
         <p>Enter your email and password</p>
         <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
             <div class="row register-form-row justify-content-center g-3 pb-3">
                 <div class="form-floating col-12 col-md-6">
                     <InputText id="username" class="form-control" @bind-Value="registerModel.Username" placeholder="Username" />
@@ -32,15 +35,29 @@
                     <InputText id="password" class="form-control" @bind-Value="registerModel.Password" type="password" placeholder="Password" />
                     <label for="password">Password</label>
                 </div>
+                <div class="col-12 col-md-6">
+                    <label for="avatarUpload" class="form-label">Upload Avatar (optional)</label>
+                    <!-- Custom Circle Button for file selection -->
+                    <label for="avatarUpload" class="btn btn-light rounded-circle p-3" style="cursor: pointer;">
+                        <span>Select File</span>
+                        <InputFile id="avatarUpload" OnChange="HandleFileChange" class="d-none" />
+                    </label>
+
+                    <!-- Display Cropped Image -->
+                    @if (!string.IsNullOrWhiteSpace(croppedImageUrl))
+                    {
+                        <div class="avatar-preview mt-2">
+                            <img src="@croppedImageUrl" alt="Avatar preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" />
+                        </div>
+                    }
+                </div>
             </div>
             <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Register</button>
         </EditForm>
 
-
-
         <p class="text-muted text-center mb-2">or</p>
         <div class="text-center mb-2">
-            <p class="text-muted">Have and account?</p>
+            <p class="text-muted">Have an account?</p>
             <a href="" @onclick="LoginClick">Login here!</a>
         </div>
 
@@ -51,9 +68,18 @@
 
 @code {
     private RegisterRequest registerModel = new();
+    private string? imageDataUrl;
+    private string? croppedImageUrl;
 
     private async Task HandleRegister()
     {
+        // Prepare avatar base64 (cropped image) to send in registration data
+        var croppedImageBase64 = croppedImageUrl?.Substring(croppedImageUrl.IndexOf(',') + 1);
+        if (!string.IsNullOrWhiteSpace(croppedImageBase64))
+        {
+            registerModel.AvatarBase64 = croppedImageBase64;
+        }
+
         var success = await AuthService.RegisterAsync(registerModel);
         if (success)
             Nav.NavigateTo("/");
@@ -63,4 +89,93 @@
     {
         Nav.NavigateTo("/login");
     }
+
+
+    private async Task HandleFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var stream = file.OpenReadStream(maxAllowedSize: 1 * 1024 * 1024);
+        var buffer = new byte[file.Size];
+
+        var bytesRead = 0;
+        while (bytesRead < file.Size)
+        {
+            bytesRead += await stream.ReadAsync(buffer.AsMemory(bytesRead));
+        }
+
+        var base64Data = Convert.ToBase64String(buffer);
+        imageDataUrl = $"data:{file.ContentType};base64,{base64Data}";
+
+        // Call JavaScript to crop the image and update the cropped image preview
+        await CropImageAsync(imageDataUrl);
+    }
+
+    private async Task CropImageAsync(string imageDataUrl)
+    {
+        var base64Data = imageDataUrl.Substring(imageDataUrl.IndexOf(',') + 1);
+        var imageBytes = Convert.FromBase64String(base64Data);
+
+        // Load image into a MemoryStream
+        using var ms = new System.IO.MemoryStream(imageBytes);
+        using var originalImage = Image.FromStream(ms);
+
+        // Define target size (256x256)
+        var cropWidth = 256;
+        var cropHeight = 256;
+
+        // Calculate the aspect ratio of the original image
+        var aspectRatio = (double)originalImage.Width / originalImage.Height;
+
+        int newWidth, newHeight;
+        int xOffset = 0, yOffset = 0;
+
+        if (aspectRatio > 1) // Landscape image
+        {
+            newWidth = (int)(originalImage.Height * aspectRatio);
+            newHeight = originalImage.Height;
+        }
+        else if (aspectRatio < 1) // Portrait image
+        {
+            newWidth = originalImage.Width;
+            newHeight = (int)(originalImage.Width / aspectRatio);
+        }
+        else // Square image
+        {
+            newWidth = originalImage.Width;
+            newHeight = originalImage.Height;
+        }
+
+        // Adjust the crop to the center
+        xOffset = (newWidth - cropWidth) / 2;
+        yOffset = (newHeight - cropHeight) / 2;
+
+        // Create a new Bitmap to hold the cropped image
+        var croppedImage = new Bitmap(cropWidth, cropHeight);
+
+        // Create a graphics object to draw the cropped image
+        using (var g = Graphics.FromImage(croppedImage))
+        {
+            // Set high quality rendering options
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+
+            // Crop from the center of the image
+            g.DrawImage(originalImage, 0, 0, new Rectangle(xOffset, yOffset, cropWidth, cropHeight), GraphicsUnit.Pixel);
+        }
+
+        // Save the cropped image into a memory stream in PNG format
+        using var croppedMs = new System.IO.MemoryStream();
+        croppedImage.Save(croppedMs, System.Drawing.Imaging.ImageFormat.Png);
+
+        // Convert the cropped image to a base64 string
+        var croppedBase64 = Convert.ToBase64String(croppedMs.ToArray());
+
+        // Update the croppedImageUrl to show the result in the UI
+        croppedImageUrl = $"data:image/png;base64,{croppedBase64}";
+
+        // Complete the task asynchronously
+        await Task.CompletedTask;
+    }
+
 }
