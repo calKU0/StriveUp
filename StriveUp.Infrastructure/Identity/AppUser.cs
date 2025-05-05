@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using StriveUp.Infrastructure.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -24,5 +25,7 @@ namespace StriveUp.Infrastructure.Identity
         //public string? Bio { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public ICollection<MedalEarned>? MedalsEarned { get; set; }
     }
 }

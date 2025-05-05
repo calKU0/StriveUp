@@ -3,92 +3,274 @@
 @using Microsoft.Maui
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
+@using StriveUp.Shared.Components
 
-<h3>Start Activity</h3>
+<div class="page-wrapper @(mapVisible ? "map-visible" : "")">
+    <BackButton />
 
+    @if (isLoadingLocation)
+    {
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+            <p class="loading-text">Acquiring GPS. Please wait...</p>
+        </div>
+    }
 
-<div id="map" style="height: 500px;"></div>
-<div>
-    <p><strong>Distance: </strong>@Distance km</p>
-    <p><strong>Speed: </strong>@Speed km/h</p>
-    <p><strong>Heart Rate: </strong>@HeartRate bpm</p>
-    <p><strong>Duration: </strong>@Duration</p>
+    <div class="map-section pt-5" style="display: @(mapVisible ? "block" : "none")">
+        <div id="map"></div>
+    </div>
+
+    <div class="controls" style="display: @(mapVisible ? "block" : "none")">
+        <button @onclick="StartTracking" disabled="@(isTracking)">Start Tracking</button>
+        <button @onclick="StopTracking" disabled="@(!isTracking)">Stop Tracking</button>
+    </div>
+
+    <div class="swipe-hint" style="display: @(mapVisible ? "block" : "none")">⬆️ Swipe up for details</div>
+
+    <div id="bottomSheet" class="bottom-sheet">
+        <div class="drag-handle"></div>
+        <div class="tiles-wrapper container-fluid flex-grow-1 d-flex align-items-stretch">
+            <div class="row g-3 flex-grow-1 w-100">
+                <div class="col-6 d-flex">
+                    <div class="info-tile flex-fill">Distance: @Math.Round(Distance, 2).ToString("F2") km</div>
+                </div>
+                <div class="col-6 d-flex">
+                    <div class="info-tile flex-fill">Speed: @Math.Round(Speed,2).ToString("F2") km/h</div>
+                </div>
+                <div class="col-6 d-flex">
+                    <div class="info-tile flex-fill">Heart Rate: @HeartRate bpm</div>
+                </div>
+                <div class="col-6 d-flex">
+                    <div class="info-tile flex-fill">Duration: @Duration.ToString(@"hh\:mm\:ss")</div>
+
+                </div>
+                <div class="col-6 d-flex">
+                    <div class="info-tile flex-fill">Tile 5</div>
+                </div>
+                <div class="col-6 d-flex">
+                    <div class="info-tile flex-fill">Tile 6</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<button @onclick="StartTracking">Start Tracking</button>
-<button @onclick="StopTracking" disabled="@(!isTracking)">Stop Tracking</button>
 
 
 @code {
     private bool isTracking = false;
+    private bool mapVisible = false;
+    private bool mapInitialized = false;
+    private Location currentLocation;
     private double Distance = 0;
     private double Speed = 0;
     private int HeartRate = 0;
     private TimeSpan Duration = TimeSpan.Zero;
     private DateTime startTime;
-    private Location currentLocation;
+    private double currentHeading = 0; // Store the current heading
+    private List<Location> route = new();
+    private CancellationTokenSource durationCts;
+    private bool isLoadingLocation = true;
 
+    // This will be triggered when the page first loads
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Initialize the map only once when the component is first rendered
-            await JSRuntime.InvokeVoidAsync("initializeMap", "map");
+            await StartLocationTracking(); // Start tracking immediately
+            await JSRuntime.InvokeVoidAsync("handleSwipe", "bottomSheet");
         }
     }
 
-    private async Task StartTracking()
+    private void StartCompass()
     {
-        isTracking = true;
-        startTime = DateTime.Now;
-
-        // Start tracking user location
-        await StartLocationTracking();
+        try
+        {
+            Compass.Start(SensorSpeed.UI); // Start monitoring the compass at UI speed
+            Compass.ReadingChanged += Compass_ReadingChanged;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Compass error: " + ex.Message);
+        }
     }
+
+    private void StopCompass()
+    {
+        Compass.Stop();
+        Compass.ReadingChanged -= Compass_ReadingChanged;
+    }
+
+    private void Compass_ReadingChanged(object sender, CompassChangedEventArgs e)
+    {
+        currentHeading = e.Reading.HeadingMagneticNorth; // Use Magnetic North for heading
+    }
+
 
     private async Task StartLocationTracking()
     {
         try
         {
-            // Ensure that the location permission is granted
-            var requestStatus = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
-            if (requestStatus != PermissionStatus.Granted)
+            isLoadingLocation = true;
+            StateHasChanged();
+
+            var status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted)
             {
-                // If permission is denied, notify the user
-                Console.WriteLine("Location permission denied");
+                isLoadingLocation = false;
                 return;
             }
 
-            // Start receiving location updates
-            Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(5)))
-                .ContinueWith(locationTask =>
+            StartCompass();
+
+            while (currentLocation == null)
+            {
+                var location = await Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.High));
+
+                if (location != null)
                 {
-                    if (locationTask.IsCompletedSuccessfully)
+                    currentLocation = location;
+
+                    if (!mapInitialized)
                     {
-                        currentLocation = locationTask.Result;
-                        UpdateMapLocation(currentLocation.Latitude, currentLocation.Longitude);
+                        mapInitialized = true;
+                        mapVisible = true;
+                        await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude);
                     }
-                    else
-                    {
-                        Console.WriteLine("Error getting location: " + locationTask.Exception?.Message);
-                    }
-                }, TaskScheduler.Default);
+
+                    await JSRuntime.InvokeVoidAsync("updateMap", location.Latitude, location.Longitude, currentHeading);
+                    isLoadingLocation = false;
+                    StateHasChanged();
+                }
+
+                await Task.Delay(1500);
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error starting location tracking: {ex.Message}");
+            Console.WriteLine("Location error: " + ex.Message);
+            isLoadingLocation = false;
         }
     }
 
-    private async Task UpdateMapLocation(double latitude, double longitude)
+
+    private async void StartTracking()
     {
-        // Send the updated GPS coordinates to JavaScript for map update
-        await JSRuntime.InvokeVoidAsync("updateMap", latitude, longitude);
+        isTracking = true;
+        startTime = DateTime.UtcNow;
+        route.Clear();
+        durationCts = new CancellationTokenSource();
+
+        _ = Task.Run(() => TrackWhileMoving()); // start location tracking
+        _ = Task.Run(() => UpdateDuration(durationCts.Token)); // start timer
+    }
+
+    private async Task TrackWhileMoving()
+    {
+        try
+        {
+            while (isTracking)
+            {
+                var location = await Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.High));
+
+                if (location != null)
+                {
+                    if (route.Count > 0)
+                    {
+                        var lastLocation = route.Last();
+                        Distance += Location.CalculateDistance(lastLocation, location, DistanceUnits.Kilometers);
+                    }
+
+                    route.Add(location);
+
+                    Speed = location.Speed.HasValue && location.Speed.Value > 0
+                        ? location.Speed.Value * 3.6 // m/s to km/h
+                        : (Distance / Duration.TotalHours); // fallback estimate
+
+                    await JSRuntime.InvokeVoidAsync("updateMap", location.Latitude, location.Longitude, currentHeading);
+                    await InvokeAsync(() => StateHasChanged());
+                }
+
+                await Task.Delay(3000);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Tracking error: " + ex.Message);
+        }
+    }
+
+    private async Task FakeTrackWhileMoving()
+    {
+        try
+        {
+            var fakeRoute = GenerateStraightRoute(currentLocation);
+
+            foreach (var location in fakeRoute)
+            {
+                if (!isTracking) break;
+
+                if (route.Count > 0)
+                {
+                    var lastLocation = route.Last();
+                    Distance += Location.CalculateDistance(lastLocation, location, DistanceUnits.Kilometers);
+                }
+
+                route.Add(location);
+
+                Speed = Distance / Math.Max(Duration.TotalHours, 0.0001); // prevent division by zero
+
+                await JSRuntime.InvokeVoidAsync("updateMap", location.Latitude, location.Longitude, currentHeading);
+
+                // Ensure UI updates are triggered on the UI thread
+                await InvokeAsync(() => StateHasChanged());
+
+                await Task.Delay(3000); // simulate interval
+            }
+
+            isTracking = false; // End simulation
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Tracking error: " + ex.Message);
+        }
+    }
+
+    private List<Location> GenerateStraightRoute(Location startLocation, int pointCount = 10, double stepInMeters = 50)
+    {
+        var route = new List<Location> { startLocation };
+
+        // 1 degree latitude ≈ 111,320 meters
+        double stepLatitude = stepInMeters / 111320.0;
+
+        for (int i = 1; i < pointCount; i++)
+        {
+            var last = route.Last();
+            var next = new Location(last.Latitude + stepLatitude, last.Longitude);
+            route.Add(next);
+        }
+
+        return route;
+    }
+
+
+    private async Task UpdateDuration(CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            Duration = DateTime.UtcNow - startTime;
+
+            await InvokeAsync(() => StateHasChanged());
+            await Task.Delay(1000, token);
+        }
     }
 
     private void StopTracking()
     {
         isTracking = false;
+        StopCompass();
+        durationCts?.Cancel();
     }
 }
-}
+

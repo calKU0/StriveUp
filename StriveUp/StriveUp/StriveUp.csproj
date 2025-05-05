@@ -71,10 +71,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="9.0.60" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
     <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.60" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.9.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -82,6 +83,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\StriveUp.Shared\Components\Component.razor" Link="Component.razor" />
     <None Include="wwwroot\images\running-woman.jpg" />
     <None Include="wwwroot\images\StriveUp-logo.png" />
   </ItemGroup>

@@ -1,21 +1,32 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
-@using Blazorise
-@using Blazorise.Bootstrap5;
-@using Blazorise.Icons.FontAwesome
+@using StriveUp.Shared.Interfaces
+@inject IPlatformService PlatformService
+@inject NavigationManager NavigationManager
 
+<CascadingAuthenticationState>
+    <Router AppAssembly="typeof(Layout.MainLayout).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout="typeof(Layout.MainLayout)">
+                <h1>Page not found</h1>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
 
-
-
-    <CascadingAuthenticationState>
-        <Router AppAssembly="typeof(Layout.MainLayout).Assembly">
-            <Found Context="routeData">
-                <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-                <FocusOnNavigate RouteData="routeData" Selector="h1" />
-            </Found>
-            <NotFound>
-                <LayoutView Layout="typeof(Layout.MainLayout)">
-                    <h1>Page not found</h1>
-                </LayoutView>
-            </NotFound>
-        </Router>
-    </CascadingAuthenticationState>
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        if (!PlatformService.IsNativeApp())
+        {
+            NavigationManager.NavigateTo("/home"); 
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/feed"); 
+        }
+    }
+}

@@ -19,6 +19,9 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<ActivityLike> ActivityLikes { get; set; }
         public DbSet<ActivityComment> ActivityComments { get; set; }
+        public DbSet<Medal> Medals { get; set; }
+        public DbSet<MedalEarned> MedalsEarned { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +37,24 @@ namespace StriveUp.Infrastructure.Data
                 .HasOne(l => l.UserActivity)
                 .WithMany(a => a.ActivityLikes)
                 .HasForeignKey(l => l.UserActivityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MedalEarned>()
+                .HasOne(me => me.Medal)
+                .WithMany()
+                .HasForeignKey(me => me.MedalId)
+                .OnDelete(DeleteBehavior.Restrict); 
+
+            modelBuilder.Entity<MedalEarned>()
+                .HasOne(me => me.Activity)
+                .WithMany()
+                .HasForeignKey(me => me.ActivityId)
+                .OnDelete(DeleteBehavior.Restrict); 
+
+            modelBuilder.Entity<MedalEarned>()
+                .HasOne(me => me.User)
+                .WithMany()
+                .HasForeignKey(me => me.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

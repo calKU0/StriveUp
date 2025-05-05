@@ -36,6 +36,9 @@
         --small-font-size: 0.813rem;
         --smaller-font-size: 0.75rem;
     }
+    .content {
+        margin-top: 0px !important;
+    }
 }
 
 html, body {
@@ -49,7 +52,6 @@ a, .btn-link {
 
 
 .navbar {
-    position: fixed;
     width: 100%;
     z-index: 1000;
     background-color: #FFA726;
@@ -133,4 +135,11 @@ h1:focus {
 
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
+}
+
+@media screen and (max-width: 992px) {
+    .content {
+        margin-top: 0px !important;
+        margin-bottom: 80px !important
+    }
 }

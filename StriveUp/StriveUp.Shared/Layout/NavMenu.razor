@@ -1,33 +1,39 @@
 ﻿@inject IAuthService AuthService;
 @inject IPlatformService PlatformService
 
-<nav class="navbar">
+<nav class="navbar d-md-none fixed-bottom">
     <div class="container-fluid d-flex justify-content-between align-items-center">
         <!-- Left section: Brand + NavLinks -->
-        <div class="d-flex align-items-center">
+        <div class="d-md-flex d-none align-items-center">
             <a class="navbar-brand" href="">
                 <img class="logo-image img-fluid" src="images/StriveUp-logo.png" alt="Logo" />
             </a>
-            <div class="d-flex">
-                <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All">
-                    Home
-                </NavLink>
-                <NavLink class="nav-link text-black" href="feed">
-                    Feed
-                </NavLink>
-                @if (PlatformService.IsNativeApp())
-                {
-                    <NavLink class="nav-link text-black" href="tracking">
-                        Start Activity
-                    </NavLink>
-                }
-            </div>
         </div>
 
-        <!-- Right section: Login -->
-        <div class="d-flex">
-            <NavLink class="nav-link text-black" href="profile">
-                My profile
+        <!-- Right section: NavLinks with Icons and Text -->
+        <div class="d-flex justify-content-around w-100">
+            <NavLink class="d-md-flex d-none nav-link text-center" href="" Match="NavLinkMatch.All">
+                <i class="fas fa-home icon"></i>
+                <span class="small-text">Home</span>
+            </NavLink>
+            <NavLink class="nav-link text-center" href="feed">
+                <i class="fas fa-rss icon"></i>
+                <span class="small-text">Feed</span>
+            </NavLink>
+            @if (PlatformService.IsNativeApp())
+            {
+                <NavLink class="nav-link text-center" href="tracking">
+                    <i class="fas fa-running icon"></i>
+                    <span class="small-text">Activity</span>
+                </NavLink>
+            }
+            <NavLink class="nav-link text-center" href="medals">
+                <i class="fas fa-user icon"></i>
+                <span class="small-text">Medals</span>
+            </NavLink>
+            <NavLink class="nav-link text-center" href="profile">
+                <i class="fas fa-user icon"></i>
+                <span class="small-text">Profile</span>
             </NavLink>
         </div>
     </div>
@@ -39,4 +45,3 @@
         await AuthService.LogoutAsync();
     }
 }
-

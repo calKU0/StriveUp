@@ -1,9 +1,11 @@
 ﻿@page "/login"
+@using Microsoft.AspNetCore.Authorization
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.Interfaces
 @using System.Diagnostics
 @inject NavigationManager Nav
 @inject IAuthService AuthService
+@attribute [AllowAnonymous]
 
 <div class="d-flex justify-content-center align-items-center vh-100">
     <div class="container text-center">

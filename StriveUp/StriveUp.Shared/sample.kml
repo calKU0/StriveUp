@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Running Route</name>
+    <Style id="routeStyle">
+      <LineStyle>
+        <color>ff0000ff</color> <!-- Red line -->
+        <width>4</width>
+      </LineStyle>
+    </Style>
+
+    <Placemark>
+      <name>My Running Route</name>
+      <styleUrl>#routeStyle</styleUrl>
+      <LineString>
+        <tessellate>1</tessellate>
+        <coordinates>
+          -122.084000,37.422000,0
+          -122.083900,37.422100,0
+          -122.083800,37.422200,0
+          -122.083700,37.422300,0
+          -122.083600,37.422400,0
+          -122.083500,37.422500,0
+          -122.083400,37.422600,0
+          -122.083300,37.422700,0
+          -122.083200,37.422800,0
+          -122.083100,37.422900,0
+          -122.083000,37.423000,0
+          -122.082900,37.423100,0
+          -122.082800,37.423200,0
+          -122.082700,37.423300,0
+          -122.082600,37.423400,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>

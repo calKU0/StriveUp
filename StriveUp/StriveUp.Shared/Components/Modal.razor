@@ -1,0 +1,25 @@
+﻿@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    private void CloseModal()
+    {
+        IsVisible = false;
+        IsVisibleChanged.InvokeAsync(IsVisible);
+    }
+
+    private void OnBackdropClick()
+    {
+        CloseModal();
+    }
+}
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="OnBackdropClick">
+        <div class="modal-content">
+            @ChildContent
+        </div>
+    </div>
+}

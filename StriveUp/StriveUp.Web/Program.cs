@@ -21,11 +21,12 @@ builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<IActivityService, ActivityService>();
+builder.Services.AddScoped<IMedalsService, MedalService>();
 builder.Services.AddSingleton<IPlatformService, WebPlatformService>();
 
 
 
-builder.Services.AddScoped(sp => new HttpClient
+builder.Services.AddSingleton(sp => new HttpClient
 {
     BaseAddress = new Uri("https://localhost:7116/api/"),
 });
