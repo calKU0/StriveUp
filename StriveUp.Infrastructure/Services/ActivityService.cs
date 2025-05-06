@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using static System.Net.WebRequestMethods;
 
-namespace StriveUp.MAUI.Services
+namespace StriveUp.Infrastructure.Services
 {
     public class ActivityService : IActivityService
     {

@@ -12,8 +12,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using StriveUp.Infrastructure.Services;
+using StriveUp.Shared.Interfaces;
 
-public class AuthService : IAuthService
+public class AuthService : StriveUp.API.Services.IAuthService
 {
     private readonly SignInManager<AppUser> _signInManager;
     private readonly UserManager<AppUser> _userManager;

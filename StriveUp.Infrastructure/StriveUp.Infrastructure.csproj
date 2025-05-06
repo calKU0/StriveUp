@@ -38,4 +38,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\StriveUp.Shared\StriveUp.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

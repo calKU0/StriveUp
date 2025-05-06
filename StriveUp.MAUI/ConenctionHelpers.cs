@@ -13,7 +13,11 @@ namespace StriveUp.MAUI
         {
             SslPort = sslPort;
             DevServerRootUrl = FormattableString.Invariant($"https://{DevServerName}:{SslPort}");
-            LazyHttpClient = new Lazy<HttpClient>(() => new HttpClient(GetPlatformMessageHandler()));
+            LazyHttpClient = new Lazy<HttpClient>(() =>
+            {
+                var handler = GetPlatformMessageHandler();
+                return handler != null ? new HttpClient(handler) : new HttpClient();
+            });
         }
 
         public int SslPort { get; }
@@ -34,21 +38,30 @@ namespace StriveUp.MAUI
 
         public HttpMessageHandler? GetPlatformMessageHandler()
         {
+            try
+            {
+
+
 #if WINDOWS
             return null;
 #elif ANDROID
-            var handler = new CustomAndroidMessageHandler();
-            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
-            {
-                if (cert != null && cert.Issuer.Equals("CN=localhost"))
-                    return true;
-                return errors == SslPolicyErrors.None;
-            };
-            return handler;
+                var handler = new CustomAndroidMessageHandler();
+                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    if (cert != null && cert.Issuer.Equals("CN=localhost"))
+                        return true;
+                    return errors == SslPolicyErrors.None;
+                };
+                return handler;
 
 #else
         throw new PlatformNotSupportedException("Only Windows and Android currently supported.");
 #endif
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
 #if ANDROID

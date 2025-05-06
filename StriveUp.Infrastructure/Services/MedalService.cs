@@ -1,8 +1,9 @@
 ﻿using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
-namespace StriveUp.Web.Services
+namespace StriveUp.Infrastructure.Services
 {
     public class MedalService : IMedalsService
     {

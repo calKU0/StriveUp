@@ -1,4 +1,5 @@
-﻿using StriveUp.Shared.DTOs;
+﻿using StriveUp.Infrastructure.Services;
+using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
 using System.Net.Http.Headers;
@@ -9,9 +10,9 @@ namespace StriveUp.MAUI.Services
     public class AuthService : IAuthService
     {
         private readonly HttpClient _http;
-        private readonly CustomAuthStateProvider _authStateProvider;
+        private readonly ICustomAuthStateProvider _authStateProvider;
 
-        public AuthService(HttpClient http, CustomAuthStateProvider authStateProvider)
+        public AuthService(HttpClient http, ICustomAuthStateProvider authStateProvider)
         {
             _http = http;
             _authStateProvider = authStateProvider;

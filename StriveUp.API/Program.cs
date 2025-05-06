@@ -46,10 +46,8 @@ builder.Services.AddAuthorization();
 
 // Infrastructure
 builder.Services.AddInfrastructure(builder.Configuration);
-
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
-builder.Services.AddScoped<IImageService, ImageService>();
 
 var app = builder.Build();
 

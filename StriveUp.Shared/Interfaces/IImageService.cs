@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StriveUp.Infrastructure.Services
+namespace StriveUp.Shared.Interfaces
 {
     public interface IImageService
     {

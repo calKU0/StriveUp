@@ -4,6 +4,7 @@ using StriveUp.MAUI.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using StriveUp.Infrastructure.Extensions;
 
 namespace StriveUp.MAUI;
 
@@ -24,18 +25,13 @@ public static class MauiProgram
 
         builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
-        builder.Services.AddScoped<CustomAuthStateProvider>();
-        builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
-        builder.Services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
-        builder.Services.AddAuthorizationCore();
-        builder.Services.AddScoped<IActivityService, ActivityService>();
-        builder.Services.AddScoped<IMedalsService, MedalService>();
         builder.Services.AddSingleton<IPlatformService, MauiPlatformService>();
+        builder.Services.AddClientInfrastructure();
+        builder.Services.AddAuthorizationCore();
 
         var devSslHelper = new DevHttpsConnectionHelper(sslPort: 7116);
         var http = devSslHelper.HttpClient;
         http.BaseAddress = new Uri(devSslHelper.DevServerRootUrl + "/api/");
-
         builder.Services.AddSingleton(sp => http);
 
         builder.Services.AddMauiBlazorWebView();

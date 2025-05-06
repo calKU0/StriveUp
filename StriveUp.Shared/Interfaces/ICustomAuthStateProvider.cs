@@ -10,5 +10,7 @@ namespace StriveUp.Shared.Interfaces
     public interface ICustomAuthStateProvider
     {
         Task<AuthenticationState> GetAuthenticationStateAsync();
+        Task NotifyUserAuthentication(string token);
+        Task NotifyUserLogout();
     }
 }

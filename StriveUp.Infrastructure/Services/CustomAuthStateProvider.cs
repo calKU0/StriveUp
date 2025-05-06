@@ -8,7 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
-namespace StriveUp.MAUI.Services
+namespace StriveUp.Infrastructure.Services
 {
     public class CustomAuthStateProvider : AuthenticationStateProvider, ICustomAuthStateProvider
     {
