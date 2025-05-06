@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp", "StriveUp\StriveUp\StriveUp.csproj", "{C37257BD-D0AC-4073-8A2A-93F6135EA10A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.MAUI", "StriveUp.MAUI\StriveUp.MAUI.csproj", "{C37257BD-D0AC-4073-8A2A-93F6135EA10A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.Shared", "StriveUp\StriveUp.Shared\StriveUp.Shared.csproj", "{0C2D7CC3-959D-400B-9695-317E1B80197E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.Shared", "StriveUp.Shared\StriveUp.Shared.csproj", "{0C2D7CC3-959D-400B-9695-317E1B80197E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.Web", "StriveUp\StriveUp.Web\StriveUp.Web.csproj", "{93613A7A-9DA6-431F-B543-16077A9E1DB9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.Web", "StriveUp.Web\StriveUp.Web.csproj", "{93613A7A-9DA6-431F-B543-16077A9E1DB9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.Infrastructure", "StriveUp.Infrastructure\StriveUp.Infrastructure.csproj", "{FC3117A1-3498-404A-B3EE-F028C72018F4}"
 EndProject
