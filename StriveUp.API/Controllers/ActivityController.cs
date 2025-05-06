@@ -1,4 +1,5 @@
 ﻿
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,43 +16,34 @@ namespace StriveUp.API.Controllers
     public class ActivityController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ActivityController(AppDbContext context)
+        public ActivityController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpPost("addUserActivity")]
-        public async Task<IActionResult> AddUserActivity(UserActivityDto dto)
+        public async Task<IActionResult> AddUserActivity(CreateUserActivityDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var activity = await _context.Activities.FindAsync(dto.ActivityId);
             if (activity == null)
-            {
                 return BadRequest("Invalid activity ID.");
-            }
 
-            var calories = Convert.ToInt32(Math.Round((decimal)(activity.AverageCaloriesPerHour / 60) * dto.DurationMinutes));
-
-            var userActivity = new UserActivity
-            {
-                UserId = userId!,
-                Title = dto.Title,
-                ActivityId = dto.ActivityId,
-                Description = dto.Description,
-                //ImageUrls = dto.ImageUrls ?? new List<string>(),
-                DurationMinutes = dto.DurationMinutes,
-                DateStart = dto.DateStart,
-                DateEnd = dto.DateEnd,
-                CaloriesBurned = calories
-            };
+            var userActivity = _mapper.Map<UserActivity>(dto);
+            userActivity.UserId = userId!;
+            userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((decimal)(activity.AverageCaloriesPerHour / 60) * dto.DurationMinutes));
 
             _context.UserActivities.Add(userActivity);
             await _context.SaveChangesAsync();
 
-            return Ok(userActivity);
+            return Ok(userActivity.Id);
         }
+
+
 
         [HttpGet("userActivities")]
         public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetUserActivities()
@@ -62,38 +54,24 @@ namespace StriveUp.API.Controllers
 
                 var activities = await _context.UserActivities
                     .Include(ua => ua.Activity)
-                    //.Include(ua => ua.ActivityLikes)
-                    //.Include(ua => ua.ActivityComments)
+                    .Include(ua => ua.User)
+                    .Include(ua => ua.ActivityLikes)
+                    .Include(ua => ua.ActivityComments).ThenInclude(c => c.User)
+                    .Include(ua => ua.Route)
                     .Where(ua => ua.UserId == userId)
                     .ToListAsync();
 
-                var activityDtos = activities
-                    .Select(ua => new UserActivityDto
-                    {
-                        Id = ua.Id,
-                        ActivityId = ua.ActivityId,
-                        ActivityName = ua.Activity.Name,
-                        Title = ua.Activity.Name,
-                        Description = ua.Description,
-                        DurationMinutes = ua.DurationMinutes,
-                        DateStart = ua.DateStart,
-                        DateEnd = ua.DateEnd,
-                        CaloriesBurned = ua.CaloriesBurned,
-                        UserName = ua.User.UserName,
-                        LikeCount = ua.ActivityLikes.Count,
-                        IsLikedByCurrentUser = ua.ActivityLikes.Any(like => like.UserId == userId),
-                        Comments = ua.ActivityComments
-                            .OrderBy(c => c.CreatedAt)
-                            .Select(c => new CommentDto
-                            {
-                                UserName = c.User.UserName,
-                                Content = c.Content,
-                                CreatedAt = c.CreatedAt
-                            }).ToList()
-                        // ImageUrls = ua.ImageUrls
-                    }).ToList();
+                var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
+
+                foreach (var dto in activityDtos)
+                {
+                    var entity = activities.First(a => a.Id == dto.Id);
+                    dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
+                    dto.Comments = _mapper.Map<List<CommentDto>>(entity.ActivityComments);
+                }
 
                 return Ok(activityDtos);
+
             }
             catch (Exception ex)
             {
@@ -118,6 +96,7 @@ namespace StriveUp.API.Controllers
 
                 var activities = await _context.UserActivities
                     .Include(ua => ua.Activity)
+                    .Include(ua => ua.Route)
                     .Include(ua => ua.User)
                     .Include(ua => ua.ActivityLikes)
                     .Include(ua => ua.ActivityComments)
@@ -125,29 +104,14 @@ namespace StriveUp.API.Controllers
                     .Where(ua => userIds.Contains(ua.UserId))
                     .ToListAsync();
 
-                var activityDtos = activities.Select(ua => new UserActivityDto
+                var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
+                foreach (var dto in activityDtos)
                 {
-                    Id = ua.Id,
-                    ActivityId = ua.ActivityId,
-                    ActivityName = ua.Activity.Name,
-                    Title = ua.Title,
-                    Description = ua.Description,
-                    DurationMinutes = ua.DurationMinutes,
-                    DateStart = ua.DateStart,
-                    DateEnd = ua.DateEnd,
-                    CaloriesBurned = ua.CaloriesBurned,
-                    UserName = ua.User.UserName,
-                    LikeCount = ua.ActivityLikes.Count,
-                    IsLikedByCurrentUser = ua.ActivityLikes.Any(like => like.UserId == userId),
-                    Comments = ua.ActivityComments
-                        .OrderBy(c => c.CreatedAt)
-                        .Select(c => new CommentDto
-                        {
-                            UserName = c.User.UserName,
-                            Content = c.Content,
-                            CreatedAt = c.CreatedAt
-                        }).ToList()
-                }).ToList();
+                    var entity = activities.First(a => a.Id == dto.Id);
+                    dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
+                    dto.Comments = _mapper.Map<List<CommentDto>>(entity.ActivityComments);
+                    dto.Route = _mapper.Map<List<GeoPointDto>>(entity.Route.OrderBy(p => p.Timestamp));
+                }
 
                 return Ok(activityDtos);
             }
@@ -163,14 +127,9 @@ namespace StriveUp.API.Controllers
         {
             try
             {
-                var activities = await _context.Activities
-                    .Select(a => new ActivityDto
-                    {
-                        Id = a.Id,
-                        Name = a.Name
-                    }).ToListAsync();
-
-                return Ok(activities);
+                var activities = await _context.Activities.ToListAsync();
+                var activityDtos = _mapper.Map<List<ActivityDto>>(activities);
+                return Ok(activityDtos);
             }
             catch (Exception ex)
             {

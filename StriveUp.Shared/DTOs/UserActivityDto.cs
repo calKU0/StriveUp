@@ -30,5 +30,6 @@ namespace StriveUp.Shared.DTOs
         public int LikeCount { get; set; }
         public bool IsLikedByCurrentUser { get; set; }
         public List<CommentDto> Comments { get; set; } = new();
+        public List<GeoPointDto>? Route { get; set; } = new();
     }
 }

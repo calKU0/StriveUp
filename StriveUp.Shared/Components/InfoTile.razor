@@ -1,0 +1,13 @@
+﻿<div class="col-6 d-flex">
+    <div class="card shadow-sm w-100 text-center">
+        <div class="card-body p-3">
+            <h6 class="card-title text-muted">@Label</h6>
+            <p class="card-text fw-bold fs-5">@Value</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; }
+    [Parameter] public string Value { get; set; }
+}

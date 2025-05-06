@@ -50,5 +50,4 @@ function updateMap(lat, lng, heading) {
     polyline.setLatLngs(trail);
 
     userMarker.setLatLng(latLng);
-    userMarker.setRotationAngle(heading); // Rotate marker based on the heading
 }

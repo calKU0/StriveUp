@@ -1,0 +1,38 @@
+﻿@using StriveUp.Shared.DTOs
+<div class="text-center my-3">
+    @if (!IsTracking && !IsPaused)
+    {
+        <div class="mb-3">
+            <label class="form-label">Select Activity:</label>
+            <select class="form-select w-auto d-inline-block" @bind="SelectedActivityId">
+                @foreach (var activity in AvailableActivities)
+                {
+                    <option value="@activity.Id">@activity.Name</option>
+                }
+            </select>
+        </div>
+
+        <button class="btn btn-warning btn-lg" @onclick="OnStartClick">Start Activity</button>
+    }
+    else if (IsPaused)
+    {
+        <button class="btn btn-success me-2" @onclick="OnResumeClick">Resume</button>
+        <button class="btn btn-danger" @onclick="OnFinishClick">Finish</button>
+    }
+    else
+    {
+        <button class="btn btn-danger btn-lg" @onclick="OnStopClick">Stop Activity</button>
+    }
+</div>
+
+@code {
+    [Parameter] public List<ActivityDto> AvailableActivities { get; set; }
+    [Parameter] public int SelectedActivityId { get; set; }
+    [Parameter] public bool IsTracking { get; set; }
+    [Parameter] public bool IsPaused { get; set; }
+
+    [Parameter] public EventCallback OnStartClick { get; set; }
+    [Parameter] public EventCallback OnStopClick { get; set; }
+    [Parameter] public EventCallback OnResumeClick { get; set; }
+    [Parameter] public EventCallback OnFinishClick { get; set; }
+}

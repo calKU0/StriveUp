@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StriveUp.Infrastructure.Data;
@@ -13,10 +15,12 @@ namespace StriveUp.API.Controllers
     public class MedalController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public MedalController(AppDbContext context)
+        public MedalController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet("medals")]
@@ -24,18 +28,11 @@ namespace StriveUp.API.Controllers
         {
             try
             {
-                return await _context.Medals
-                    .Select(m => new MedalDto
-                    {
-                        Id = m.Id,
-                        Name = m.Name,
-                        Description = m.Description,
-                        ImageUrl = m.ImageUrl,
-                        Level = m.Level,
-                        TargetValue = m.TargetValue,
-                        Frequency = m.Frequency,
-                    })
+                var medals = await _context.Medals
+                    .ProjectTo<MedalDto>(_mapper.ConfigurationProvider) 
                     .ToListAsync();
+
+                return Ok(medals);
             }
             catch (Exception ex)
             {
@@ -50,22 +47,15 @@ namespace StriveUp.API.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                return await _context.MedalsEarned
+
+                var medals = await _context.MedalsEarned
                     .Where(m => m.UserId == userId)
                     .Include(m => m.Medal)
-                    .Select(m => new MedalDto
-                    {
-                        Id = m.Id,
-                        Name = m.Medal.Name,
-                        Description = m.Medal.Description,
-                        ImageUrl = m.Medal.ImageUrl,
-                        Level = m.Medal.Level,
-                        TargetValue = m.Medal.TargetValue,
-                        Frequency = m.Medal.Frequency,
-                        DateEarned = m.DateEarned
-                    })
                     .ToListAsync();
 
+                var medalDtos = _mapper.Map<List<MedalDto>>(medals);
+
+                return Ok(medalDtos);
             }
             catch (Exception ex)
             {
@@ -73,27 +63,6 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-        [HttpGet("userNotEarnedMedals")]
-        public async Task<IEnumerable<MedalDto>> GetNotEarnedMedalsAsync(string userId)
-        {
-            var userMedals = await _context.MedalsEarned
-                .Where(me => me.UserId == userId)
-                .Select(me => me.MedalId)
-                .ToListAsync();
 
-            return await _context.Medals
-                .Where(m => !userMedals.Contains(m.Id))
-                .Select(m => new MedalDto
-                {
-                    Id = m.Id,
-                    Name = m.Name,
-                    Description = m.Description,
-                    ImageUrl = m.ImageUrl,
-                    Level = m.Level,
-                    TargetValue = m.TargetValue,
-                    Frequency = m.Frequency,
-                })
-                .ToListAsync();
-        }
     }
 }

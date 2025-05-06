@@ -10,8 +10,8 @@ namespace StriveUp.Shared.Interfaces
     public interface IActivityService
     {
         Task<List<UserActivityDto>?> GetUserActivitiesAsync();
-        Task<bool> AddActivityAsync(UserActivityDto activity);
-        Task<bool> UpdateActivityAsync(int activityId, UserActivityDto activity);
+        Task<bool> AddActivityAsync(CreateUserActivityDto activity);
+        Task<bool> UpdateActivityAsync(int activityId, CreateUserActivityDto activity);
         Task<List<ActivityDto>?> GetAvailableActivitiesAsync();
         Task<UserActivityDto?> GetActivityByIdAsync(int activityId);
         Task AddCommentAsync(int activityId, string comment);

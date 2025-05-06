@@ -64,7 +64,7 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
-        public async Task<bool> AddActivityAsync(UserActivityDto activity)
+        public async Task<bool> AddActivityAsync(CreateUserActivityDto activity)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
-        public async Task<bool> UpdateActivityAsync(int activityId, UserActivityDto activity)
+        public async Task<bool> UpdateActivityAsync(int activityId, CreateUserActivityDto activity)
         {
             try
             {

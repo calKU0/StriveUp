@@ -1,0 +1,62 @@
+﻿using AutoMapper;
+using StriveUp.Infrastructure.Identity;
+using StriveUp.Infrastructure.Models;
+using StriveUp.Shared.DTOs;
+
+namespace StriveUp.API.Mapping
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            // UserActivity <-> DTO
+            CreateMap<UserActivity, UserActivityDto>()
+                .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
+                .ForMember(dest => dest.LikeCount, opt => opt.MapFrom(src => src.ActivityLikes.Count))
+                .ForMember(dest => dest.IsLikedByCurrentUser, opt => opt.Ignore()) 
+                .ForMember(dest => dest.Comments, opt => opt.Ignore()) 
+                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route))
+                .ForMember(dest => dest.ActivityId, opt => opt.MapFrom(src => src.Activity.Id))
+                .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Activity.Description))
+                .ForMember(dest => dest.DurationMinutes, opt => opt.MapFrom(src => src.DurationMinutes));
+
+            // CreateUserActivityDto <-> DTO
+            CreateMap<CreateUserActivityDto, UserActivity>()
+    .           ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route));
+
+            CreateMap<UserActivityDto, UserActivity>()
+                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route));
+
+            // GeoPoint <-> DTO
+            CreateMap<GeoPoint, GeoPointDto>().ReverseMap();
+
+            // Comment  <-> DTO
+            CreateMap<ActivityComment, CommentDto>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
+
+            // Activity <-> DTO
+            CreateMap<Activity, ActivityDto>();
+
+            // Medal <-> DTO
+            CreateMap<Medal, MedalDto>();
+
+            // MedalEarned <-> DTO
+            CreateMap<MedalEarned, MedalDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Medal.Id))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Medal.Name))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Medal.Description))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Medal.ImageUrl))
+                .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Medal.Level))
+                .ForMember(dest => dest.TargetValue, opt => opt.MapFrom(src => src.Medal.TargetValue))
+                .ForMember(dest => dest.Frequency, opt => opt.MapFrom(src => src.Medal.Frequency))
+                .ForMember(dest => dest.DateEarned, opt => opt.MapFrom(src => src.DateEarned));
+
+            // AppUser <-> DTO
+            CreateMap<AppUser, UserProfileDto>()
+                .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.UserActivities))
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar));
+        }
+    }
+}

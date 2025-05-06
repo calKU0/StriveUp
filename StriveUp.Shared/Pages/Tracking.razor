@@ -1,64 +1,76 @@
 ﻿@page "/tracking"
 @inject IJSRuntime JSRuntime
+@inject IActivityService activityService
 @using Microsoft.Maui
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
 @using StriveUp.Shared.Components
+@using StriveUp.Shared.DTOs
+
+
+@if (isLoadingLocation)
+{
+    <div class="loading-overlay">
+        <div class="spinner"></div>
+        <p class="loading-text">Acquiring GPS. Please wait...</p>
+    </div>
+}
 
 <div class="page-wrapper @(mapVisible ? "map-visible" : "")">
-    <BackButton />
-
-    @if (isLoadingLocation)
+    @if (!isTracking && !isPaused)
     {
-        <div class="loading-overlay">
-            <div class="spinner"></div>
-            <p class="loading-text">Acquiring GPS. Please wait...</p>
-        </div>
+        <BackButton />
     }
 
-    <div class="map-section pt-5" style="display: @(mapVisible ? "block" : "none")">
+    <div class="map-section @(!isTracking && !isPaused ? "pt-5" : "")">
         <div id="map"></div>
     </div>
 
-    <div class="controls" style="display: @(mapVisible ? "block" : "none")">
-        <button @onclick="StartTracking" disabled="@(isTracking)">Start Tracking</button>
-        <button @onclick="StopTracking" disabled="@(!isTracking)">Stop Tracking</button>
+    <div class="controls">
+        <ActivityControls AvailableActivities="availableActivities"
+        SelectedActivityId="@selectedActivityId"
+        IsTracking="@isTracking"
+        IsPaused="@isPaused"
+        OnStartClick="@ToggleTracking"
+        OnStopClick="@ToggleTracking"
+        OnResumeClick="@ResumeTracking"
+        OnFinishClick="@ShowFinishModal" />
     </div>
 
-    <div class="swipe-hint" style="display: @(mapVisible ? "block" : "none")">⬆️ Swipe up for details</div>
-
-    <div id="bottomSheet" class="bottom-sheet">
-        <div class="drag-handle"></div>
+    @if (isTracking || isPaused)
+    {
+        <div id="bottomSheet" class="bottom-sheet ">
+            <div class="drag-handle"></div>
         <div class="tiles-wrapper container-fluid flex-grow-1 d-flex align-items-stretch">
-            <div class="row g-3 flex-grow-1 w-100">
-                <div class="col-6 d-flex">
-                    <div class="info-tile flex-fill">Distance: @Math.Round(Distance, 2).ToString("F2") km</div>
-                </div>
-                <div class="col-6 d-flex">
-                    <div class="info-tile flex-fill">Speed: @Math.Round(Speed,2).ToString("F2") km/h</div>
-                </div>
-                <div class="col-6 d-flex">
-                    <div class="info-tile flex-fill">Heart Rate: @HeartRate bpm</div>
-                </div>
-                <div class="col-6 d-flex">
-                    <div class="info-tile flex-fill">Duration: @Duration.ToString(@"hh\:mm\:ss")</div>
-
-                </div>
-                <div class="col-6 d-flex">
-                    <div class="info-tile flex-fill">Tile 5</div>
-                </div>
-                <div class="col-6 d-flex">
-                    <div class="info-tile flex-fill">Tile 6</div>
-                </div>
+            <!-- Info Tiles -->
+            <div class="row g-3">
+                <InfoTile Label="Distance" Value="@($"{Math.Round(Distance, 2):F2} km")" />
+                <InfoTile Label="Speed" Value="@($"{Math.Round(Speed, 2):F2} km/h")" />
+                <InfoTile Label="Heart Rate" Value="@($"{HeartRate} bpm")" />
+                <InfoTile Label="Duration" Value="@Duration.ToString(@"hh\:mm\:ss")" />
+                <InfoTile Label="Tile 5" Value="--" />
+                <InfoTile Label="Tile 6" Value="--" />
             </div>
         </div>
     </div>
+    }
 
 </div>
+
+<FinishModal Show="@showFinishModal"
+             Duration="@Duration"
+             Title="@activityTitle"
+             Description="@activityDescription"
+             OnSave="@SaveActivityWithMeta"
+             OnDiscard="@DiscardActivity"
+             OnResume="@ResumeTracking" />
 
 
 
 @code {
+    private List<ActivityDto> availableActivities = new();
+    private bool isPaused = false;
+    private int selectedActivityId = 4;
     private bool isTracking = false;
     private bool mapVisible = false;
     private bool mapInitialized = false;
@@ -73,11 +85,18 @@
     private CancellationTokenSource durationCts;
     private bool isLoadingLocation = true;
 
+    private bool showFinishModal = false;
+    private string activityTitle = "My Activity";
+    private string activityDescription = "Tracked via GPS";
+
     // This will be triggered when the page first loads
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            var activities = await activityService.GetAvailableActivitiesAsync();
+            if (activities != null)
+                availableActivities = activities;
             await StartLocationTracking(); // Start tracking immediately
             await JSRuntime.InvokeVoidAsync("handleSwipe", "bottomSheet");
         }
@@ -112,9 +131,6 @@
     {
         try
         {
-            isLoadingLocation = true;
-            StateHasChanged();
-
             var status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
             if (status != PermissionStatus.Granted)
             {
@@ -154,15 +170,27 @@
         }
     }
 
+    private void ToggleTracking()
+    {
+        if (isTracking)
+        {
+            _ = StopTracking();
+        }
+        else
+        {
+            _ = StartTracking();
+        }
+    }
 
-    private async void StartTracking()
+
+    private async Task StartTracking()
     {
         isTracking = true;
         startTime = DateTime.UtcNow;
         route.Clear();
         durationCts = new CancellationTokenSource();
 
-        _ = Task.Run(() => TrackWhileMoving()); // start location tracking
+        _ = Task.Run(() => FakeTrackWhileMoving()); // start location tracking
         _ = Task.Run(() => UpdateDuration(durationCts.Token)); // start timer
     }
 
@@ -201,6 +229,7 @@
         }
     }
 
+
     private async Task FakeTrackWhileMoving()
     {
         try
@@ -209,7 +238,10 @@
 
             foreach (var location in fakeRoute)
             {
-                if (!isTracking) break;
+                if (!isTracking)
+                {
+                    break;
+                }
 
                 if (route.Count > 0)
                 {
@@ -228,8 +260,6 @@
 
                 await Task.Delay(3000); // simulate interval
             }
-
-            isTracking = false; // End simulation
         }
         catch (Exception ex)
         {
@@ -237,7 +267,7 @@
         }
     }
 
-    private List<Location> GenerateStraightRoute(Location startLocation, int pointCount = 10, double stepInMeters = 50)
+    private List<Location> GenerateStraightRoute(Location startLocation, int pointCount = 35, double stepInMeters = 50)
     {
         var route = new List<Location> { startLocation };
 
@@ -266,11 +296,66 @@
         }
     }
 
-    private void StopTracking()
+    private async Task StopTracking()
     {
         isTracking = false;
+        isPaused = true;
         StopCompass();
         durationCts?.Cancel();
+        StateHasChanged();
+    }
+
+    private async Task ResumeTracking()
+    {
+        isPaused = false;
+        showFinishModal = false;
+        isTracking = true;
+        durationCts = new CancellationTokenSource();
+        _ = Task.Run(() => FakeTrackWhileMoving()); // or TrackWhileMoving()
+        _ = Task.Run(() => UpdateDuration(durationCts.Token));
+    }
+
+    private void ShowFinishModal()
+    {
+        showFinishModal = true;
+    }
+
+    private void DiscardActivity()
+    {
+        showFinishModal = false;
+        isPaused = false;
+        Distance = 0;
+        Speed = 0;
+        Duration = TimeSpan.Zero;
+        route.Clear();
+        StateHasChanged();
+    }
+
+    private async Task SaveActivityWithMeta()
+    {
+        var dto = new CreateUserActivityDto
+            {
+                Title = activityTitle,
+                Description = activityDescription,
+                ActivityId = selectedActivityId,
+                DateStart = startTime,
+                DateEnd = DateTime.UtcNow,
+                DurationMinutes = (int)Duration.TotalMinutes,
+                Route = route.Select(loc => new GeoPointDto
+                {
+                    Latitude = loc.Latitude,
+                    Longitude = loc.Longitude,
+                    Timestamp = DateTime.UtcNow
+                }).ToList()
+            };
+
+        await activityService.AddActivityAsync(dto);
+        showFinishModal = false;
+        isPaused = false;
+        Distance = 0;
+        Duration = TimeSpan.Zero;
+        Speed = 0;
+        route.Clear();
     }
 }
 

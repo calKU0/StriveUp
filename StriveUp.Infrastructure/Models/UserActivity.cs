@@ -39,6 +39,8 @@ namespace StriveUp.Infrastructure.Models
         public DateTime DateEnd { get; set; }
         public List<ActivityLike> ActivityLikes { get; set; } = new();
         public List<ActivityComment> ActivityComments { get; set; } = new();
+        public List<GeoPoint> Route { get; set; } = new();
+
         //[NotMapped]
         //public List<string>? ImageUrls { get; set; }
     }

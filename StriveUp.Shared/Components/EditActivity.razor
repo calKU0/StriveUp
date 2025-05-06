@@ -85,16 +85,16 @@ else
     {
         try
         {
-            bool success;
+            bool success = false;
 
             if (IsNew)
             {
                 activity.DateEnd = activity.DateStart.AddMinutes(activity.DurationMinutes);
-                success = await ActivityService.AddActivityAsync(activity);
+                //success = await ActivityService.AddActivityAsync(activity);
             }
             else
             {
-                success = await ActivityService.UpdateActivityAsync(ActivityId.Value, activity);
+                //success = await ActivityService.UpdateActivityAsync(ActivityId.Value, activity);
             }
 
             if (success)

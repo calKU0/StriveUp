@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StriveUp.Infrastructure.Data;
@@ -10,56 +11,41 @@ namespace StriveUp.API.Controllers
     [Route("api/user/[controller]")]
     public class ProfileController : ControllerBase
     {
+        private readonly IMapper _mapper;
         private readonly AppDbContext _context;
 
-        public ProfileController(AppDbContext context)
+        public ProfileController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet("{userId}")]
         public async Task<ActionResult<UserProfileDto>> GetProfile(string userId)
         {
-            var headers = Request.Headers;
-
-            foreach (var header in headers)
+            try
             {
-                Console.WriteLine($"{header.Key}: {header.Value}");
-            }
+                var user = await _context.Users
+                    .Include(u => u.UserActivities)
+                    .Where(u => u.Id == userId)
+                    .FirstOrDefaultAsync();
 
-            var user = await _context.Users
-                .Where(u => u.Id == userId)
-                .FirstOrDefaultAsync();
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            var activities = await _context.UserActivities
-                .Include(ua => ua.Activity)
-                .Where(ua => ua.UserId == userId)
-                .Select(ua => new UserActivityDto
+                if (user == null)
                 {
-                    ActivityId = ua.Activity.Id,
-                    Title = ua.Title,
-                    ActivityName = ua.Activity.Name,
-                    Description = ua.Activity.Description,
-                    DurationMinutes = ua.DurationMinutes
-                })
-                .ToListAsync();
+                    return NotFound();
+                }
 
-            var userProfile = new UserProfileDto
+                var userProfile = _mapper.Map<UserProfileDto>(user);
+
+                return Ok(userProfile);
+            }
+            catch (Exception ex)
             {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                Activities = activities,
-                Avatar = user.Avatar
-            };
-
-            return Ok(userProfile);
+                Console.WriteLine(ex);
+                return StatusCode(500, "Internal server error");
+            }
         }
+
 
         [HttpPut("{userId}")]
         public async Task<ActionResult> UpdateProfile(string userId, [FromBody] UserProfileDto profile)
