@@ -22,7 +22,7 @@ namespace StriveUp.Infrastructure.Services
         }
         public async Task<string> GetMapboxTokenAsync()
         {
-            return await _httpClient.GetStringAsync("api/securable/mapboxToken");
+            return await _httpClient.GetStringAsync("securable/mapboxToken");
         }
     }
 }

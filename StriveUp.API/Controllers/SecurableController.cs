@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using StriveUp.Shared.Interfaces;
+using StriveUp.API.Services;
 
 namespace StriveUp.API.Controllers
 {
