@@ -21,13 +21,13 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: "9.x"
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Build API project only
+        run: dotnet build StriveUp.API/StriveUp.API.csproj --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      - name: Publish API project only
+        run: dotnet publish StriveUp.API/StriveUp.API.csproj --configuration Release --output ./publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -39,7 +39,7 @@ jobs:
     runs-on: windows-latest
     needs: build
     environment:
-      name: 'Production'
+      name: "Production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
       id-token: write #This is required for requesting the JWT
@@ -50,7 +50,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -62,7 +62,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'StriveUpAPI'
-          slot-name: 'Production'
+          app-name: "StriveUpAPI"
+          slot-name: "Production"
           package: .
-          
