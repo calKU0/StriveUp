@@ -3,6 +3,7 @@
 @using StriveUp.Shared.DTOs
 @using System.Drawing
 @using System.IO
+@using System.Diagnostics
 @attribute [AllowAnonymous]
 @inject NavigationManager Nav
 @inject IAuthService AuthService
@@ -14,8 +15,6 @@
         <h5 class="fw-bold">Register</h5>
         <p>Enter your email and password</p>
         <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
             <div class="row register-form-row justify-content-center g-3 pb-3">
                 <div class="form-floating col-12 col-md-6">
                     <InputText id="username" class="form-control" @bind-Value="registerModel.Username" placeholder="Username" />
@@ -54,6 +53,19 @@
                     }
                 </div>
             </div>
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            @if (errorMessages.Any())
+            {
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach (var error in errorMessages)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
             <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Register</button>
         </EditForm>
 
@@ -72,19 +84,39 @@
     private RegisterRequest registerModel = new();
     private string? imageDataUrl;
     private string? croppedImageUrl;
+    private List<string> errorMessages = new();
+    private string? successMessage;
 
     private async Task HandleRegister()
     {
-        // Prepare avatar base64 (cropped image) to send in registration data
-        var croppedImageBase64 = croppedImageUrl?.Substring(croppedImageUrl.IndexOf(',') + 1);
-        if (!string.IsNullOrWhiteSpace(croppedImageBase64))
-        {
-            registerModel.AvatarBase64 = croppedImageBase64;
-        }
+        errorMessages.Clear();
+        successMessage = null;
 
-        var success = await AuthService.RegisterAsync(registerModel);
-        if (success)
-            Nav.NavigateTo("/");
+        try
+        {
+            var croppedImageBase64 = croppedImageUrl?.Substring(croppedImageUrl.IndexOf(',') + 1);
+            if (!string.IsNullOrWhiteSpace(croppedImageBase64))
+            {
+                registerModel.AvatarBase64 = croppedImageBase64;
+            }
+
+            Debug.WriteLine(registerModel.Email);
+            var (success, errors) = await AuthService.RegisterAsync(registerModel);
+
+            if (success)
+            {
+                successMessage = "Registration successful!";
+                Nav.NavigateTo("/");
+            }
+            else
+            {
+                errorMessages = errors ?? new List<string> { "Registration failed." };
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessages.Add($"Unexpected error: {ex.Message}");
+        }
     }
 
     private void LoginClick()
@@ -96,7 +128,7 @@
     private async Task HandleFileChange(InputFileChangeEventArgs e)
     {
         var file = e.File;
-        using var stream = file.OpenReadStream(maxAllowedSize: 1 * 1024 * 1024);
+        using var stream = file.OpenReadStream(maxAllowedSize: 1 * 1024 * 1);
         var buffer = new byte[file.Size];
 
         var bytesRead = 0;

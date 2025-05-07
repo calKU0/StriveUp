@@ -1,0 +1,241 @@
+﻿@page "/profile/edit"
+@using System.Drawing
+@using StriveUp.Shared.DTOs.Profile
+@using System.Security.Claims
+@inject IProfileService ProfileService
+@inject NavigationManager Navigation
+@inject ICustomAuthStateProvider AuthStateProvider
+@inject IJSRuntime JS
+
+<EditForm Model="@editModel" OnValidSubmit="HandleValidSubmit" class="vh-100 d-flex justify-content-center align-items-center">
+    <div class="container text-center">
+        <h2 class="fw-bold">Edit Your Profile</h2>
+        <p class="text-muted mb-4">Update your personal information</p>
+
+        <InputFile itemref="fileInput" style="display:none" OnChange="HandleFileChange" accept="image/*" />
+
+        <img @onclick="TriggerFileInputClick"
+        src="@GetAvatarUrl()"
+        class="rounded-circle"
+        style="width: 100px; height: 100px; cursor: pointer;"
+        title="Click to change avatar" />
+
+        <div class="form-floating col-12 col-md-6 mb-3 mx-auto">
+            <InputText id="userName" class="form-control" @bind-Value="editModel.UserName" placeholder="Username" />
+            <label for="userName">Username</label>
+        </div>
+
+        <div class="form-floating col-12 col-md-6 mb-3 mx-auto">
+            <InputText id="firstName" class="form-control" @bind-Value="editModel.FirstName" placeholder="First Name" />
+            <label for="firstName">First Name</label>
+        </div>
+
+        <div class="form-floating col-12 col-md-6 mb-3 mx-auto">
+            <InputText id="lastName" class="form-control" @bind-Value="editModel.LastName" placeholder="Last Name" />
+            <label for="lastName">Last Name</label>
+        </div>
+
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success col-12 col-md-6 mx-auto">@successMessage</div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger col-12 col-md-6 mx-auto">@errorMessage</div>
+        }
+
+        <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Save Changes</button>
+        <button type="button" class="btn btn-outline-secondary rounded-3 col-12 col-md-6" @onclick="CancelEdit">Cancel</button>
+    </div>
+</EditForm>
+
+@code {
+    private ElementReference fileInput;
+    private string? imageDataUrl;
+    private string? croppedImageUrl;
+    private EditUserProfileDto editModel = new();
+    private string? successMessage;
+    private string? errorMessage;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
+
+                if (user.Identity?.IsAuthenticated ?? false)
+                {
+                    var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var (success, error, profile) = await ProfileService.GetProfile(userId);
+
+                    if (success && profile != null)
+                    {
+                        // Populate the model with data received from the backend
+                        editModel = new EditUserProfileDto
+                            {
+                                UserName = profile.UserName,
+                                FirstName = profile.FirstName,
+                                LastName = profile.LastName,
+                                Avatar = profile.Avatar ?? string.Empty
+                            };
+                    }
+                    else
+                    {
+                        errorMessage = error?.Message ?? "Failed to load user profile.";
+                    }
+                }
+                else
+                {
+                    errorMessage = "Unauthorized";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"An error occurred: {ex.Message}";
+            }
+        }
+    }
+
+    private async Task TriggerFileInputClick()
+    {
+        await JS.InvokeVoidAsync("triggerFileInputClick", fileInput);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            var (success, error) = await ProfileService.EditProfile(editModel);
+
+            if (success)
+            {
+                successMessage = "Profile updated successfully!";
+                errorMessage = null;
+
+                // Redirect after a short delay
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/profile");
+            }
+            else
+            {
+                successMessage = null;
+                errorMessage = error?.Message ?? "An error occurred while updating your profile.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+            successMessage = null;
+        }
+    }
+
+    private void CancelEdit()
+    {
+        Navigation.NavigateTo("/profile");
+    }
+
+    private string GetAvatarUrl()
+    {
+        return !string.IsNullOrWhiteSpace(croppedImageUrl)
+            ? croppedImageUrl
+            : string.IsNullOrWhiteSpace(editModel.Avatar)
+                ? "https://via.placeholder.com/100"
+                : editModel.Avatar;
+    }
+
+    private async Task HandleFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var stream = file.OpenReadStream(maxAllowedSize: 1 * 1024 * 1);
+        var buffer = new byte[file.Size];
+
+        var bytesRead = 0;
+        while (bytesRead < file.Size)
+        {
+            bytesRead += await stream.ReadAsync(buffer.AsMemory(bytesRead));
+        }
+
+        var base64Data = Convert.ToBase64String(buffer);
+        imageDataUrl = $"data:{file.ContentType};base64,{base64Data}";
+
+        await CropImageAsync(imageDataUrl);
+    }
+
+    private async Task CropImageAsync(string imageDataUrl)
+    {
+        var base64Data = imageDataUrl.Substring(imageDataUrl.IndexOf(',') + 1);
+        var imageBytes = Convert.FromBase64String(base64Data);
+
+        // Load image into a MemoryStream
+        using var ms = new System.IO.MemoryStream(imageBytes);
+        using var originalImage = Image.FromStream(ms);
+
+        // Define target size (256x256)
+        var cropWidth = 256;
+        var cropHeight = 256;
+
+        // Calculate the aspect ratio of the original image
+        var aspectRatio = (double)originalImage.Width / originalImage.Height;
+
+        int newWidth, newHeight;
+        int xOffset = 0, yOffset = 0;
+
+        if (aspectRatio > 1) // Landscape image
+        {
+            newWidth = (int)(originalImage.Height * aspectRatio);
+            newHeight = originalImage.Height;
+        }
+        else if (aspectRatio < 1) // Portrait image
+        {
+            newWidth = originalImage.Width;
+            newHeight = (int)(originalImage.Width / aspectRatio);
+        }
+        else // Square image
+        {
+            newWidth = originalImage.Width;
+            newHeight = originalImage.Height;
+        }
+
+        // Adjust the crop to the center
+        xOffset = (newWidth - cropWidth) / 2;
+        yOffset = (newHeight - cropHeight) / 2;
+
+        // Create a new Bitmap to hold the cropped image
+        var croppedImage = new Bitmap(cropWidth, cropHeight);
+
+        // Create a graphics object to draw the cropped image
+        using (var g = Graphics.FromImage(croppedImage))
+        {
+            // Set high quality rendering options
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+
+            // Crop from the center of the image
+            g.DrawImage(originalImage, 0, 0, new Rectangle(xOffset, yOffset, cropWidth, cropHeight), GraphicsUnit.Pixel);
+        }
+
+        // Save the cropped image into a memory stream in PNG format
+        using var croppedMs = new System.IO.MemoryStream();
+        croppedImage.Save(croppedMs, System.Drawing.Imaging.ImageFormat.Png);
+
+        // Convert the cropped image to a base64 string
+        var croppedBase64 = Convert.ToBase64String(croppedMs.ToArray());
+
+        // Update the croppedImageUrl to show the result in the UI
+        croppedImageUrl = $"data:image/png;base64,{croppedBase64}";
+
+        editModel.Avatar = croppedImageUrl;
+
+        // Complete the task asynchronously
+        await Task.CompletedTask;
+    }
+}

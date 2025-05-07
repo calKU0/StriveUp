@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StriveUp.Shared.DTOs
+namespace StriveUp.Shared.DTOs.Profile
 {
     public class UserProfileDto
     {
@@ -21,5 +21,6 @@ namespace StriveUp.Shared.DTOs
         public string Email { get; set; }
         public string? Avatar { get; set; }
         public List<UserActivityDto> Activities { get; set; }
+        public List<MedalDto> Medals { get; set; }
     }
 }

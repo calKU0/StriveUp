@@ -26,6 +26,8 @@
                            placeholder="Password" />
                 <label for="floatingPassword">Password</label>
             </div>
+            <DataAnnotationsValidator />
+            <ValidationSummary />
             @if (!string.IsNullOrEmpty(loginError))
             {
                 <div class="text-danger col-12 col-md-6 mb-3">@loginError</div>
@@ -52,16 +54,16 @@
 
     private async Task HandleLogin()
     {
-        var success = await AuthService.LoginAsync(loginModel);
+        var (success, error) = await AuthService.LoginAsync(loginModel);
+
         if (success)
         {
             loginError = null;
-
             Nav.NavigateTo("/");
         }
         else
         {
-            loginError = "Invalid email or password. Please try again.";
+            loginError = error ?? "Invalid email or password. Please try again.";
         }
     }
 

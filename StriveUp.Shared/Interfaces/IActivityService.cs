@@ -1,4 +1,5 @@
 ﻿using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Activity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -67,6 +67,10 @@ public class AuthService : StriveUp.API.Services.IAuthService
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
+        foreach (var error in result.Errors)
+        {
+            Console.WriteLine($"Code: {error.Code}, Description: {error.Description}");
+        }
         if (!result.Succeeded)
             return (result, null);
 

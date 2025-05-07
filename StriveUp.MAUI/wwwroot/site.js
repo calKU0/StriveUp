@@ -3,6 +3,20 @@ let trail = [];
 let polyline;
 let userMarker = null;
 
+
+export function renderStaticMap(mapId, routePoints) {
+    const map = L.map(mapId).setView([routePoints[0].latitude, routePoints[0].longitude], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    const latlngs = routePoints.map(p => [p.latitude, p.longitude]);
+    const polyline = L.polyline(latlngs, { color: 'dodgerblue', weight: 5 }).addTo(map);
+    map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+}
+
+
 function initializeMap(lat, lng) {
     map = L.map("map").setView([lat, lng], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -38,6 +52,12 @@ window.handleSwipe = function (sheetId) {
         handle.addEventListener('click', () => {
             bottomSheet.classList.toggle('expanded');
         });
+    }
+};
+
+window.triggerFileInputClick = function (element) {
+    if (element) {
+        element.click();
     }
 };
 

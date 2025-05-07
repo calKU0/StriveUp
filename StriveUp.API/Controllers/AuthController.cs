@@ -28,14 +28,16 @@ namespace StriveUp.API.Controllers
         public async Task<IActionResult> Register(RegisterRequest request)
         {
             var (result, token) = await _authService.RegisterAsync(request);
+
             if (!result.Succeeded)
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return BadRequest($"Registration failed: {errors}");
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                return BadRequest(new { Message = "Registration failed.", Errors = errors });
             }
 
             return Ok(new JwtResponse { Token = token });
         }
+
 
 
     }

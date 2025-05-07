@@ -6,6 +6,7 @@
 @using Microsoft.Maui.Devices.Sensors
 @using StriveUp.Shared.Components
 @using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Activity
 
 
 @if (isLoadingLocation)
@@ -102,31 +103,6 @@
         }
     }
 
-    private void StartCompass()
-    {
-        try
-        {
-            Compass.Start(SensorSpeed.UI); // Start monitoring the compass at UI speed
-            Compass.ReadingChanged += Compass_ReadingChanged;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Compass error: " + ex.Message);
-        }
-    }
-
-    private void StopCompass()
-    {
-        Compass.Stop();
-        Compass.ReadingChanged -= Compass_ReadingChanged;
-    }
-
-    private void Compass_ReadingChanged(object sender, CompassChangedEventArgs e)
-    {
-        currentHeading = e.Reading.HeadingMagneticNorth; // Use Magnetic North for heading
-    }
-
-
     private async Task StartLocationTracking()
     {
         try
@@ -137,8 +113,6 @@
                 isLoadingLocation = false;
                 return;
             }
-
-            StartCompass();
 
             while (currentLocation == null)
             {
@@ -300,7 +274,6 @@
     {
         isTracking = false;
         isPaused = true;
-        StopCompass();
         durationCts?.Cancel();
         StateHasChanged();
     }

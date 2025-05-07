@@ -2,6 +2,8 @@
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Activity;
+using StriveUp.Shared.DTOs.Profile;
 
 namespace StriveUp.API.Mapping
 {
@@ -14,8 +16,8 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
                 .ForMember(dest => dest.LikeCount, opt => opt.MapFrom(src => src.ActivityLikes.Count))
-                .ForMember(dest => dest.IsLikedByCurrentUser, opt => opt.Ignore()) 
-                .ForMember(dest => dest.Comments, opt => opt.Ignore()) 
+                .ForMember(dest => dest.IsLikedByCurrentUser, opt => opt.Ignore())
+                .ForMember(dest => dest.Comments, opt => opt.Ignore())
                 .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route))
                 .ForMember(dest => dest.ActivityId, opt => opt.MapFrom(src => src.Activity.Id))
                 .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
@@ -23,11 +25,8 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.DurationMinutes, opt => opt.MapFrom(src => src.DurationMinutes));
 
             // CreateUserActivityDto <-> DTO
-            CreateMap<CreateUserActivityDto, UserActivity>()
-    .           ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route));
-
-            CreateMap<UserActivityDto, UserActivity>()
-                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route));
+            CreateMap<CreateUserActivityDto, UserActivity>();
+            CreateMap<UserActivityDto, UserActivity>();
 
             // GeoPoint <-> DTO
             CreateMap<GeoPoint, GeoPointDto>().ReverseMap();
@@ -56,7 +55,10 @@ namespace StriveUp.API.Mapping
             // AppUser <-> DTO
             CreateMap<AppUser, UserProfileDto>()
                 .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.UserActivities))
-                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar));
+                .ForMember(dest => dest.Medals, opt => opt.MapFrom(src => src.MedalsEarned));
+
+            CreateMap<EditUserProfileDto, AppUser>()
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
         }
     }
 }

@@ -29,4 +29,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\medals\" />
+  </ItemGroup>
+
 </Project>

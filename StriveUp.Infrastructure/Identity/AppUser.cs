@@ -17,9 +17,6 @@ namespace StriveUp.Infrastructure.Identity
         [Required]
         [MaxLength(50)]
         public string LastName { get; set; }
-        [Required]
-        [MaxLength(50)]
-        public string Email { get; set; }
         public string? Avatar { get; set; }
         //[MaxLength(150)]
         //public string? Bio { get; set; }

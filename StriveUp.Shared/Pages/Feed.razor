@@ -4,6 +4,7 @@
 @inject ICustomAuthStateProvider AuthStateProvider
 @using StriveUp.Shared.DTOs
 @using System.Security.Claims
+@using StriveUp.Shared.Components;
 
 
 <PageTitle>Activity Feed</PageTitle>
@@ -32,6 +33,10 @@
                             <span class="card-text text-black activity-card-date pt-1">@activity.DateStart - @activity.DateEnd</span>
                             <span class="card-text text-black fw-bolder activity-card-title pt-3">@activity.Title</span>
                             <p class="card-text text-muted">@activity.Description</p>
+                            @if (activity.Route != null && activity.Route.Count > 1)
+                            {
+                                <MapRoute Route=activity.Route />
+                            }
 
                             <!-- Stats Row -->
                             <div class="row text-center text-secondary mb-3">

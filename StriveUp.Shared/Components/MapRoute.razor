@@ -1,0 +1,29 @@
+﻿@inject IJSRuntime JSRuntime
+@using StriveUp.Shared.DTOs
+@implements IAsyncDisposable
+
+<div id="@MapId" style="height: 250px; border-radius: 12px; overflow: hidden;"></div>
+
+@code {
+    [Parameter] public List<GeoPointDto> Route { get; set; } = new();
+    private string MapId = $"map_{Guid.NewGuid().ToString("N")}";
+    private IJSObjectReference? _leafletModule;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Route.Count > 1)
+        {
+            _leafletModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./js/leafletInterop.js");
+            await _leafletModule.InvokeVoidAsync("renderStaticMap", MapId, Route);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_leafletModule != null)
+        {
+            await _leafletModule.DisposeAsync();
+        }
+    }
+}

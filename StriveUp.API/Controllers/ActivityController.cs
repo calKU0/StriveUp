@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Activity;
 using System.Security.Claims;
 
 namespace StriveUp.API.Controllers

@@ -72,6 +72,17 @@ a, .btn-link {
     position: relative;
 }
 
+.icon-sm-text {
+    font-size: var(--smaller-font-size);
+}
+
+a {
+    color: inherit;
+}
+a:hover {
+    color: inherit;
+}
+
 .image-overlay {
     position: relative;
     width: 100%;
