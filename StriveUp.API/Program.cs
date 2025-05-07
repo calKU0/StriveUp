@@ -8,7 +8,6 @@ using StriveUp.API.Services;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Data.Settings;
 using StriveUp.Infrastructure.Extensions;
-using StriveUp.Infrastructure.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +48,7 @@ builder.Services.AddAuthorization();
 // Infrastructure
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISecurableService, SecurableService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<MapboxSettings>(builder.Configuration.GetSection("MapboxSettings"));
 builder.Services.AddAutoMapper(typeof(MappingProfile));

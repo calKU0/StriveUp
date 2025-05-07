@@ -11,18 +11,18 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
 using StriveUp.Infrastructure.Data.Settings;
 
-namespace StriveUp.Infrastructure.Services
+namespace StriveUp.API.Services
 {
     public class SecurableService : ISecurableService
     {
-        private readonly HttpClient _httpClient;
-        public SecurableService(IHttpClientFactory httpClient)
+        private readonly IOptions<MapboxSettings> _config;
+        public SecurableService(IOptions<MapboxSettings> config)
         {
-            _httpClient = httpClient.CreateClient("ApiClient");
+            _config = config;
         }
         public async Task<string> GetMapboxTokenAsync()
         {
-            return await _httpClient.GetStringAsync("api/securable/mapboxToken");
+            return _config.Value.AccessToken;
         }
     }
 }

@@ -1,13 +1,16 @@
 ﻿@page "/tracking"
 @inject IJSRuntime JSRuntime
 @inject IActivityService activityService
+@inject ISecurableService securableService
 @inject NavigationManager Navigation
+
 @using Microsoft.Maui
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
 @using StriveUp.Shared.Components
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
+@using System.Diagnostics
 
 
 @if (isLoadingLocation)
@@ -43,29 +46,29 @@
     {
         <div id="bottomSheet" class="bottom-sheet ">
             <div class="drag-handle"></div>
-        <div class="tiles-wrapper container-fluid flex-grow-1 d-flex align-items-stretch">
-            <!-- Info Tiles -->
-            <div class="row g-3">
-                <InfoTile Label="Distance" Value="@($"{Math.Round(Distance, 2):F2} km")" />
-                <InfoTile Label="Speed" Value="@($"{Math.Round(Speed, 2):F2} km/h")" />
-                <InfoTile Label="Heart Rate" Value="@($"{HeartRate} bpm")" />
-                <InfoTile Label="Duration" Value="@Duration.ToString(@"hh\:mm\:ss")" />
-                <InfoTile Label="Tile 5" Value="--" />
-                <InfoTile Label="Tile 6" Value="--" />
+            <div class="tiles-wrapper container-fluid flex-grow-1 d-flex align-items-stretch">
+                <!-- Info Tiles -->
+                <div class="row g-3">
+                    <InfoTile Label="Distance" Value="@($"{Math.Round(Distance, 2):F2} km")" />
+                    <InfoTile Label="Speed" Value="@($"{Math.Round(Speed, 2):F2} km/h")" />
+                    <InfoTile Label="Heart Rate" Value="@($"{HeartRate} bpm")" />
+                    <InfoTile Label="Duration" Value="@Duration.ToString(@"hh\:mm\:ss")" />
+                    <InfoTile Label="Tile 5" Value="--" />
+                    <InfoTile Label="Tile 6" Value="--" />
+                </div>
             </div>
         </div>
-    </div>
     }
 
 </div>
 
 <FinishModal Show="@showFinishModal"
-             Duration="@Duration"
-             Title="@activityTitle"
-             Description="@activityDescription"
-             OnSave="@SaveActivityWithMeta"
-             OnDiscard="@DiscardActivity"
-             OnResume="@ResumeTracking" />
+Duration="@Duration"
+Title="@activityTitle"
+Description="@activityDescription"
+OnSave="@SaveActivityWithMeta"
+OnDiscard="@DiscardActivity"
+OnResume="@ResumeTracking" />
 
 
 
@@ -86,6 +89,7 @@
     private List<Location> route = new();
     private CancellationTokenSource durationCts;
     private bool isLoadingLocation = true;
+    private string mapToken;
 
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
@@ -99,6 +103,8 @@
             var activities = await activityService.GetAvailableActivitiesAsync();
             if (activities != null)
                 availableActivities = activities;
+
+            mapToken = await securableService.GetMapboxTokenAsync();
             await StartLocationTracking(); // Start tracking immediately
             await JSRuntime.InvokeVoidAsync("handleSwipe", "bottomSheet");
         }
@@ -127,7 +133,8 @@
                     {
                         mapInitialized = true;
                         mapVisible = true;
-                        await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude);
+                        Debug.WriteLine(mapToken);
+                        await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
                     }
 
                     await JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);

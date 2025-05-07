@@ -34,7 +34,7 @@ public static class MauiProgram
 
         builder.Services.AddHttpClient("ApiClient", (sp, client) =>
         {
-            client.BaseAddress = new Uri("https://localhost:7116" + "/api/");
+            client.BaseAddress = new Uri("https://striveupapi-emaee9awang6g4ht.polandcentral-01.azurewebsites.net" + "/api/");
         })
         .AddHttpMessageHandler<AuthHeaderHandler>();
 
