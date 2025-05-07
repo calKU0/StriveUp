@@ -9,12 +9,12 @@ namespace StriveUp.MAUI.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly HttpClient _http;
+        private readonly HttpClient _httpClient;
         private readonly ICustomAuthStateProvider _authStateProvider;
 
-        public AuthService(HttpClient http, ICustomAuthStateProvider authStateProvider)
+        public AuthService(IHttpClientFactory httpClientFactory, ICustomAuthStateProvider authStateProvider)
         {
-            _http = http;
+            _httpClient = httpClientFactory.CreateClient("ApiClient");
             _authStateProvider = authStateProvider;
         }
 
@@ -22,7 +22,7 @@ namespace StriveUp.MAUI.Services
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("auth/login", request);
+                var response = await _httpClient.PostAsJsonAsync("auth/login", request);
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
@@ -45,7 +45,6 @@ namespace StriveUp.MAUI.Services
 
         public async Task LogoutAsync()
         {
-            _http.DefaultRequestHeaders.Authorization = null;
             await _authStateProvider.NotifyUserLogout();
         }
 
@@ -53,7 +52,7 @@ namespace StriveUp.MAUI.Services
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("auth/register", request);
+                var response = await _httpClient.PostAsJsonAsync("auth/register", request);
                 if (response.IsSuccessStatusCode)
                 {
                     var jwt = await response.Content.ReadFromJsonAsync<JwtResponse>();

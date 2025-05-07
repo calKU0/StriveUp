@@ -1,5 +1,6 @@
 ﻿using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -8,12 +9,10 @@ namespace StriveUp.Infrastructure.Services
     public class MedalService : IMedalsService
     {
         private readonly HttpClient _httpClient;
-        private readonly ITokenStorageService _tokenStorage;
 
-        public MedalService(HttpClient httpClient, ITokenStorageService tokenStorage)
+        public MedalService(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClient;
-            _tokenStorage = tokenStorage;
+            _httpClient = httpClientFactory.CreateClient("ApiClient");
         }
 
         public Task<bool> AwardMedalToUserAsync(string userId, int medalId)
@@ -25,16 +24,6 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var result = await _httpClient.GetFromJsonAsync<List<MedalDto>>("medal/medals");
                 return result;
             }
@@ -49,16 +38,6 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var result = await _httpClient.GetFromJsonAsync<List<MedalDto>>("medal/userMedals");
                 return result;
             }

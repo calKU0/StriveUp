@@ -11,28 +11,16 @@ namespace StriveUp.Infrastructure.Services
     public class ActivityService : IActivityService
     {
         private readonly HttpClient _httpClient;
-        private readonly ITokenStorageService _tokenStorage;
 
-        public ActivityService(HttpClient httpClient, ITokenStorageService tokenStorage)
+        public ActivityService(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClient;
-            _tokenStorage = tokenStorage;
+            _httpClient = httpClientFactory.CreateClient("ApiClient");
         }
 
         public async Task<List<ActivityDto>?> GetAvailableActivitiesAsync()
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var result = await _httpClient.GetFromJsonAsync<List<ActivityDto>>("activity/availableActivities");
                 return result;
             }
@@ -47,16 +35,6 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 return await _httpClient.GetFromJsonAsync<UserActivityDto>($"activity/{activityId}");
             }
             catch
@@ -69,16 +47,6 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var response = await _httpClient.PostAsJsonAsync("activity/AddUserActivity", activity);
                 var content = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(content);
@@ -95,16 +63,6 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var response = await _httpClient.PutAsJsonAsync($"activity/{activityId}", activity);
                 return response.IsSuccessStatusCode;
             }
@@ -117,16 +75,6 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>("activity/userFeed");
             }
             catch (Exception ex)
@@ -139,16 +87,6 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 await _httpClient.PostAsync($"activity/like/{activityId}", null);
             }
             catch (Exception ex)

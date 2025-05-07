@@ -72,6 +72,16 @@ a, .btn-link {
     position: relative;
 }
 
+.arrow-marker {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+    .arrow-marker img {
+        transition: transform 0.3s ease;
+    }
+
 .icon-sm-text {
     font-size: var(--smaller-font-size);
 }

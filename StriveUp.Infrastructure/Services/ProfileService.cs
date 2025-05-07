@@ -9,34 +9,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Net.Http;
 
 namespace StriveUp.Infrastructure.Services
 {
     public class ProfileService : IProfileService
     {
         private readonly HttpClient _httpClient;
-        private readonly ITokenStorageService _tokenStorage;
 
-        public ProfileService(HttpClient httpClient, ITokenStorageService tokenStorage)
+        public ProfileService(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClient;
-            _tokenStorage = tokenStorage;
+            _httpClient = httpClientFactory.CreateClient("ApiClient");
         }
 
         public async Task<(bool Success, ErrorResponse? Error, UserProfileDto profile)> GetProfile(string userId)
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var response = await _httpClient.GetFromJsonAsync<UserProfileDto>($"user/profile/{userId}");
 
                 if (response != null)
@@ -63,16 +52,6 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
-                string? token = await _tokenStorage.GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
-                }
-                else
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var response = await _httpClient.PutAsJsonAsync("user/profile", profile);
 
                 if (response.IsSuccessStatusCode)

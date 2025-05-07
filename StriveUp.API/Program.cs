@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using StriveUp.API.Mapping;
 using StriveUp.API.Services;
 using StriveUp.Infrastructure.Data;
+using StriveUp.Infrastructure.Data.Settings;
 using StriveUp.Infrastructure.Extensions;
 using StriveUp.Infrastructure.Services;
 using System.Text;
@@ -49,6 +50,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.Configure<MapboxSettings>(builder.Configuration.GetSection("MapboxSettings"));
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 
@@ -61,15 +63,14 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+
     app.UseSwagger(); 
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
         c.RoutePrefix = string.Empty;
     });
-}
+
 
 app.UseHttpsRedirection();
 

@@ -2,7 +2,6 @@
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using StriveUp.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using StriveUp.Shared.Interfaces;
+using StriveUp.Infrastructure.Data.Settings;
 
 namespace StriveUp.Infrastructure.Services
 {

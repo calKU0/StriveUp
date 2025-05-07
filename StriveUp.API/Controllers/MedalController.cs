@@ -9,9 +9,9 @@ using System.Security.Claims;
 
 namespace StriveUp.API.Controllers
 {
-    [Authorize(AuthenticationSchemes = "Bearer")]
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class MedalController : Controller
     {
         private readonly AppDbContext _context;

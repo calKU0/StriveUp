@@ -1,6 +1,7 @@
 ﻿@page "/tracking"
 @inject IJSRuntime JSRuntime
 @inject IActivityService activityService
+@inject NavigationManager Navigation
 @using Microsoft.Maui
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
@@ -81,7 +82,7 @@
     private int HeartRate = 0;
     private TimeSpan Duration = TimeSpan.Zero;
     private DateTime startTime;
-    private double currentHeading = 0; // Store the current heading
+    private double currentHeading = 30; // Store the current heading
     private List<Location> route = new();
     private CancellationTokenSource durationCts;
     private bool isLoadingLocation = true;
@@ -129,19 +130,40 @@
                         await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude);
                     }
 
-                    await JSRuntime.InvokeVoidAsync("updateMap", location.Latitude, location.Longitude, currentHeading);
+                    await JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
                     isLoadingLocation = false;
                     StateHasChanged();
                 }
 
                 await Task.Delay(1500);
             }
+            await StartLocationUpdates();
         }
         catch (Exception ex)
         {
             Console.WriteLine("Location error: " + ex.Message);
             isLoadingLocation = false;
         }
+    }
+
+    private async Task StartLocationUpdates()
+    {
+        var status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+        if (status != PermissionStatus.Granted)
+        {
+            return;
+        }
+
+        Geolocation.LocationChanged += OnLocationChanged;
+
+        var request = new GeolocationListeningRequest(GeolocationAccuracy.High);
+        await Geolocation.StartListeningForegroundAsync(request);
+    }
+
+    private void OnLocationChanged(object sender, GeolocationLocationChangedEventArgs e)
+    {
+        currentLocation = e.Location;
+        JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
     }
 
     private void ToggleTracking()
@@ -164,33 +186,30 @@
         route.Clear();
         durationCts = new CancellationTokenSource();
 
-        _ = Task.Run(() => FakeTrackWhileMoving()); // start location tracking
-        _ = Task.Run(() => UpdateDuration(durationCts.Token)); // start timer
+        _ = Task.Run(() => TrackActivity()); 
+        _ = Task.Run(() => UpdateDuration(durationCts.Token)); 
     }
 
-    private async Task TrackWhileMoving()
+    private async Task TrackActivity()
     {
         try
         {
             while (isTracking)
             {
-                var location = await Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.High));
-
-                if (location != null)
+                if (currentLocation != null)
                 {
                     if (route.Count > 0)
                     {
                         var lastLocation = route.Last();
-                        Distance += Location.CalculateDistance(lastLocation, location, DistanceUnits.Kilometers);
+                        Distance += Location.CalculateDistance(lastLocation, currentLocation, DistanceUnits.Kilometers);
                     }
 
-                    route.Add(location);
+                    route.Add(currentLocation);
 
-                    Speed = location.Speed.HasValue && location.Speed.Value > 0
-                        ? location.Speed.Value * 3.6 // m/s to km/h
+                    Speed = currentLocation.Speed.HasValue && currentLocation.Speed.Value > 0
+                        ? currentLocation.Speed.Value * 3.6 // m/s to km/h
                         : (Distance / Duration.TotalHours); // fallback estimate
 
-                    await JSRuntime.InvokeVoidAsync("updateMap", location.Latitude, location.Longitude, currentHeading);
                     await InvokeAsync(() => StateHasChanged());
                 }
 
@@ -201,61 +220,6 @@
         {
             Console.WriteLine("Tracking error: " + ex.Message);
         }
-    }
-
-
-    private async Task FakeTrackWhileMoving()
-    {
-        try
-        {
-            var fakeRoute = GenerateStraightRoute(currentLocation);
-
-            foreach (var location in fakeRoute)
-            {
-                if (!isTracking)
-                {
-                    break;
-                }
-
-                if (route.Count > 0)
-                {
-                    var lastLocation = route.Last();
-                    Distance += Location.CalculateDistance(lastLocation, location, DistanceUnits.Kilometers);
-                }
-
-                route.Add(location);
-
-                Speed = Distance / Math.Max(Duration.TotalHours, 0.0001); // prevent division by zero
-
-                await JSRuntime.InvokeVoidAsync("updateMap", location.Latitude, location.Longitude, currentHeading);
-
-                // Ensure UI updates are triggered on the UI thread
-                await InvokeAsync(() => StateHasChanged());
-
-                await Task.Delay(3000); // simulate interval
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Tracking error: " + ex.Message);
-        }
-    }
-
-    private List<Location> GenerateStraightRoute(Location startLocation, int pointCount = 35, double stepInMeters = 50)
-    {
-        var route = new List<Location> { startLocation };
-
-        // 1 degree latitude ≈ 111,320 meters
-        double stepLatitude = stepInMeters / 111320.0;
-
-        for (int i = 1; i < pointCount; i++)
-        {
-            var last = route.Last();
-            var next = new Location(last.Latitude + stepLatitude, last.Longitude);
-            route.Add(next);
-        }
-
-        return route;
     }
 
 
@@ -284,7 +248,8 @@
         showFinishModal = false;
         isTracking = true;
         durationCts = new CancellationTokenSource();
-        _ = Task.Run(() => FakeTrackWhileMoving()); // or TrackWhileMoving()
+
+        _ = Task.Run(() => TrackActivity());
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
     }
 
@@ -293,8 +258,10 @@
         showFinishModal = true;
     }
 
-    private void DiscardActivity()
+    private async Task DiscardActivity()
     {
+        await JSRuntime.InvokeVoidAsync("clearRoute");
+
         showFinishModal = false;
         isPaused = false;
         Distance = 0;
@@ -323,12 +290,38 @@
             };
 
         await activityService.AddActivityAsync(dto);
+        await JSRuntime.InvokeVoidAsync("clearRoute");
+
         showFinishModal = false;
         isPaused = false;
         Distance = 0;
         Duration = TimeSpan.Zero;
         Speed = 0;
         route.Clear();
+
+        Compass.Default.Stop();
+        Compass.Default.ReadingChanged -= OnCompassReadingChanged;
+
+        Geolocation.Default.StopListeningForeground();
+        Geolocation.LocationChanged -= OnLocationChanged;
+
+        Navigation.NavigateTo("/feed");
+    }
+
+    private void StartCompass()
+    {
+        if (!Compass.Default.IsSupported)
+        {
+            return;
+        }
+
+        Compass.Default.ReadingChanged += OnCompassReadingChanged;
+        Compass.Default.Start(SensorSpeed.UI);
+    }
+
+    private void OnCompassReadingChanged(object sender, CompassChangedEventArgs e)
+    {
+        currentHeading = e.Reading.HeadingMagneticNorth;
     }
 }
 

@@ -8,18 +8,16 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
-namespace StriveUp.Infrastructure.Services
+namespace StriveUp.Infrastructure.Extensions
 {
     public class CustomAuthStateProvider : AuthenticationStateProvider, ICustomAuthStateProvider
     {
         private readonly ITokenStorageService _tokenStorage;
         private ClaimsPrincipal _currentUser = new(new ClaimsIdentity());
-        private readonly HttpClient _httpClient;
 
-        public CustomAuthStateProvider(ITokenStorageService tokenStorage, HttpClient httpClient)
+        public CustomAuthStateProvider(ITokenStorageService tokenStorage)
         {
             _tokenStorage = tokenStorage;
-            _httpClient = httpClient;
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -30,14 +28,10 @@ namespace StriveUp.Infrastructure.Services
 
                 if (string.IsNullOrWhiteSpace(token) || IsTokenExpired(token))
                 {
-                    // If there's no token or the token is expired, reset state to unauthenticated
-                    _httpClient.DefaultRequestHeaders.Authorization = null;
                     _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
                 }
                 else
                 {
-                    // If token is valid, set authorization header and extract claims
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
                     _currentUser = new ClaimsPrincipal(identity);
                 }
