@@ -21,81 +21,70 @@
             {
                 <!-- linkowanie do activity details -->
                 <div class="col-12 col-md-6">
-                    <div class="card activity-card shadow-lg border-0 rounded-4 overflow-hidden h-100">
-                        <div class="card-body d-flex flex-column justify-content-between">
-
-                            <!-- linkowanie do profilu -->
-                            <a class="text-black fw-bold row activity-card-user"> 
-                                <img alt="icon" width="40" height="40" class="col-auto"/>
-                                <span class="col-auto">@activity.UserName</span>
-                            </a>
-
-                            <span class="card-text text-black activity-card-date pt-1">@activity.DateStart - @activity.DateEnd</span>
-                            <span class="card-text text-black fw-bolder activity-card-title pt-3">@activity.Title</span>
-                            <p class="card-text text-muted">@activity.Description</p>
-                            @if (activity.Route != null && activity.Route.Count > 1)
-                            {
-                                <MapRoute Route=activity.Route />
-                            }
-
-                            <!-- Stats Row -->
-                            <div class="row text-center text-secondary mb-3">
-                                <div class="col">
-                                    <strong>@activity.DurationMinutes</strong><br />
-                                    <small>mins</small>
-                                </div>
-                                <div class="col">
-                                    <strong>@activity.CaloriesBurned</strong><br />
-                                    <small>kcal</small>
-                                </div>
-                                <div class="col">
-                                    <strong>@activity.ActivityName</strong><br />
-                                    <small>Activity</small>
+                    <div class="card shadow-sm border-0 rounded-4 overflow-hidden h-100 bg-white">
+                        <div class="card-body d-flex flex-column gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <img alt="User" width="40" height="40" class="rounded-circle bg-secondary" />
+                                <div>
+                                    <div class="fw-semibold">@activity.UserName</div>
+                                    <div class="text-muted small">@activity.DateStart.ToShortDateString()</div>
                                 </div>
                             </div>
 
-                            <!-- Details Button -->
-                            <!-- <div class="d-flex justify-content-end mb-2">
-                                <a href="/activities/@activity.ActivityId" class="btn btn-outline-primary btn-sm px-4">Details</a>
-                            </div> -->
+                            <div class="fw-bold fs-5">@activity.Title</div>
+                            <p class="text-muted mb-2">@activity.Description</p>
 
-                            <!-- Like Button -->
-                            <div class="d-flex justify-content-between align-items-center mb-2">
+                            @if (activity.Route?.Count > 1)
+                            {
+                                <MapRoute Route="activity.Route" />
+                            }
+
+                            <div class="d-flex justify-content-around text-center py-2 border-top border-bottom">
+                                <div>
+                                    <span class="fw-bold">@activity.DurationMinutes</span><br /><small class="text-muted">min</small>
+                                </div>
+                                <div>
+                                    <span class="fw-bold">@activity.CaloriesBurned</span><br /><small class="text-muted">kcal</small>
+                                </div>
+                                <div>
+                                    <span class="fw-bold">@activity.ActivityName</span><br /><small class="text-muted">Type</small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-2">
                                 <button class="btn btn-sm @(activity.IsLikedByCurrentUser ? "btn-danger" : "btn-outline-danger")"
                                         @onclick="() => ToggleLike(activity)">
                                     ❤️ @activity.LikeCount
                                 </button>
                             </div>
 
-                            <!-- Comments Section -->
-                            <!-- linkowanie do komentarzy -->
-                            <div class="mt-auto">
+                            <div class="mt-2">
                                 <strong>Comments:</strong>
-                                @if (activity.Comments != null && activity.Comments.Any())
+                                @if (activity.Comments?.Any() ?? false)
                                 {
                                     @foreach (var comment in activity.Comments.Take(2))
                                     {
-                                        <div class="text-muted small">
+                                        <div class="small text-muted">
                                             <strong>@comment.UserName:</strong> @comment.Content
                                         </div>
                                     }
-
                                     @if (activity.Comments.Count > 2)
                                     {
-                                        <div class="text-muted small fst-italic">+@((activity.Comments.Count - 2)) more...</div>
+                                        <div class="small text-muted fst-italic">+@((activity.Comments.Count - 2)) more...</div>
                                     }
                                 }
                                 else
                                 {
-                                    <div class="text-muted small fst-italic">No comments yet.</div>
+                                    <div class="small text-muted fst-italic">No comments yet.</div>
                                 }
 
-                                <input class="form-control mt-2" placeholder="Write a comment..."
+                                <input class="form-control form-control-sm mt-2" placeholder="Write a comment..."
                                        @bind="commentInputs[activity.Id]" />
                                 <button class="btn btn-sm btn-primary mt-1" @onclick="() => AddComment(activity.Id)">Post</button>
                             </div>
                         </div>
                     </div>
+
                 </div>
             }
         </div>
@@ -119,11 +108,14 @@
                 // Token is valid, fetch activities
                 activities = await ActivityService.GetUserActivitiesAsync();
 
-                foreach (var activity in activities)
-                {
-                    if (!commentInputs.ContainsKey(activity.Id))
+                if (activities != null)
+                {   
+                    foreach (var activity in activities)
                     {
-                        commentInputs[activity.Id] = "";
+                        if (!commentInputs.ContainsKey(activity.Id))
+                        {
+                            commentInputs[activity.Id] = "";
+                        }
                     }
                 }
             }

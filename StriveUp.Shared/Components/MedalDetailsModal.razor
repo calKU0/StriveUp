@@ -1,0 +1,45 @@
+﻿@using StriveUp.Shared.DTOs
+
+@if (IsVisible)
+{
+    <div class="custom-modal-backdrop" @onclick="OnBackdropClick">
+        <div class="custom-modal" @onclick:stopPropagation>
+            <div class="custom-modal-header">
+                <h5>@Medal?.Name</h5>
+                <button class="btn-close" @onclick="CloseModal" aria-label="Close"></button>
+            </div>
+            <div class="custom-modal-body">
+                @if (!string.IsNullOrEmpty(Medal?.ImageUrl))
+                {
+                    <img src="@Medal.ImageUrl" class="modal-image" alt="@Medal.Name" />
+                }
+                <p><strong>Level:</strong> @Medal?.Level</p>
+                <p><strong>Target Value:</strong> @Medal?.TargetValue</p>
+                <p><strong>Frequency:</strong> @Medal?.Frequency</p>
+                @if (Medal?.DateEarned.HasValue == true)
+                {
+                    <p><strong>Date Earned:</strong> @Medal?.DateEarned?.ToShortDateString()</p>
+                }
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-primary" @onclick="CloseModal">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public MedalDto Medal { get; set; }
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    private async Task CloseModal()
+    {
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    private async Task OnBackdropClick()
+    {
+        await CloseModal();
+    }
+}

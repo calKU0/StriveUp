@@ -1,20 +1,21 @@
 ﻿@page "/profile"
 @inject IAuthService AuthService
 @inject ICustomAuthStateProvider AuthStateProvider
-@inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IProfileService ProfileService
+@inject IPlatformService PlatformService
+
 @using StriveUp.Shared.DTOs
-@using System.Security.Claims
 @using StriveUp.Shared.DTOs.Profile
+@using System.Security.Claims
+@using StriveUp.Shared.Components
 
 <div class="container py-5">
     @if (isLoading)
     {
-        <div class="text-center my-5">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+        <div class="d-flex flex-column align-items-center justify-content-center" style="height: 60vh;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-3 text-muted">Loading profile...</p>
         </div>
     }
     else if (!string.IsNullOrWhiteSpace(errorMessage))
@@ -23,94 +24,92 @@
     }
     else
     {
-        <div class="card shadow rounded p-4 mb-4">
-            <div class="d-flex align-items-center">
-                <img src="@GetAvatarUrl()" alt="Avatar" class="rounded-circle me-4 border" style="width: 100px; height: 100px; object-fit: cover;" />
-                <div class="flex-grow-1">
-                    <h4 class="mb-0">@userProfile.FirstName @userProfile.LastName</h4>
-                    <p class="text-muted mb-1">@userProfile.UserName</p>
-                    <p class="text-muted mb-0">@userProfile.Email</p>
-                   
-                </div>
-                <div class="text-end">
-                    @if (isEditable)
-                    {
-                        <!-- Logout Icon -->
-                        <a href="" title="Logout" @onclick="HandleLogout">
-                            <i class="fas fa-sign-out-alt"></i><span class="icon-sm-text">Logout</span>
-                        </a><br />
-
-                        <!-- Toggle Edit/Cancel Icon -->
-
-                        <a href ="" @onclick="HandleEdit" class="fas fa-edit">
-
-                        <span class="icon-sm-text">Edit</span>
-                        </a>
-                        
-                    }
-                </div>
+        <!-- Profile Header -->
+        <div class="profile-card mb-4">
+            <img src="@GetAvatarUrl()" alt="Avatar" class="profile-avatar" />
+            <div class="flex-grow-1">
+                <h4 class="fw-bold mb-0">@userProfile.UserName</h4>
+                <p class="text-muted mb-1">@userProfile.FirstName @userProfile.LastName</p>
             </div>
+            @if (isEditable)
+            {
+                <div class="profile-actions text-end">
+                    <button class="btn btn-outline-secondary btn-sm me-2" @onclick="HandleEdit">
+                        <i class="fas fa-edit me-1"></i> Edit Profile
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">
+                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                    </button>
+                </div>
+            }
         </div>
 
+        <!-- Tabs -->
         <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#activities" type="button" role="tab">Activities</button>
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == "activities" ? "active" : "")" @onclick="@(() => SetTab("activities"))">
+                    Activities
+                </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#medals" type="button" role="tab">Medals</button>
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == "medals" ? "active" : "")" @onclick="@(() => SetTab("medals"))">
+                    Medals
+                </button>
             </li>
         </ul>
 
-        <div class="tab-content">
-            <div class="tab-pane fade show active" id="activities" role="tabpanel">
-                @if (userProfile.Activities != null && userProfile.Activities.Any())
+        <!-- Activities Tab -->
+        @if (activeTab == "activities")
+        {
+            <div>
+                <h5 class="mb-3">Activities</h5>
+                @if (userProfile.Activities?.Any() == true)
                 {
-                    <div class="row">
+                    <div class="row g-4">
                         @foreach (var activity in userProfile.Activities)
                         {
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100 shadow-sm border rounded-3 p-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5>@activity.Title</h5>
-                                            <small class="text-muted">@activity.DateStart.ToShortDateString() - @activity.DateEnd.ToShortDateString()</small>
-                                        </div>
-                                        <span class="badge bg-info">@activity.DurationMinutes min</span>
-                                    </div>
-                                    @if (!string.IsNullOrEmpty(activity.Description))
-                                    {
-                                        <p class="text-muted mt-2">@activity.Description</p>
-                                    }
-                                    <div class="d-flex justify-content-between text-muted">
-                                        <small>Calories: <strong>@activity.CaloriesBurned</strong></small>
-                                        <small>Likes: <strong>@activity.LikeCount</strong></small>
-                                    </div>
-                                </div>
+                            <div class="col-md-6">
+                                <ActivityCard Activity="activity" />
                             </div>
                         }
                     </div>
                 }
                 else
                 {
-                    <p class="text-muted">No activities found.</p>
+                    <p class="text-muted">No activities recorded yet.</p>
+
+                    <!-- Encourage user to do an activity -->
+                    @if (PlatformService.IsNativeApp())
+                    {
+                        <div class="alert alert-info">
+                            <p>Start tracking your activities now! <a href="/tracking" class="btn btn-primary">Go to Tracking</a></p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <p>Start tracking your activities! Download our app from Google Play:</p>
+                            <a href="https://play.google.com/store/apps/details?id=com.striveup.app" class="btn btn-primary" target="_blank">
+                                Download the App
+                            </a>
+                        </div>
+                    }
                 }
             </div>
+        }
 
-            <div class="tab-pane fade" id="medals" role="tabpanel">
-                <h4 class="mt-4">Earned Medals</h4>
-                @if (userProfile.Medals != null && userProfile.Medals.Any())
+        <!-- Medals Tab -->
+        @if (activeTab == "medals")
+        {
+            <div>
+                <h5 class="mb-3">Earned Medals</h5>
+                @if (userProfile.Medals?.Any() == true)
                 {
-                    <div class="row g-3">
+                    <div class="row g-4">
                         @foreach (var medal in userProfile.Medals)
                         {
                             <div class="col-md-4">
-                                <div class="card shadow-sm border rounded text-center p-3">
-                                    <img src="@medal.ImageUrl" class="mx-auto mb-2" style="max-height: 80px;" />
-                                    <h5>@medal.Name</h5>
-                                    <p class="text-muted">@medal.Description</p>
-                                    <span class="badge bg-primary">Level @medal.Level</span>
-                                    <div class="mt-2 text-muted" style="font-size: 0.9em;">Earned: @medal.DateEarned?.ToShortDateString()</div>
-                                </div>
+                                <MedalCard Medal="medal" />
                             </div>
                         }
                     </div>
@@ -119,9 +118,8 @@
                 {
                     <p class="text-muted">No medals earned yet.</p>
                 }
-
             </div>
-        </div>
+        }
     }
 </div>
 
@@ -130,39 +128,44 @@
     private string? errorMessage;
     private UserProfileDto userProfile = new();
     private bool isEditable = false;
-    private string userId;
+    private string userId = "";
+    private string activeTab = "activities";
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        try
+        if (firstRender)
         {
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var currentUser = authState.User;
-
-            if (currentUser.Identity?.IsAuthenticated ?? false)
+            try
             {
-                userId = currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                var currentUser = authState.User;
 
-                var (success, error, profile) = await ProfileService.GetProfile(userId);
-
-                if (success && profile != null)
+                if (currentUser.Identity?.IsAuthenticated == true)
                 {
-                    userProfile = profile;
-                    isEditable = userProfile.UserName == currentUser.Identity?.Name;
+                    userId = currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                    var (success, error, profile) = await ProfileService.GetProfile(userId);
+
+                    if (success && profile != null)
+                    {
+                        userProfile = profile;
+                        isEditable = userProfile.UserName == currentUser.Identity?.Name;
+                    }
+                    else
+                    {
+                        errorMessage = error?.Message + Environment.NewLine + error?.Details ?? "An unexpected error occurred.";
+                    }
                 }
                 else
                 {
-                    errorMessage = error?.Message + Environment.NewLine + error?.Details ?? "An unexpected error occurred.";
+                    errorMessage = "You are not authenticated.";
                 }
             }
-            else
+            finally
             {
-                errorMessage = "You are not authenticated.";
+                isLoading = false;
             }
-        }
-        finally
-        {
-            isLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -174,14 +177,16 @@
 
     private async Task HandleEdit()
     {
-        await AuthService.LogoutAsync();
         Navigation.NavigateTo("/profile/edit");
     }
 
-    private string GetAvatarUrl()
-    {
-        return string.IsNullOrWhiteSpace(userProfile.Avatar)
+    private string GetAvatarUrl() =>
+        string.IsNullOrWhiteSpace(userProfile.Avatar)
             ? "https://via.placeholder.com/100"
             : userProfile.Avatar;
+
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
     }
 }

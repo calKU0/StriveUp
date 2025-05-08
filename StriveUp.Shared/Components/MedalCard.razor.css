@@ -1,0 +1,20 @@
+.medal-card:hover {
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+    transform: scale(1.03);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* Medal Card */
+.medal-card {
+    padding: 1rem;
+    text-align: center;
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+    .medal-card img {
+        max-height: 80px;
+        margin-bottom: 0.5rem;
+    }

@@ -13,9 +13,9 @@ namespace StriveUp.Web.Services
         private readonly HttpClient _httpClient;
         private readonly ICustomAuthStateProvider _authStateProvider;
 
-        public AuthService(HttpClient httpClient, ICustomAuthStateProvider authStateProvider)
+        public AuthService(IHttpClientFactory httpClient, ICustomAuthStateProvider authStateProvider)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient.CreateClient("ApiClient");
             _authStateProvider = authStateProvider;
         }
 

@@ -6,19 +6,6 @@ let userMarker = null;
 let mapboxMap;
 let route = [];
 let routeLine = null;
-
-function renderStaticMap(mapId, routePoints) {
-    const map = L.map(mapId).setView([routePoints[0].latitude, routePoints[0].longitude], 16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    const latlngs = routePoints.map(p => [p.latitude, p.longitude]);
-    const polyline = L.polyline(latlngs, { color: 'dodgerblue', weight: 5 }).addTo(map);
-    map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
-}
-
 function initializeMap(lat, lng, accessToken) {
     mapboxgl.accessToken = accessToken;
 

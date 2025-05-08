@@ -1,0 +1,33 @@
+﻿@using StriveUp.Shared.DTOs
+
+<div class="medal-card" @onclick="HandleClick">
+    <img src="@MedalDto.ImageUrl" class="mx-auto mb-2" alt="@MedalDto.Name" />
+    <h6 class="fw-bold">@MedalDto.Name</h6>
+    <span class="badge @(GetBadgeClass(MedalDto.Frequency))">@MedalDto.Frequency</span>
+    @if(MedalDto.DateEarned != null)
+    {
+        <div class="mt-1 text-muted small">Earned: @MedalDto.DateEarned?.ToShortDateString()</div>
+    }
+</div>
+
+@code {
+    [Parameter] public MedalDto MedalDto { get; set; }
+    [Parameter] public EventCallback OnMedalClick { get; set; }
+
+    private string GetBadgeClass(string frequency)
+    {
+        // You can modify this logic based on the frequency ranges or specific values you want
+        return frequency switch
+        {
+            "Once" => "bg-primary",
+            "Weekly" => "bg-success",   
+            "Monthly" => "bg-danger",     
+            _ => "bg-secondary", 
+        };
+    }
+
+    private async Task HandleClick()
+    {
+        await OnMedalClick.InvokeAsync();
+    }
+}

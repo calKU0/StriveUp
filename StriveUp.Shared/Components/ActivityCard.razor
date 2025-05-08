@@ -1,0 +1,23 @@
+﻿@using StriveUp.Shared.DTOs
+
+<div class="activity-card">
+    <div class="d-flex justify-content-between">
+        <div>
+            <h5 class="mb-1">@Activity.Title</h5>
+            <small class="text-muted">Activity.DateStart.ToShortDateString() - Activity.DateEnd.ToShortDateString()</small>
+        </div>
+        <span class="badge bg-info align-self-start">Activity.DurationMinutes min</span>
+    </div>
+    @if (!string.IsNullOrEmpty(Activity.Description))
+    {
+        <p class="text-muted mt-2">Activity.Description</p>
+    }
+    <div class="d-flex justify-content-between text-muted small mt-2">
+        <span>Calories: <strong>Activity.CaloriesBurned</strong></span>
+        <span>Likes: <strong>Activity.LikeCount</strong></span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public UserActivityDto Activity { get; set; }
+}

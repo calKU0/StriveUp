@@ -8,7 +8,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StriveUp.Infrastructure.Extensions
+namespace StriveUp.Web.Services
 {
     public class AuthHeaderHandler : DelegatingHandler
     {
@@ -28,15 +28,11 @@ namespace StriveUp.Infrastructure.Extensions
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
-
-                return await base.SendAsync(request, cancellationToken);
-
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error adding auth header: {ex.Message}");
             }
-
             return await base.SendAsync(request, cancellationToken);
         }
     }

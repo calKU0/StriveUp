@@ -1,4 +1,5 @@
-﻿using StriveUp.Shared.DTOs;
+﻿using StriveUp.Infrastructure.Extensions;
+using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,10 +10,12 @@ namespace StriveUp.Infrastructure.Services
     public class MedalService : IMedalsService
     {
         private readonly HttpClient _httpClient;
+        private readonly ITokenStorageService _tokenStorage;
 
-        public MedalService(IHttpClientFactory httpClientFactory)
+        public MedalService(IHttpClientFactory httpClientFactory, ITokenStorageService tokenStorage)
         {
             _httpClient = httpClientFactory.CreateClient("ApiClient");
+            _tokenStorage = tokenStorage;
         }
 
         public Task<bool> AwardMedalToUserAsync(string userId, int medalId)
@@ -24,6 +27,7 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
                 var result = await _httpClient.GetFromJsonAsync<List<MedalDto>>("medal/medals");
                 return result;
             }
@@ -38,6 +42,7 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
                 var result = await _httpClient.GetFromJsonAsync<List<MedalDto>>("medal/userMedals");
                 return result;
             }

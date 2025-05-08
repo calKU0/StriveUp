@@ -5,27 +5,64 @@
 @inject NavigationManager Navigation
 
 <div class="container my-4">
+
     <h2 class="text-center mb-4">Your Medals</h2>
 
+    <!-- Tabs for Frequency -->
+    <ul class="nav nav-tabs mb-4" id="medalFrequencyTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link @(activeFrequencyTab == "all" ? "active" : "")" @onclick="@(() => SetFrequencyTab("all"))">
+                All
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeFrequencyTab == "once" ? "active" : "")" @onclick="@(() => SetFrequencyTab("once"))">
+                Once
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeFrequencyTab == "weekly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("weekly"))">
+                Weekly
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeFrequencyTab == "monthly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("monthly"))">
+                Monthly
+            </button>
+        </li>
+    </ul>
+
+    <!-- Dropdown for Order -->
+    <div class="mb-4">
+        <label for="orderSelect" class="form-label">Order By</label>
+        <select id="orderSelect" class="form-select" @bind-value="selectedOrder" @bind-value:event="onchange">
+            <option value="name">Name</option>
+            <option value="date">Date</option>
+            <option value="frequency">Frequency</option>
+        </select>
+    </div>
+
+    <!-- Medals Display Section -->
     <div class="row">
         <div class="col-md-6">
             <h4 class="text-success">Achieved Medals</h4>
             <div class="row g-3">
-                @foreach (var medal in achievedMedals)
+                @foreach (var medal in FilteredAchievedMedals)
                 {
-                    <div class="col-6 col-sm-4 col-md-6">
-                        <Medal MedalDto="@medal" OnMedalClick="@(() => ShowMedalDetails(medal))" />
+                    <div class="col-4 col-sm-4 col-md-4">
+                        <MedalCard MedalDto="@medal" OnMedalClick="@(() => ShowMedalDetails(medal))" />
                     </div>
                 }
             </div>
         </div>
+
         <div class="col-md-6 pt-3">
             <h4 class="text-secondary">Not Achieved Medals</h4>
             <div class="row g-3">
-                @foreach (var medal in notAchievedMedals)
+                @foreach (var medal in FilteredNotAchievedMedals)
                 {
-                    <div class="col-6 col-sm-4 col-md-6">
-                        <Medal MedalDto="@medal" OnMedalClick="@(() => ShowMedalDetails(medal))" />
+                    <div class="col-4 col-sm-4 col-md-4">
+                        <MedalCard MedalDto="@medal" OnMedalClick="@(() => ShowMedalDetails(medal))" />
                     </div>
                 }
             </div>
@@ -33,33 +70,33 @@
     </div>
 </div>
 
-<Modal @bind-IsVisible="IsVisible">
-    @if (selectedMedal != null)
-    {
-        <div class="modal-body text-center">
-            <h5 class="modal-title">@selectedMedal.Name</h5>
-            <img src="@selectedMedal.ImageUrl" alt="@selectedMedal.Name" class="img-fluid rounded shadow-sm mb-3" style="max-height: 200px;" />
-            <p><strong>Description:</strong> @selectedMedal.Description</p>
-            <p><strong>Target:</strong> @selectedMedal.TargetValue km</p>
-            <p><strong>Level:</strong> @selectedMedal.Level</p>
-            <p><strong>Frequency:</strong> @selectedMedal.Frequency</p>
-        </div>
-    }
-</Modal>
-
+<MedalDetailsModal Medal="@selectedMedal" IsVisible="@isMedalModalVisible" IsVisibleChanged="@(v => isMedalModalVisible = v)" />
 
 @code {
     private List<MedalDto> achievedMedals = new();
     private List<MedalDto> notAchievedMedals = new();
+    private List<MedalDto> FilteredAchievedMedals => FilterMedals(achievedMedals);
+    private List<MedalDto> FilteredNotAchievedMedals => FilterMedals(notAchievedMedals);
     private MedalDto selectedMedal;
-    private bool IsVisible;
+    private bool isMedalModalVisible = false;
+    private string activeFrequencyTab = "all";
+    private string selectedOrder = "name";
 
     protected override async Task OnInitializedAsync()
     {
         var allMedals = await MedalService.GetAllMedalsAsync();
-        var achievedMedals = await MedalService.GetUserMedalsAsync();
-        var achievedIds = achievedMedals.Select(m => m.Id).ToHashSet();
-        notAchievedMedals = allMedals
+        var userMedals = await MedalService.GetUserMedalsAsync();
+        HashSet<int> achievedIds = new();
+
+        achievedMedals = userMedals ?? new List<MedalDto>(); 
+
+        if (achievedMedals != null)
+        {
+            achievedIds = achievedMedals.Select(m => m.Id).ToHashSet();
+        }
+
+        // Ensure allMedals is not null before using it
+        notAchievedMedals = (allMedals ?? new List<MedalDto>())
             .Where(m => !achievedIds.Contains(m.Id))
             .ToList();
     }
@@ -67,17 +104,36 @@
     private void ShowMedalDetails(MedalDto medal)
     {
         selectedMedal = medal;
-        ShowMedalDetailsModal(true);
+        isMedalModalVisible = true;
     }
 
-    private void ShowMedalDetailsModal(bool isVisible)
+    private void SetFrequencyTab(string frequency)
     {
-        IsVisible = true;
-        StateHasChanged();
+        activeFrequencyTab = frequency;
     }
 
-    private void OnMedalDetailsModalChanged(bool isVisible)
+    private void OnOrderChanged(ChangeEventArgs e)
     {
-        // Handle modal visibility state change
+        // Handle any additional logic here
+        selectedOrder = e.Value.ToString();
+    }
+
+    private List<MedalDto> FilterMedals(List<MedalDto> medals)
+    {
+        var filtered = activeFrequencyTab switch
+        {
+            "once" => medals.Where(m => m.Frequency == "Once").ToList(),
+            "weekly" => medals.Where(m => m.Frequency == "Weekly").ToList(),
+            "monthly" => medals.Where(m => m.Frequency == "Monthly").ToList(),
+            _ => medals, // All
+        };
+
+        // Apply order logic based on selected order
+        return selectedOrder switch
+        {
+            "name" => filtered.OrderBy(m => m.Name).ToList(),
+            "frequency" => filtered.OrderBy(m => m.Frequency).ToList(),
+            _ => filtered
+        };
     }
 }

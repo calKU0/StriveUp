@@ -10,22 +10,26 @@ using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Net.Http;
+using StriveUp.Infrastructure.Extensions;
 
 namespace StriveUp.Infrastructure.Services
 {
     public class ProfileService : IProfileService
     {
         private readonly HttpClient _httpClient;
+        private readonly ITokenStorageService _tokenStorage;
 
-        public ProfileService(IHttpClientFactory httpClientFactory)
+        public ProfileService(IHttpClientFactory httpClientFactory, ITokenStorageService tokenStorage)
         {
             _httpClient = httpClientFactory.CreateClient("ApiClient");
+            _tokenStorage = tokenStorage;
         }
 
         public async Task<(bool Success, ErrorResponse? Error, UserProfileDto profile)> GetProfile(string userId)
         {
             try
             {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
                 var response = await _httpClient.GetFromJsonAsync<UserProfileDto>($"user/profile/{userId}");
 
                 if (response != null)
@@ -52,6 +56,7 @@ namespace StriveUp.Infrastructure.Services
         {
             try
             {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
                 var response = await _httpClient.PutAsJsonAsync("user/profile", profile);
 
                 if (response.IsSuccessStatusCode)

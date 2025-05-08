@@ -21,22 +21,16 @@ public static class MauiProgram
             });
 
         // Add device-specific services used by the StriveUp.Shared project
-        builder.Services.AddSingleton<IFormFactor, FormFactor>();
-
         builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddSingleton<IPlatformService, MauiPlatformService>();
         builder.Services.AddClientInfrastructure();
         builder.Services.AddAuthorizationCore();
 
-        builder.Services.AddTransient<AuthHeaderHandler>();
-
-
         builder.Services.AddHttpClient("ApiClient", (sp, client) =>
         {
             client.BaseAddress = new Uri("https://striveupapi-emaee9awang6g4ht.polandcentral-01.azurewebsites.net" + "/api/");
-        })
-        .AddHttpMessageHandler<AuthHeaderHandler>();
+        });
 
         builder.Services.AddMauiBlazorWebView();
 

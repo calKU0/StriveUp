@@ -1,29 +1,28 @@
-﻿@inject IJSRuntime JSRuntime
-@using StriveUp.Shared.DTOs
-@implements IAsyncDisposable
+﻿@using StriveUp.Shared.DTOs
+@inject IJSRuntime JS
+@inject ISecurableService securableService
+@implements IDisposable
 
-<div id="@MapId" style="height: 250px; border-radius: 12px; overflow: hidden;"></div>
+<div class="map-container" id="@mapId"></div>
 
 @code {
     [Parameter] public List<GeoPointDto> Route { get; set; } = new();
-    private string MapId = $"map_{Guid.NewGuid().ToString("N")}";
-    private IJSObjectReference? _leafletModule;
+    private string mapId = $"map_{Guid.NewGuid().ToString().Replace("-", "")}";
+    private IJSObjectReference? module;
+    string token;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && Route.Count > 1)
         {
-            _leafletModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
-                "import", "./js/leafletInterop.js");
-            await _leafletModule.InvokeVoidAsync("renderStaticMap", MapId, Route);
+            token = await securableService.GetMapboxTokenAsync();
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/staticMap.js");
+            await module.InvokeVoidAsync("renderStaticRoute", mapId, Route, token);
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        if (_leafletModule != null)
-        {
-            await _leafletModule.DisposeAsync();
-        }
+        _ = module?.DisposeAsync();
     }
 }
