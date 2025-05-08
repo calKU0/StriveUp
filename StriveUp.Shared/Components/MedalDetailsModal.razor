@@ -5,20 +5,34 @@
     <div class="custom-modal-backdrop" @onclick="OnBackdropClick">
         <div class="custom-modal" @onclick:stopPropagation>
             <div class="custom-modal-header">
-                <h5>@Medal?.Name</h5>
+                <h5>@Medal.Name</h5>
                 <button class="btn-close" @onclick="CloseModal" aria-label="Close"></button>
             </div>
             <div class="custom-modal-body">
-                @if (!string.IsNullOrEmpty(Medal?.ImageUrl))
-                {
-                    <img src="@Medal.ImageUrl" class="modal-image" alt="@Medal.Name" />
-                }
-                <p><strong>Level:</strong> @Medal?.Level</p>
-                <p><strong>Target Value:</strong> @Medal?.TargetValue</p>
-                <p><strong>Frequency:</strong> @Medal?.Frequency</p>
+                <img src="images/medals/@(Uri.EscapeDataString(Medal.Name.Replace(" ","_")).ToLower()).webp" class="modal-image" alt="@Medal.Name" />
+                <p class ="text-muted text-center">@Medal.Description</p>
+                <p><strong>Level:</strong> @Medal.Level</p>
+                <p><strong>Target Value:</strong> @Medal.TargetValue</p>
+                <p><strong>Frequency:</strong> @Medal.Frequency</p>
                 @if (Medal?.DateEarned.HasValue == true)
                 {
                     <p><strong>Date Earned:</strong> @Medal?.DateEarned?.ToShortDateString()</p>
+                }
+
+                <!-- Progress Bar -->
+                @if (Medal != null)
+                {
+                    <div class="progress mt-3">
+                        <div class="progress-bar bg-info" role="progressbar"
+                             style="width: @MedalProgress%"
+                             aria-valuenow="@MedalProgress"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <div class="progress-text">
+                        <span>@MedalProgress % Completed</span>
+                    </div>
                 }
             </div>
             <div class="custom-modal-footer">
@@ -30,6 +44,7 @@
 
 @code {
     [Parameter] public MedalDto Medal { get; set; }
+    [Parameter] public int MedalProgress { get; set; }
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
 

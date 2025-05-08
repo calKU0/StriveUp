@@ -9,22 +9,22 @@
             <a class="navbar-brand me-3" href="">
                 <img class="logo-image img-fluid" src="images/StriveUp-logo.png" alt="Logo" />
             </a>
-            <NavLink class="nav-link me-3" href="" Match="NavLinkMatch.All">
+            <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
                 <i class="fas fa-home icon"></i>
                 <span class="small-text">Home</span>
             </NavLink>
-            <NavLink class="nav-link me-3" href="feed">
+            <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="feed">
                 <i class="fas fa-rss icon"></i>
                 <span class="small-text">Feed</span>
             </NavLink>
             @if (PlatformService.IsNativeApp())
             {
-                <NavLink class="nav-link me-3" href="tracking">
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="tracking">
                     <i class="fas fa-running icon"></i>
                     <span class="small-text">Activity</span>
                 </NavLink>
             }
-            <NavLink class="nav-link me-3" href="medals">
+            <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="medals">
                 <i class="fas fa-medal icon"></i>
                 <span class="small-text">Medals</span>
             </NavLink>
@@ -32,7 +32,7 @@
 
         <!-- Right Section -->
         <div>
-            <NavLink class="nav-link text-end" href="profile">
+            <NavLink class="nav-link text-end d-flex flex-column align-items-center" href="profile">
                 <i class="fas fa-user icon"></i>
                 <span class="small-text">Profile</span>
             </NavLink>
@@ -43,29 +43,30 @@
 <!-- Mobile Navbar (fixed bottom) -->
 <nav class="navbar fixed-bottom d-flex d-md-none">
     <div class="container-fluid d-flex justify-content-around align-items-center px-2">
-        <NavLink class="nav-link text-center" href="" Match="NavLinkMatch.All">
+        <NavLink class="d-none nav-link text-center d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
             <i class="fas fa-home icon"></i>
             <span class="small-text">Home</span>
         </NavLink>
-        <NavLink class="nav-link text-center" href="feed">
+        <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="feed">
             <i class="fas fa-rss icon"></i>
             <span class="small-text">Feed</span>
         </NavLink>
         @if (PlatformService.IsNativeApp())
         {
-            <NavLink class="nav-link text-center" href="tracking">
+            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="tracking">
                 <i class="fas fa-running icon"></i>
                 <span class="small-text">Activity</span>
             </NavLink>
         }
-        <NavLink class="nav-link text-center" href="medals">
+        <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="medals">
             <i class="fas fa-medal icon"></i>
             <span class="small-text">Medals</span>
         </NavLink>
-        <NavLink class="nav-link text-center" href="profile">
+        <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="profile">
             <i class="fas fa-user icon"></i>
             <span class="small-text">Profile</span>
         </NavLink>
     </div>
 </nav>
+
 

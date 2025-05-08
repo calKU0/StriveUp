@@ -16,5 +16,6 @@ namespace StriveUp.Shared.DTOs
         public double TargetValue { get; set; }
         public string Frequency { get; set; }
         public DateTime? DateEarned { get; set; }
+        public int ActivityId { get; set; }
     }
 }

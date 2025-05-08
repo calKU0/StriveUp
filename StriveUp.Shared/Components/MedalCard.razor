@@ -1,18 +1,35 @@
 ﻿@using StriveUp.Shared.DTOs
 
-<div class="medal-card" @onclick="HandleClick">
-    <img src="@MedalDto.ImageUrl" class="mx-auto mb-2" alt="@MedalDto.Name" />
+<div class="medal-card @(IsAchieved ? "" : "opacity-50")" @onclick="HandleClick">
+    <img src="images/medals/@(Uri.EscapeDataString(MedalDto.Name.Replace(" ","_")).ToLower()).webp" class="mx-auto mb-2" alt="@MedalDto.Name" />
     <h6 class="fw-bold">@MedalDto.Name</h6>
     <span class="badge @(GetBadgeClass(MedalDto.Frequency))">@MedalDto.Frequency</span>
     @if(MedalDto.DateEarned != null)
     {
         <div class="mt-1 text-muted small">Earned: @MedalDto.DateEarned?.ToShortDateString()</div>
     }
+
+    <div class="progress mt-2">
+        <div class="progress-bar bg-info" role="progressbar"
+                style="width: @ProgressPercent%"
+                aria-valuenow="@ProgressPercent"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                data-label="@ProgressPercent%">
+        </div>
+    </div>
+    <div class="progress-text text-center mt-2">
+        <span>@ProgressPercent% Completed</span>
+    </div>
+    
+
 </div>
 
 @code {
     [Parameter] public MedalDto MedalDto { get; set; }
+    [Parameter] public bool IsAchieved { get; set; }
     [Parameter] public EventCallback OnMedalClick { get; set; }
+    [Parameter] public int ProgressPercent { get; set; }
 
     private string GetBadgeClass(string frequency)
     {

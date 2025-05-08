@@ -1,57 +1,88 @@
+/* Modal Backdrop */
 .custom-modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.6);
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     z-index: 1050;
 }
 
+/* Modal Container */
 .custom-modal {
-    background-color: #fff;
-    border-radius: 12px;
+    background-color: white;
+    border-radius: 8px;
+    width: 80%;
     max-width: 500px;
-    width: 90%;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    transform: translateY(-20px);
-    opacity: 0;
-    animation: unlockingModal 0.5s forwards;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-out;
 }
 
-    .custom-modal.unlocking {
-        animation: unlockingModal 0.5s forwards;
+/* Modal Header */
+.custom-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+    .custom-modal-header h5 {
+        font-size: 1.5rem;
+        font-weight: 600;
     }
 
-.custom-modal-header,
-.custom-modal-footer {
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.custom-modal-footer {
-    border-top: 1px solid #dee2e6;
-    justify-content: flex-end;
-}
-
-.custom-modal-body {
-    padding: 1rem;
-    font-size: 0.95rem;
-}
-
+/* Modal Image Styling */
 .modal-image {
     width: 100%;
+    height: auto;
     border-radius: 8px;
-    margin-bottom: 1rem;
+    margin-bottom: 15px;
 }
 
+/* Modal Footer */
+.custom-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+}
+
+/* Progress Bar Styling */
+.progress {
+    height: 10px;
+    border-radius: 5px;
+    background-color: #e9ecef; /* Light gray background */
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+/* Progress Bar Fill */
+.progress-bar {
+    transition: width 0.5s ease, background-color 0.5s ease;
+    height: 100%;
+    border-radius: 5px;
+}
+
+/* Progress Text */
+.progress-text {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 10px;
+}
+
+/* Close Button */
+.btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #aaa;
+}
 .btn-primary {
     background-color: #4f46e5;
     border-color: #4f46e5;
@@ -64,14 +95,33 @@
         border-color: #4338ca;
     }
 
-@keyframes unlockingModal {
-    0% {
-        transform: translateY(-20px);
+
+.progress-bar[aria-valuenow="100"] {
+    background: linear-gradient(to right, #28a745, #218838); /* Green gradient for 100% */
+}
+
+.progress-bar[aria-valuenow="75"] {
+    background: linear-gradient(to right, #ffc107, #e0a800); /* Yellow gradient for 75% */
+}
+
+.progress-bar[aria-valuenow="50"] {
+    background: linear-gradient(to right, #ffc107, #ff9800); /* Orange gradient for 50% */
+}
+
+.progress-bar[aria-valuenow="25"] {
+    background: linear-gradient(to right, #dc3545, #c82333); /* Red gradient for 25% */
+}
+
+
+/* Modal Animation */
+@keyframes fadeIn {
+    from {
         opacity: 0;
+        transform: scale(0.9);
     }
 
-    100% {
-        transform: translateY(0);
+    to {
         opacity: 1;
+        transform: scale(1);
     }
 }
