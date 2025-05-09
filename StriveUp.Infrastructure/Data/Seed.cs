@@ -15,19 +15,19 @@ namespace StriveUp.Infrastructure.Data
                 {
                     new Activity
                     {
-                        Name = "Running",
+                        Name = "Run",
                         Description = "A basic running activity.",
                         AverageCaloriesPerHour = 500
                     },
                     new Activity
                     {
-                        Name = "Biking",
+                        Name = "Bike",
                         Description = "A biking activity.",
                         AverageCaloriesPerHour = 600
                     },
                     new Activity
                     {
-                        Name = "Swimming",
+                        Name = "Swim",
                         Description = "A swimming activity.",
                         AverageCaloriesPerHour = 400
                     }
@@ -39,9 +39,9 @@ namespace StriveUp.Infrastructure.Data
 
             if (!context.Medals.Any())
             {
-                var runningActivity = context.Activities.First(a => a.Name == "Running");
-                var bikingActivity = context.Activities.First(a => a.Name == "Biking");
-                var swimmingActivity = context.Activities.First(a => a.Name == "Swimming");
+                var runningActivity = context.Activities.First(a => a.Name == "Run");
+                var bikingActivity = context.Activities.First(a => a.Name == "Bike");
+                var swimmingActivity = context.Activities.First(a => a.Name == "Swim");
 
                 var medals = new List<Medal>
                 {

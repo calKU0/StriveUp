@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using StriveUp.Infrastructure.Extensions;
 
+
 namespace StriveUp.MAUI;
 
 public static class MauiProgram
@@ -24,6 +25,10 @@ public static class MauiProgram
         builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddSingleton<IPlatformService, MauiPlatformService>();
+
+        builder.Services.AddSingleton<IBleHeartRateService, BleHeartRateService>();
+
+
         builder.Services.AddClientInfrastructure();
         builder.Services.AddAuthorizationCore();
 

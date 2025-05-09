@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.API", "StriveUp.API\StriveUp.API.csproj", "{F3665485-04CC-4A53-A2AE-373D899C7BBB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StriveUp.Sync", "StriveUp.Sync\StriveUp.Sync.csproj", "{B275E46E-011C-4B5D-89D5-ABC02D63DBF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{F3665485-04CC-4A53-A2AE-373D899C7BBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3665485-04CC-4A53-A2AE-373D899C7BBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3665485-04CC-4A53-A2AE-373D899C7BBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B275E46E-011C-4B5D-89D5-ABC02D63DBF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B275E46E-011C-4B5D-89D5-ABC02D63DBF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B275E46E-011C-4B5D-89D5-ABC02D63DBF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B275E46E-011C-4B5D-89D5-ABC02D63DBF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

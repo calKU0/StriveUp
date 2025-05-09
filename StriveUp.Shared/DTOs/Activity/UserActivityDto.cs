@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StriveUp.Shared.DTOs.Activity;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace StriveUp.Shared.DTOs
         //public List<string>? ImageUrls { get; set; }
         [Range(1, 1440, ErrorMessage = "Duration must be between 1 and 1440 minutes.")]
         [Required]
-        public int DurationMinutes { get; set; }
+        public double DurationSeconds { get; set; }
         [Required]
         public int Distance { get; set; }
         [Required]
@@ -33,5 +34,6 @@ namespace StriveUp.Shared.DTOs
         public bool IsLikedByCurrentUser { get; set; }
         public List<CommentDto> Comments { get; set; } = new();
         public List<GeoPointDto>? Route { get; set; } = new();
+        public List<ActivityHrDto> HrData { get; set; } = new();
     }
 }

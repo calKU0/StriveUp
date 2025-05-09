@@ -47,7 +47,7 @@ else
 
         <div class="mb-3">
             <label for="duration" class="form-label">Duration (minutes)</label>
-            <InputNumber id="duration" class="form-control" @bind-Value="activity.DurationMinutes" />
+            <InputNumber id="duration" class="form-control" @bind-Value="activity.DurationSeconds" />
         </div>
 
         <button type="submit" class="btn btn-success">Save</button>
@@ -90,7 +90,7 @@ else
 
             if (IsNew)
             {
-                activity.DateEnd = activity.DateStart.AddMinutes(activity.DurationMinutes);
+                activity.DateEnd = activity.DateStart.AddMinutes(activity.DurationSeconds);
                 //success = await ActivityService.AddActivityAsync(activity);
             }
             else

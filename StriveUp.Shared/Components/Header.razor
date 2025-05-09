@@ -1,0 +1,86 @@
+﻿@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="native-header d-flex justify-content-between align-items-center px-3 py-2">
+    <!-- Left side: Back Button -->
+    @if (showBackButton)
+    {
+        <div class="left-icons d-flex align-items-center">
+            <i class="fas fa-arrow-left text-dark" @onclick="BackButtonClick"></i>
+        </div>
+    }
+
+    <!-- Page Title -->
+    <div class="page-title text-dark @(!showBackButton ? "" : "text-center")">
+        @pageTitle
+    </div>
+
+    <!-- Right side: Search, Bell, Settings -->
+    <div class="right-icons d-flex align-items-center">
+        @if (showSearch)
+        {
+            <i class="fas fa-search text-dark"></i>
+        }
+        @if (showBell)
+        {
+            <i class="fas fa-bell text-dark"></i>
+        }
+        @if (showSettings)
+        {
+            <i class="fas fa-cog text-dark"></i>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string pageTitle { get; set; } = string.Empty;
+
+    public bool showBell = true;
+    public bool showSearch = true;
+    public bool showBackButton = false;
+    public bool showSettings = false;
+
+    protected override void OnInitialized()
+    {
+        if (pageTitle == "Tracking")
+        {
+            showBell = false;
+            showSearch = false;
+            showBackButton = true;
+            showSettings = false;
+        }
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+
+    private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (pageTitle == "Tracking")
+        {
+            showBell = false;
+            showSearch = false;
+            showBackButton = true;
+            showSettings = false;
+        }
+        else
+        {
+            showBell = true;
+            showSearch = true;
+            showBackButton = false;
+            showSettings = false;
+        }
+
+        StateHasChanged();  // Ensure the UI updates with the new page name
+    }
+
+    private async Task BackButtonClick()
+    {
+        await JSRuntime.InvokeVoidAsync("history.back");
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe when the component is disposed to avoid memory leaks
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

@@ -30,7 +30,7 @@ namespace StriveUp.Infrastructure.Models
         public string? Description { get; set; }
         [Required]
         [Range(1, 1440)]
-        public int DurationMinutes { get; set; }
+        public double DurationSeconds { get; set; }
         [Required]
         public int CaloriesBurned { get; set; }
         [Required]

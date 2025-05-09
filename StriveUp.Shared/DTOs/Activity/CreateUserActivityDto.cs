@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StriveUp.Shared.DTOs.Activity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,9 @@ namespace StriveUp.Shared.DTOs
         public int ActivityId { get; set; }
         public DateTime DateStart { get; set; }
         public DateTime DateEnd { get; set; }
-        public int DurationMinutes { get; set; }
+        public double DurationSeconds { get; set; }
         public List<GeoPointDto> Route { get; set; }
+        public List<ActivityHrDto> HrData { get; set; } = new();
     }
 
 }

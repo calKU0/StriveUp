@@ -22,7 +22,7 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.ActivityId, opt => opt.MapFrom(src => src.Activity.Id))
                 .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Activity.Description))
-                .ForMember(dest => dest.DurationMinutes, opt => opt.MapFrom(src => src.DurationMinutes));
+                .ForMember(dest => dest.DurationSeconds, opt => opt.MapFrom(src => src.DurationSeconds));
 
             // CreateUserActivityDto <-> DTO
             CreateMap<CreateUserActivityDto, UserActivity>();
@@ -59,6 +59,9 @@ namespace StriveUp.API.Mapping
 
             CreateMap<EditUserProfileDto, AppUser>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+
+            CreateMap<ActivityHr, ActivityHrDto>();
+            CreateMap<ActivityHrDto, ActivityHr>();
         }
     }
 }

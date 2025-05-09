@@ -1,7 +1,8 @@
 ﻿@page "/tracking"
 @inject IJSRuntime JSRuntime
-@inject IActivityService activityService
-@inject ISecurableService securableService
+@inject IActivityService ActivityService
+@inject ISecurableService SecurableService
+@inject IBleHeartRateService HeartRateService
 @inject NavigationManager Navigation
 
 @using Microsoft.Maui
@@ -11,6 +12,7 @@
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
 @using System.Diagnostics
+@using Plugin.BLE.Abstractions.Contracts;
 
 
 @if (isLoadingLocation)
@@ -22,30 +24,26 @@
 }
 
 <div class="page-wrapper @(mapVisible ? "map-visible" : "")">
-    @if (!isTracking && !isPaused)
-    {
-        <BackButton />
-    }
+    <div class="slides">
+        <div class="map-section">
+            <div id="map"></div>
+        </div>
 
-    <div class="map-section @(!isTracking && !isPaused ? "pt-5" : "")">
-        <div id="map"></div>
+        <div class="controls">
+            <ActivityControls AvailableActivities="availableActivities"
+            SelectedActivityId="@selectedActivityId"
+            IsTracking="@isTracking"
+            IsPaused="@isPaused"
+            OnSelectedSensorChanged="@(sensor => ConnectHrDevice(sensor))"
+            OnStartClick="@ToggleTracking"
+            OnStopClick="@ToggleTracking"
+            OnResumeClick="@ResumeTracking"
+            OnFinishClick="@ShowFinishModal" />
+        </div>
     </div>
-
-    <div class="controls">
-        <ActivityControls AvailableActivities="availableActivities"
-        SelectedActivityId="@selectedActivityId"
-        IsTracking="@isTracking"
-        IsPaused="@isPaused"
-        OnStartClick="@ToggleTracking"
-        OnStopClick="@ToggleTracking"
-        OnResumeClick="@ResumeTracking"
-        OnFinishClick="@ShowFinishModal" />
-    </div>
-
     @if (isTracking || isPaused)
     {
-        <div id="bottomSheet" class="bottom-sheet ">
-            <div class="drag-handle"></div>
+        <div class="slides @(isSheetExpanded ? "expanded" : "")">
             <div class="tiles-wrapper container-fluid flex-grow-1 d-flex align-items-stretch">
                 <!-- Info Tiles -->
                 <div class="row g-3">
@@ -73,6 +71,9 @@ OnResume="@ResumeTracking" />
 
 
 @code {
+    private List<ActivityHrDto> HrData = new();
+    private string selectedDeviceId;
+    private List<Location> route = new();
     private List<ActivityDto> availableActivities = new();
     private bool isPaused = false;
     private int selectedActivityId = 4;
@@ -85,11 +86,12 @@ OnResume="@ResumeTracking" />
     private int HeartRate = 0;
     private TimeSpan Duration = TimeSpan.Zero;
     private DateTime startTime;
-    private double currentHeading = 30; // Store the current heading
-    private List<Location> route = new();
+    private double currentHeading = 0;
     private CancellationTokenSource durationCts;
     private bool isLoadingLocation = true;
     private string mapToken;
+    private bool btPermission = false;
+    private bool isSheetExpanded = false;
 
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
@@ -98,17 +100,21 @@ OnResume="@ResumeTracking" />
     // This will be triggered when the page first loads
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        var status = await Permissions.RequestAsync<Permissions.Bluetooth>();
+        if (status != PermissionStatus.Granted)
         {
-            var activities = await activityService.GetAvailableActivitiesAsync();
-            if (activities != null)
-                availableActivities = activities;
-
-            mapToken = await securableService.GetMapboxTokenAsync();
-            await StartLocationTracking(); // Start tracking immediately
-            await JSRuntime.InvokeVoidAsync("handleSwipe", "bottomSheet");
+            btPermission = false;
+            return;
         }
-    }
+        btPermission = true;
+        var activities = await ActivityService.GetAvailableActivitiesAsync();
+        if (activities != null)
+            availableActivities = activities;
+
+        mapToken = await SecurableService.GetMapboxTokenAsync();
+        await StartLocationTracking(); // Start tracking immediately
+        Navigation.LocationChanged += HandleLocationChanged;
+    }  
 
     private async Task StartLocationTracking()
     {
@@ -127,6 +133,7 @@ OnResume="@ResumeTracking" />
 
                 if (location != null)
                 {
+                    StartCompass();
                     currentLocation = location;
 
                     if (!mapInitialized)
@@ -144,7 +151,10 @@ OnResume="@ResumeTracking" />
 
                 await Task.Delay(1500);
             }
-            await StartLocationUpdates();
+
+            Geolocation.LocationChanged += OnLocationChanged;
+            var request = new GeolocationListeningRequest(GeolocationAccuracy.High);
+            await Geolocation.StartListeningForegroundAsync(request);
         }
         catch (Exception ex)
         {
@@ -153,24 +163,40 @@ OnResume="@ResumeTracking" />
         }
     }
 
-    private async Task StartLocationUpdates()
-    {
-        var status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
-        if (status != PermissionStatus.Granted)
-        {
-            return;
-        }
-
-        Geolocation.LocationChanged += OnLocationChanged;
-
-        var request = new GeolocationListeningRequest(GeolocationAccuracy.High);
-        await Geolocation.StartListeningForegroundAsync(request);
-    }
 
     private void OnLocationChanged(object sender, GeolocationLocationChangedEventArgs e)
     {
         currentLocation = e.Location;
         JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
+    }
+
+    private async Task ConnectHrDevice(BluetoothDeviceDto device)
+    {
+        selectedDeviceId = device.Id;
+        var success = await HeartRateService.ConnectAsync(selectedDeviceId);
+        if (success)
+        {
+            HeartRateService.OnHeartRateChanged += (hr) =>
+            {
+                if (isTracking)
+                {
+                    HeartRate = hr;
+                    HrData.Add(new ActivityHrDto
+                        {
+                            HearthRateValue = hr,
+                            TimeStamp = DateTime.UtcNow
+                        });
+                    Debug.WriteLine($"Heart Rate: {hr} bpm");
+                }
+
+                InvokeAsync(StateHasChanged);
+            };
+        }
+    }
+
+    private void ToggleSheet()
+    {
+        isSheetExpanded = !isSheetExpanded;
     }
 
     private void ToggleTracking()
@@ -287,16 +313,17 @@ OnResume="@ResumeTracking" />
                 ActivityId = selectedActivityId,
                 DateStart = startTime,
                 DateEnd = DateTime.UtcNow,
-                DurationMinutes = (int)Duration.TotalMinutes,
+                DurationSeconds = Duration.TotalSeconds,
                 Route = route.Select(loc => new GeoPointDto
                 {
                     Latitude = loc.Latitude,
                     Longitude = loc.Longitude,
-                    Timestamp = DateTime.UtcNow
-                }).ToList()
+                    Timestamp = loc.Timestamp.UtcDateTime,
+                }).ToList(),
+                HrData = HrData
             };
 
-        await activityService.AddActivityAsync(dto);
+        await ActivityService.AddActivityAsync(dto);
         await JSRuntime.InvokeVoidAsync("clearRoute");
 
         showFinishModal = false;
@@ -328,7 +355,27 @@ OnResume="@ResumeTracking" />
 
     private void OnCompassReadingChanged(object sender, CompassChangedEventArgs e)
     {
+        if (currentLocation == null)
+        {
+            return;
+        }
+        JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
         currentHeading = e.Reading.HeadingMagneticNorth;
+    }
+
+    private void HandleLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        // Handle cleanup here if needed (e.g., saving data or canceling tasks)
+        Dispose();
+    }
+
+    private void Dispose()
+    {
+        // Unsubscribe when the component is disposed to avoid memory leaks
+        Compass.Default.Stop();
+        Geolocation.Default.StopListeningForeground();
+        Geolocation.LocationChanged -= OnLocationChanged;
+        Compass.Default.ReadingChanged -= OnCompassReadingChanged;
     }
 }
 

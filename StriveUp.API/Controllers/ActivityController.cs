@@ -36,7 +36,7 @@ namespace StriveUp.API.Controllers
 
             var userActivity = _mapper.Map<UserActivity>(dto);
             userActivity.UserId = userId!;
-            userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((decimal)(activity.AverageCaloriesPerHour / 60) * dto.DurationMinutes));
+            userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((double)(activity.AverageCaloriesPerHour / 60) * dto.DurationSeconds));
 
             _context.UserActivities.Add(userActivity);
             await _context.SaveChangesAsync();

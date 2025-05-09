@@ -123,34 +123,26 @@ function clearRoute() {
 }
 
 
-window.handleSwipe = function (sheetId) {
-    const bottomSheet = document.getElementById(sheetId);
-    let startY = 0;
+window.handleSwipe = (elementId) => {
+    const element = document.getElementById(elementId);
+    let startY = null;
 
-    if (!bottomSheet) return;
-
-    bottomSheet.addEventListener('touchstart', function (e) {
+    element.addEventListener("touchstart", (e) => {
         startY = e.touches[0].clientY;
     });
 
-    bottomSheet.addEventListener('touchend', function (e) {
+    element.addEventListener("touchend", (e) => {
         const endY = e.changedTouches[0].clientY;
         const deltaY = startY - endY;
 
         if (deltaY > 50) {
-            bottomSheet.classList.add('expanded');
+            element.classList.add("expanded");
         } else if (deltaY < -50) {
-            bottomSheet.classList.remove('expanded');
+            element.classList.remove("expanded");
         }
     });
-
-    const handle = bottomSheet.querySelector('.drag-handle');
-    if (handle) {
-        handle.addEventListener('click', () => {
-            bottomSheet.classList.toggle('expanded');
-        });
-    }
 };
+
 
 window.triggerFileInputClick = function (element) {
     if (element) {

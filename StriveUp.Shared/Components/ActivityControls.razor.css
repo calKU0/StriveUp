@@ -1,0 +1,90 @@
+/* Styling for the dropdown menu */
+.dropdown-menu {
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    overflow: hidden; /* Add this line */
+    transition: opacity 0.3s ease, max-height 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    border-radius: 12px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+    /* State when dropdown is visible */
+.dropdown-menu.show {
+    max-height: 300px; /* Adjust to the approximate size of your content */
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Styling for each dropdown item */
+.dropdown-item {
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    color: white; /* Text color */
+}
+
+    .dropdown-item:hover {
+        background-color: #f7f7f7;
+        color: black; /* Hover text color */
+    }
+
+/* Styling for the activity image */
+.activity-image {
+    width: 36px;
+    height: 36px;
+    margin-right: 15px;
+}
+
+/* Make icon match the size of images */
+.activity-icon {
+    font-size: 36px; /* Match the size of the activity images */
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+/* General button styling */
+.btn {
+    border-radius: 50px; /* Fully rounded corners */
+    padding: 12px 24px; /* More spacious button */
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Specific button styles */
+.btn-warning {
+    background-color: #f0ad4e;
+    border: none;
+}
+
+    .btn-warning:hover {
+        background-color: #ec971f;
+    }
+
+.btn-danger {
+    background-color: #d9534f;
+    border: none;
+}
+
+    .btn-danger:hover {
+        background-color: #c9302c;
+    }
+
+.btn-success {
+    background-color: #5bc0de;
+    border: none;
+}
+
+    .btn-success:hover {
+        background-color: #31b0d5;
+    }
+
+.btn-lg {
+    font-size: 18px;
+    padding: 14px 28px;
+}

@@ -1,72 +1,136 @@
-﻿@inject IAuthService AuthService
+﻿@using StriveUp.Shared.Components
+@inject IAuthService AuthService
 @inject IPlatformService PlatformService
+@inject NavigationManager Navigation
 
-<!-- Desktop Navbar (fixed top) -->
-<nav class="navbar fixed-top d-none d-md-flex">
-    <div class="container-fluid d-flex justify-content-between align-items-center px-3">
-        <!-- Left Section -->
-        <div class="d-flex align-items-center">
-            <a class="navbar-brand me-3" href="">
-                <img class="logo-image img-fluid" src="images/StriveUp-logo.png" alt="Logo" />
-            </a>
-            <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
+
+@if (PlatformService.IsNativeApp())
+{
+    <Header pageTitle="@pageTitle"></Header>
+}
+@if (!ShouldHideNavbar())
+{
+    <!-- Desktop Navbar (fixed top) -->
+    <nav class="navbar fixed-top d-none d-md-flex">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3">
+            <!-- Left Section -->
+            <div class="d-flex align-items-center">
+                <a class="navbar-brand me-3" href="">
+                    <img class="logo-image img-fluid" src="images/StriveUp-logo.png" alt="Logo" />
+                </a>
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
+                    <i class="fas fa-home icon"></i>
+                    <span class="small-text">Home</span>
+                </NavLink>
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="feed">
+                    <i class="fas fa-rss icon"></i>
+                    <span class="small-text">Feed</span>
+                </NavLink>
+                @if (PlatformService.IsNativeApp())
+                {
+                    <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="tracking">
+                        <i class="fas fa-running icon"></i>
+                        <span class="small-text">Activity</span>
+                    </NavLink>
+                }
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="medals">
+                    <i class="fas fa-medal icon"></i>
+                    <span class="small-text">Medals</span>
+                </NavLink>
+            </div>
+
+            <!-- Right Section -->
+            <div>
+                <NavLink class="nav-link text-end d-flex flex-column align-items-center" href="profile">
+                    <i class="fas fa-user icon"></i>
+                    <span class="small-text">Profile</span>
+                </NavLink>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navbar (fixed bottom) -->
+    <nav class="navbar fixed-bottom d-flex d-md-none">
+        <div class="container-fluid d-flex justify-content-around align-items-center px-2">
+            <NavLink class="d-none nav-link text-center d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
                 <i class="fas fa-home icon"></i>
                 <span class="small-text">Home</span>
             </NavLink>
-            <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="feed">
+            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="feed">
                 <i class="fas fa-rss icon"></i>
                 <span class="small-text">Feed</span>
             </NavLink>
             @if (PlatformService.IsNativeApp())
             {
-                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="tracking">
+                <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="tracking">
                     <i class="fas fa-running icon"></i>
                     <span class="small-text">Activity</span>
                 </NavLink>
             }
-            <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="medals">
+            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="medals">
                 <i class="fas fa-medal icon"></i>
                 <span class="small-text">Medals</span>
             </NavLink>
-        </div>
-
-        <!-- Right Section -->
-        <div>
-            <NavLink class="nav-link text-end d-flex flex-column align-items-center" href="profile">
+            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="profile">
                 <i class="fas fa-user icon"></i>
                 <span class="small-text">Profile</span>
             </NavLink>
         </div>
-    </div>
-</nav>
+    </nav>
+}
+@code {
+    private string pageTitle;
 
-<!-- Mobile Navbar (fixed bottom) -->
-<nav class="navbar fixed-bottom d-flex d-md-none">
-    <div class="container-fluid d-flex justify-content-around align-items-center px-2">
-        <NavLink class="d-none nav-link text-center d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
-            <i class="fas fa-home icon"></i>
-            <span class="small-text">Home</span>
-        </NavLink>
-        <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="feed">
-            <i class="fas fa-rss icon"></i>
-            <span class="small-text">Feed</span>
-        </NavLink>
-        @if (PlatformService.IsNativeApp())
+    protected override void OnInitialized()
+    {
+        // Set the initial page title
+        pageTitle = GetPageName();
+
+        // Subscribe to location changes to update page title when the user navigates
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        // Update the page title when the route changes
+        pageTitle = GetPageName();
+        StateHasChanged();  // Ensure the UI updates with the new page name
+    }
+
+    private string GetPageName()
+    {
+        var uri = Navigation.Uri;
+        var segments = new Uri(uri).Segments;
+        var pageName = segments.LastOrDefault()?.TrimEnd('/');
+
+        // If there's no page name, return a default value or the full path as fallback
+        return CapitalizeFirstLetter(pageName ?? "home");
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe when the component is disposed to avoid memory leaks
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
+    private bool ShouldHideNavbar()
+    {
+        var currentPage = Navigation.Uri;
+
+        if (currentPage.Contains("login") || currentPage.Contains("register") || currentPage.Contains("tracking"))
         {
-            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="tracking">
-                <i class="fas fa-running icon"></i>
-                <span class="small-text">Activity</span>
-            </NavLink>
+            return true;
         }
-        <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="medals">
-            <i class="fas fa-medal icon"></i>
-            <span class="small-text">Medals</span>
-        </NavLink>
-        <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="profile">
-            <i class="fas fa-user icon"></i>
-            <span class="small-text">Profile</span>
-        </NavLink>
-    </div>
-</nav>
 
+        return false;  // Show navbar on all other pages
+    }
 
+    private string CapitalizeFirstLetter(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        // Capitalize the first letter and keep the rest of the string unchanged
+        return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+    }
+}

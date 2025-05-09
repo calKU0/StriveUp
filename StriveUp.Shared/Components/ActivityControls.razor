@@ -1,16 +1,52 @@
 ﻿@using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
+
+@inject IJSRuntime JSRuntime
+@inject IBleHeartRateService BleHeartRateService
+
 <div class="text-center my-3">
     @if (!IsTracking && !IsPaused)
     {
-        <div class="mb-3">
-            <label class="form-label">Select Activity:</label>
-            <select class="form-select w-auto d-inline-block" @bind="SelectedActivityId">
+        <div class="mb-3 d-flex align-items-center justify-content-center gap-3">
+            <!-- Clickable Activity Icon -->
+            <img src="@GetActivityImageUrl(SelectedActivityId, "dark")"
+                 alt="Activity Icon"
+                 class="activity-image"
+                 @onclick="ToggleActivitySelect" />
+
+            <div class="dropdown-menu @(ShowActivitySelect ? "show" : "")">
                 @foreach (var activity in AvailableActivities)
                 {
-                    <option value="@activity.Id">@activity.Name</option>
+                    <a class="dropdown-item d-flex align-items-center" @onclick="() => SelectActivity(activity.Id)">
+                        <div class="activity-image-container">
+                            <img src="@GetActivityImageUrl(activity.Id, "light")" alt="@activity.Name" class="activity-image" />
+                        </div>
+                        <span class="activity-name">@activity.Name</span>
+                    </a>
                 }
-            </select>
+            </div>
+
+            <i class="fas fa-heartbeat activity-icon" @onclick="ToggleSensorSelect"></i>
+            <div class="dropdown-menu @(ShowSensorSelect ? "show" : "")">
+                @if (AvailableSensors.Any())
+                {
+                    @foreach (var sensor in AvailableSensors)
+                    {
+                        <!-- Sensors Dropdown -->
+                        <a class="dropdown-item d-flex align-items-center"
+                           @onchange="OnSensorChanged"
+                           value="@SelectedSensorId">
+
+                            <span class="@sensor.Id">@sensor.Name</span>
+
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div class="dropdown-item disabled">No sensors available</div>
+                }
+            </div>
         </div>
 
         <button class="btn btn-warning btn-lg" @onclick="OnStartClick">Start Activity</button>
@@ -26,6 +62,7 @@
     }
 </div>
 
+
 @code {
     [Parameter] public List<ActivityDto> AvailableActivities { get; set; }
     [Parameter] public int SelectedActivityId { get; set; }
@@ -36,4 +73,75 @@
     [Parameter] public EventCallback OnStopClick { get; set; }
     [Parameter] public EventCallback OnResumeClick { get; set; }
     [Parameter] public EventCallback OnFinishClick { get; set; }
+    [Parameter] public EventCallback<BluetoothDeviceDto> OnSelectedSensorChanged { get; set; }
+
+    private int SelectedSensorId { get; set; } = 0;
+    private List<BluetoothDeviceDto> AvailableSensors { get; set; } = new();
+    private bool ShowActivitySelect { get; set; } = false;
+    private bool ShowSensorSelect { get; set; } = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        AvailableSensors = await BleHeartRateService.GetAvailableDevicesAsync();
+
+        await JSRuntime.InvokeVoidAsync("eval", @"
+                document.addEventListener('click', function(event) {
+                    var activityDropdown = document.querySelector('.dropdown-menu.show');
+                    var sensorDropdown = document.querySelector('.dropdown-menu.show');
+                    var activitySelect = document.querySelector('.activity-image');
+                    var sensorSelect = document.querySelector('.fas.fa-heartbeat');
+
+                    // Close activity dropdown if clicked outside
+                    if (activityDropdown && !activitySelect.contains(event.target) && !activityDropdown.contains(event.target)) {
+                        activityDropdown.classList.remove('show');
+                    }
+
+                    // Close sensor dropdown if clicked outside
+                    if (sensorDropdown && !sensorSelect.contains(event.target) && !sensorDropdown.contains(event.target)) {
+                        sensorDropdown.classList.remove('show');
+                    }
+                });
+            ");
+
+    }
+
+    private string GetActivityImageUrl(int activityId, string theme)
+    {
+        var activity = AvailableActivities.FirstOrDefault(a => a.Id == activityId);
+        return activity?.Name switch
+        {
+            "Run" => $"images/icons/run-{theme}.webp",
+            "Bike" => $"images/icons/bike-{theme}.webp",
+            "Swim" => $"images/icons/swim-{theme}.webp",
+            _ => $"images/icons/default.png"
+        };
+    }
+
+    private async Task OnSensorChanged(ChangeEventArgs e)
+    {
+        var selectedId = e.Value?.ToString();
+        var selectedSensor = AvailableSensors.FirstOrDefault(s => s.Id == selectedId);
+
+        if (selectedSensor != null)
+        {
+            await OnSelectedSensorChanged.InvokeAsync(selectedSensor);
+        }
+    }
+
+    private void ToggleActivitySelect()
+    {
+        ShowActivitySelect = !ShowActivitySelect;
+    }
+
+    private void ToggleSensorSelect()
+    {
+        ShowSensorSelect = !ShowSensorSelect;
+    }
+
+    private void SelectActivity(int activityId)
+    {
+        SelectedActivityId = activityId;
+        ShowActivitySelect = false;
+    }
+
 }
