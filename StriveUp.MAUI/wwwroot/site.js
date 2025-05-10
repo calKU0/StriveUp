@@ -13,7 +13,7 @@ function initializeMap(lat, lng, accessToken) {
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [lng, lat],
-        zoom: 16,
+        zoom: 17,
         pitch: 60,
         bearing: 0,
         antialias: true
@@ -59,9 +59,9 @@ function createArrowMarker() {
     const marker = document.createElement('div');
     marker.className = 'arrow-marker';
     const arrowIcon = document.createElement('img');
-    arrowIcon.src = '/images/arrow-icon.png';  // Point to your arrow icon
-    arrowIcon.style.width = '16px';
-    arrowIcon.style.height = '16px';
+    arrowIcon.src = '/images/icons/arrow-icon.png';  // Point to your arrow icon
+    arrowIcon.style.width = '14px';
+    arrowIcon.style.height = '14px';
     marker.appendChild(arrowIcon);
     return marker;
 }
@@ -74,7 +74,7 @@ function updateMap(lat, lng, heading, shouldTrack) {
 
         const arrowIcon = userMarker.getElement().querySelector('img');
         if (arrowIcon) {
-            arrowIcon.style.transform = `rotate(${heading}deg)`;  // Rotate the arrow
+            arrowIcon.style.transform = `rotate(${heading - 90}deg)`;  // Rotate the arrow
         }
     }
 
@@ -95,7 +95,7 @@ function updateMap(lat, lng, heading, shouldTrack) {
     mapboxMap.easeTo({
         center: lngLat,
         bearing: heading,
-        duration: 1000
+        duration: 750
     });
 }
 
@@ -123,25 +123,12 @@ function clearRoute() {
 }
 
 
-window.handleSwipe = (elementId) => {
-    const element = document.getElementById(elementId);
-    let startY = null;
-
-    element.addEventListener("touchstart", (e) => {
-        startY = e.touches[0].clientY;
-    });
-
-    element.addEventListener("touchend", (e) => {
-        const endY = e.changedTouches[0].clientY;
-        const deltaY = startY - endY;
-
-        if (deltaY > 50) {
-            element.classList.add("expanded");
-        } else if (deltaY < -50) {
-            element.classList.remove("expanded");
-        }
-    });
-};
+function scrollToTrackingSection() {
+    const section = document.getElementById("tracking-section");
+    if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+    }
+}
 
 
 window.triggerFileInputClick = function (element) {

@@ -35,7 +35,7 @@ namespace StriveUp.MAUI.Services
             _adapter = _ble.Adapter;
         }
 
-        public async Task<List<BluetoothDeviceDto>> GetAvailableDevicesAsync()
+        public List<BluetoothDeviceDto> GetAvailableDevicesAsync()
         {
             var availableDevices = new List<BluetoothDeviceDto>();
             foreach (var bleDevice in _adapter.BondedDevices)

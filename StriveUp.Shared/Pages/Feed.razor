@@ -9,7 +9,6 @@
 
 <PageTitle>Activity Feed</PageTitle>
 <div class="container d-flex flex-column justify-content-center">
-    <button class="btn btn-primary" @onclick="NavigateToEdit">Add</button>
     @if (activities == null)
     {
         <p>Loading...</p>
@@ -19,72 +18,60 @@
         <div class="row g-3">
             @foreach (var activity in activities)
             {
-                <!-- linkowanie do activity details -->
-                <div class="col-12 col-md-6">
-                    <div class="card shadow-sm border-0 rounded-4 overflow-hidden h-100 bg-white">
-                        <div class="card-body d-flex flex-column gap-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <img alt="User" width="40" height="40" class="rounded-circle bg-secondary" />
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 shadow rounded-4 border-0 bg-light-subtle transition hover-shadow">
+                        <div class="card-body d-flex flex-column gap-3 p-4">
+                            <!-- User Info -->
+                            <div class="d-flex align-items-center gap-3">
+                                <img alt="User" width="48" height="48" class="rounded-circle bg-secondary" />
                                 <div>
-                                    <div class="fw-semibold">@activity.UserName</div>
+                                    <div class="fw-bold fs-6">@activity.UserName</div>
                                     <div class="text-muted small">@activity.DateStart.ToShortDateString()</div>
                                 </div>
                             </div>
 
-                            <div class="fw-bold fs-5">@activity.Title</div>
-                            <p class="text-muted mb-2">@activity.Description</p>
+                            <!-- Title & Description -->
+                            <div>
+                                <div class="fs-5 fw-semibold">@activity.Title</div>
+                                <p class="text-muted mb-1">@activity.Description</p>
+                            </div>
 
+                            <!-- Optional Map -->
                             @if (activity.Route?.Count > 1)
                             {
                                 <MapRoute Route="activity.Route" />
                             }
 
+                            <!-- Stats Row -->
                             <div class="d-flex justify-content-around text-center py-2 border-top border-bottom">
                                 <div>
-                                    <span class="fw-bold">@activity.DurationSeconds</span><br /><small class="text-muted">min</small>
+                                    <span class="fw-semibold">@activity.DurationSeconds</span><br />
+                                    <small class="text-muted">min</small>
                                 </div>
                                 <div>
-                                    <span class="fw-bold">@activity.CaloriesBurned</span><br /><small class="text-muted">kcal</small>
+                                    <span class="fw-semibold">@activity.CaloriesBurned</span><br />
+                                    <small class="text-muted">kcal</small>
                                 </div>
                                 <div>
-                                    <span class="fw-bold">@activity.ActivityName</span><br /><small class="text-muted">Type</small>
+                                    <span class="fw-semibold">@activity.ActivityName</span><br />
+                                    <small class="text-muted">Type</small>
                                 </div>
                             </div>
 
+                            <!-- Actions -->
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <button class="btn btn-sm @(activity.IsLikedByCurrentUser ? "btn-danger" : "btn-outline-danger")"
+                                <button class="btn btn-sm px-3 @(activity.IsLikedByCurrentUser ? "btn-danger" : "btn-outline-danger")"
                                         @onclick="() => ToggleLike(activity)">
                                     ❤️ @activity.LikeCount
                                 </button>
-                            </div>
 
-                            <div class="mt-2">
-                                <strong>Comments:</strong>
-                                @if (activity.Comments?.Any() ?? false)
-                                {
-                                    @foreach (var comment in activity.Comments.Take(2))
-                                    {
-                                        <div class="small text-muted">
-                                            <strong>@comment.UserName:</strong> @comment.Content
-                                        </div>
-                                    }
-                                    @if (activity.Comments.Count > 2)
-                                    {
-                                        <div class="small text-muted fst-italic">+@((activity.Comments.Count - 2)) more...</div>
-                                    }
-                                }
-                                else
-                                {
-                                    <div class="small text-muted fst-italic">No comments yet.</div>
-                                }
-
-                                <input class="form-control form-control-sm mt-2" placeholder="Write a comment..."
-                                       @bind="commentInputs[activity.Id]" />
-                                <button class="btn btn-sm btn-primary mt-1" @onclick="() => AddComment(activity.Id)">Post</button>
+                                <a class="small text-primary text-decoration-none"
+                                   href="@($"/activity/{activity.Id}/comments")">
+                                    💬 @(activity.Comments?.Count ?? 0) Comments
+                                </a>
                             </div>
                         </div>
                     </div>
-
                 </div>
             }
         </div>
@@ -106,7 +93,7 @@
             if (currentUser.Identity?.IsAuthenticated ?? false)
             {
                 // Token is valid, fetch activities
-                activities = await ActivityService.GetUserActivitiesAsync();
+                activities = await ActivityService.GetFeedAsync();
 
                 if (activities != null)
                 {   

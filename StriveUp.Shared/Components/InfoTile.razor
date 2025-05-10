@@ -1,8 +1,11 @@
-﻿<div class="col-6 d-flex">
-    <div class="card shadow-sm w-100 text-center">
-        <div class="card-body p-3">
-            <h6 class="card-title text-muted">@Label</h6>
-            <p class="card-text fw-bold fs-5">@Value</p>
+﻿<div class="col-6 col-md-3 d-flex">
+    <div class="info-tile card w-100 shadow-sm border-0 text-center">
+        <div class="card-body d-flex flex-column justify-content-center align-items-center p-4 h-100">
+            <div class="tile-icon mb-3">
+                <i class="@IconClass"></i>
+            </div>
+            <h6 class="card-title text-muted text-uppercase small mb-1">@Label</h6>
+            <p class="card-text fw-semibold fs-5 mb-0">@Value</p>
         </div>
     </div>
 </div>
@@ -10,4 +13,6 @@
 @code {
     [Parameter] public string Label { get; set; }
     [Parameter] public string Value { get; set; }
+    [Parameter] public string IconClass { get; set; }
+    [Parameter] public string? MeasurementType { get; set; }
 }

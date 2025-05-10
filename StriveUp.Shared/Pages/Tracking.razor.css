@@ -1,17 +1,16 @@
 ﻿.page-wrapper {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100vh;
     overflow-y: scroll;
+    height: auto;
+    min-height: calc(100vh - 52px);
     scroll-snap-type: y mandatory;
 }
 
 .slides {
     width: 100%;
-    height: 100vh;
     scroll-snap-align: start;
+    height: calc(100vh - 52px);
 }
+
 
 .map-section {
     height: 70vh;
@@ -29,6 +28,12 @@
 #map {
     height: 100%;
     width: 100%;
+}
+
+.tiles-wrapper {
+    height: 100%;
+    display: flex;
+    align-items: stretch;
 }
 
 .info-tile {

@@ -9,20 +9,25 @@
     {
         <div class="mb-3 d-flex align-items-center justify-content-center gap-3">
             <!-- Clickable Activity Icon -->
-            <img src="@GetActivityImageUrl(SelectedActivityId, "dark")"
-                 alt="Activity Icon"
-                 class="activity-image"
-                 @onclick="ToggleActivitySelect" />
+            <img src="@GetActivityImageUrl(SelectedActivity?.Id ?? 4, "dark")" alt="Activity Icon" class="activity-image" @onclick="ToggleActivitySelect" />
+
 
             <div class="dropdown-menu @(ShowActivitySelect ? "show" : "")">
-                @foreach (var activity in AvailableActivities)
+                @if (AvailableActivities != null && AvailableActivities.Any())
                 {
-                    <a class="dropdown-item d-flex align-items-center" @onclick="() => SelectActivity(activity.Id)">
-                        <div class="activity-image-container">
-                            <img src="@GetActivityImageUrl(activity.Id, "light")" alt="@activity.Name" class="activity-image" />
-                        </div>
-                        <span class="activity-name">@activity.Name</span>
-                    </a>
+                    @foreach (var activity in AvailableActivities)
+                    {
+                        <a class="dropdown-item d-flex align-items-center" @onclick="() => SelectActivity(activity)">
+                            <div class="activity-image-container">
+                                <img src="@GetActivityImageUrl(activity.Id, "light")" alt="@activity.Name" class="activity-image" />
+                            </div>
+                            <span class="activity-name">@activity.Name</span>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div class="dropdown-item disabled">No available activities</div>
                 }
             </div>
 
@@ -34,8 +39,8 @@
                     {
                         <!-- Sensors Dropdown -->
                         <a class="dropdown-item d-flex align-items-center"
-                           @onchange="OnSensorChanged"
-                           value="@SelectedSensorId">
+                        @onchange="OnSensorChanged"
+                        value="@SelectedSensorId">
 
                             <span class="@sensor.Id">@sensor.Name</span>
 
@@ -64,8 +69,8 @@
 
 
 @code {
-    [Parameter] public List<ActivityDto> AvailableActivities { get; set; }
-    [Parameter] public int SelectedActivityId { get; set; }
+    [Parameter] public List<ActivityDto> AvailableActivities { get; set; } = new();
+    [Parameter] public ActivityDto SelectedActivity { get; set; } = new();
     [Parameter] public bool IsTracking { get; set; }
     [Parameter] public bool IsPaused { get; set; }
 
@@ -82,7 +87,7 @@
 
     protected async override Task OnInitializedAsync()
     {
-        AvailableSensors = await BleHeartRateService.GetAvailableDevicesAsync();
+        AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
 
         await JSRuntime.InvokeVoidAsync("eval", @"
                 document.addEventListener('click', function(event) {
@@ -108,6 +113,7 @@
     private string GetActivityImageUrl(int activityId, string theme)
     {
         var activity = AvailableActivities.FirstOrDefault(a => a.Id == activityId);
+
         return activity?.Name switch
         {
             "Run" => $"images/icons/run-{theme}.webp",
@@ -138,9 +144,9 @@
         ShowSensorSelect = !ShowSensorSelect;
     }
 
-    private void SelectActivity(int activityId)
+    private void SelectActivity(ActivityDto activity)
     {
-        SelectedActivityId = activityId;
+        SelectedActivity = activity;
         ShowActivitySelect = false;
     }
 

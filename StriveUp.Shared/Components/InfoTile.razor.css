@@ -1,0 +1,10 @@
+.info-tile {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tile-icon i {
+    font-size: 2.2rem;
+    color: #0d6efd;
+}

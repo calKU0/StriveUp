@@ -1,0 +1,63 @@
+﻿@page "/activity/{ActivityId:int}/comments"
+@using StriveUp.Shared.DTOs
+@inject IActivityService ActivityService
+
+@code {
+    [Parameter] public int ActivityId { get; set; }
+    private UserActivityDto activity;
+
+    protected override async Task OnInitializedAsync()
+    {
+        activity = await ActivityService.GetActivityByIdAsync(ActivityId);
+    }
+}
+
+@if (activity == null)
+{
+    <p>Loading comments...</p>
+}
+else
+{
+    <div class="container py-4">
+        <h2>@activity.Title</h2>
+        <p class="text-muted">@activity.Description</p>
+
+        <hr />
+        <h5>Comments (@activity.Comments?.Count ?? 0)</h5>
+
+        @if (activity.Comments?.Any() ?? false)
+        {
+            foreach (var comment in activity.Comments)
+            {
+                <div class="mb-3 border-bottom pb-2">
+                    <strong>@comment.UserName</strong>
+                    <div class="text-muted small">@comment.CreatedAt.ToShortDateString()</div>
+                    <p>@comment.Content</p>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="fst-italic text-muted">No comments yet.</p>
+        }
+
+        <div class="mt-4">
+            <textarea class="form-control mb-2" rows="3" placeholder="Write your comment..." @bind="newComment"></textarea>
+            <button class="btn btn-primary" @onclick="PostComment">Post Comment</button>
+        </div>
+    </div>
+}
+
+@code {
+    private string newComment;
+
+    private async Task PostComment()
+    {
+        if (!string.IsNullOrWhiteSpace(newComment))
+        {
+            await ActivityService.AddCommentAsync(ActivityId, newComment);
+            newComment = string.Empty;
+            activity = await ActivityService.GetActivityByIdAsync(ActivityId);
+        }
+    }
+}

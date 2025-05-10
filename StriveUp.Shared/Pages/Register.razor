@@ -8,10 +8,9 @@
 @inject NavigationManager Nav
 @inject IAuthService AuthService
 
-<div class="d-flex justify-content-center align-items-center vh-100">
+<div class="d-flex justify-content-center align-items-center container-full">
     <div class="container text-center pt-0 pt-md-5">
-        <img class="mb-4" src="images/StriveUp-logo.png" alt="Logo" width="72" height="57">
-        <h2 class="fw-bolder">StriveUp</h2>
+        <img class="mb-4" src="images/StriveUp-logo-dark.png" alt="Logo" width="144" height="144">
         <h5 class="fw-bold">Register</h5>
         <p>Enter your email and password</p>
         <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"
+     xmlns:gx="http://www.google.com/kml/ext/2.2">
+  <Document>
+    <name>100-Point Slow Animated Route</name>
+    <Placemark>
+      <name>Runner Animation</name>
+      <gx:Track>
+        <altitudeMode>clampToGround</altitudeMode>
+        <when>2025-05-10T12:00:00Z</when><gx:coord>-122.084 37.422 0</gx:coord>
+        <when>2025-05-10T12:00:02Z</when><gx:coord>-122.08401 37.42201 0</gx:coord>
+        <when>2025-05-10T12:00:04Z</when><gx:coord>-122.08402000000001 37.422019999999996 0</gx:coord>
+        <when>2025-05-10T12:00:06Z</when><gx:coord>-122.08403 37.42203 0</gx:coord>
+        <when>2025-05-10T12:00:08Z</when><gx:coord>-122.08404 37.422039999999996 0</gx:coord>
+        <when>2025-05-10T12:00:10Z</when><gx:coord>-122.08405 37.42205 0</gx:coord>
+        <when>2025-05-10T12:00:12Z</when><gx:coord>-122.08406000000001 37.422059999999995 0</gx:coord>
+        <when>2025-05-10T12:00:14Z</when><gx:coord>-122.08407 37.42207 0</gx:coord>
+        <when>2025-05-10T12:00:16Z</when><gx:coord>-122.08408 37.422079999999994 0</gx:coord>
+        <when>2025-05-10T12:00:18Z</when><gx:coord>-122.08409 37.42209 0</gx:coord>
+        <when>2025-05-10T12:00:20Z</when><gx:coord>-122.0841 37.4221 0</gx:coord>
+        <when>2025-05-10T12:00:22Z</when><gx:coord>-122.08411000000001 37.422109999999996 0</gx:coord>
+        <when>2025-05-10T12:00:24Z</when><gx:coord>-122.08412 37.42212 0</gx:coord>
+        <when>2025-05-10T12:00:26Z</when><gx:coord>-122.08413 37.422129999999996 0</gx:coord>
+        <when>2025-05-10T12:00:28Z</when><gx:coord>-122.08414 37.42214 0</gx:coord>
+        <when>2025-05-10T12:00:30Z</when><gx:coord>-122.08415000000001 37.422149999999995 0</gx:coord>
+        <when>2025-05-10T12:00:32Z</when><gx:coord>-122.08416 37.42216 0</gx:coord>
+        <when>2025-05-10T12:00:34Z</when><gx:coord>-122.08417 37.422169999999994 0</gx:coord>
+        <when>2025-05-10T12:00:36Z</when><gx:coord>-122.08418 37.42218 0</gx:coord>
+        <when>2025-05-10T12:00:38Z</when><gx:coord>-122.08419 37.42219 0</gx:coord>
+        <when>2025-05-10T12:00:40Z</when><gx:coord>-122.08420000000001 37.4222 0</gx:coord>
+        <when>2025-05-10T12:00:42Z</when><gx:coord>-122.08421 37.42221 0</gx:coord>
+        <when>2025-05-10T12:00:44Z</when><gx:coord>-122.08422 37.422219999999996 0</gx:coord>
+        <when>2025-05-10T12:00:46Z</when><gx:coord>-122.08423 37.42223 0</gx:coord>
+        <when>2025-05-10T12:00:48Z</when><gx:coord>-122.08424000000001 37.422239999999995 0</gx:coord>
+        <when>2025-05-10T12:00:50Z</when><gx:coord>-122.08425 37.42225 0</gx:coord>
+        <when>2025-05-10T12:00:52Z</when><gx:coord>-122.08426 37.422259999999994 0</gx:coord>
+        <when>2025-05-10T12:00:54Z</when><gx:coord>-122.08427 37.42227 0</gx:coord>
+        <when>2025-05-10T12:00:56Z</when><gx:coord>-122.08428 37.42227999999999 0</gx:coord>
+        <when>2025-05-10T12:00:58Z</when><gx:coord>-122.08429000000001 37.42229 0</gx:coord>
+        <when>2025-05-10T12:01:00Z</when><gx:coord>-122.0843 37.4223 0</gx:coord>
+        <when>2025-05-10T12:01:02Z</when><gx:coord>-122.08431 37.422309999999996 0</gx:coord>
+        <when>2025-05-10T12:01:04Z</when><gx:coord>-122.08432 37.42232 0</gx:coord>
+        <when>2025-05-10T12:01:06Z</when><gx:coord>-122.08433000000001 37.422329999999995 0</gx:coord>
+        <when>2025-05-10T12:01:08Z</when><gx:coord>-122.08434 37.42234 0</gx:coord>
+        <when>2025-05-10T12:01:10Z</when><gx:coord>-122.08435 37.422349999999994 0</gx:coord>
+        <when>2025-05-10T12:01:12Z</when><gx:coord>-122.08436 37.42236 0</gx:coord>
+        <when>2025-05-10T12:01:14Z</when><gx:coord>-122.08437 37.422369999999994 0</gx:coord>
+        <when>2025-05-10T12:01:16Z</when><gx:coord>-122.08438000000001 37.42238 0</gx:coord>
+        <when>2025-05-10T12:01:18Z</when><gx:coord>-122.08439 37.42239 0</gx:coord>
+        <when>2025-05-10T12:01:20Z</when><gx:coord>-122.0844 37.422399999999996 0</gx:coord>
+        <when>2025-05-10T12:01:22Z</when><gx:coord>-122.08441 37.42241 0</gx:coord>
+        <when>2025-05-10T12:01:24Z</when><gx:coord>-122.08442000000001 37.422419999999995 0</gx:coord>
+        <when>2025-05-10T12:01:26Z</when><gx:coord>-122.08443 37.42243 0</gx:coord>
+        <when>2025-05-10T12:01:28Z</when><gx:coord>-122.08444 37.422439999999995 0</gx:coord>
+        <when>2025-05-10T12:01:30Z</when><gx:coord>-122.08445 37.42245 0</gx:coord>
+        <when>2025-05-10T12:01:32Z</when><gx:coord>-122.08446 37.422459999999994 0</gx:coord>
+        <when>2025-05-10T12:01:34Z</when><gx:coord>-122.08447000000001 37.42247 0</gx:coord>
+        <when>2025-05-10T12:01:36Z</when><gx:coord>-122.08448 37.42248 0</gx:coord>
+        <when>2025-05-10T12:01:38Z</when><gx:coord>-122.08449 37.422489999999996 0</gx:coord>
+        <when>2025-05-10T12:01:40Z</when><gx:coord>-122.0845 37.4225 0</gx:coord>
+        <when>2025-05-10T12:01:42Z</when><gx:coord>-122.08451000000001 37.422509999999996 0</gx:coord>
+        <when>2025-05-10T12:01:44Z</when><gx:coord>-122.08452 37.42252 0</gx:coord>
+        <when>2025-05-10T12:01:46Z</when><gx:coord>-122.08453 37.422529999999995 0</gx:coord>
+        <when>2025-05-10T12:01:48Z</when><gx:coord>-122.08454 37.42254 0</gx:coord>
+        <when>2025-05-10T12:01:50Z</when><gx:coord>-122.08455000000001 37.422549999999994 0</gx:coord>
+        <when>2025-05-10T12:01:52Z</when><gx:coord>-122.08456 37.42256 0</gx:coord>
+        <when>2025-05-10T12:01:54Z</when><gx:coord>-122.08457 37.42257 0</gx:coord>
+        <when>2025-05-10T12:01:56Z</when><gx:coord>-122.08458 37.422579999999996 0</gx:coord>
+        <when>2025-05-10T12:01:58Z</when><gx:coord>-122.08459 37.42259 0</gx:coord>
+        <when>2025-05-10T12:02:00Z</when><gx:coord>-122.08460000000001 37.422599999999996 0</gx:coord>
+        <when>2025-05-10T12:02:02Z</when><gx:coord>-122.08461 37.42261 0</gx:coord>
+        <when>2025-05-10T12:02:04Z</when><gx:coord>-122.08462 37.422619999999995 0</gx:coord>
+        <when>2025-05-10T12:02:06Z</when><gx:coord>-122.08463 37.42263 0</gx:coord>
+        <when>2025-05-10T12:02:08Z</when><gx:coord>-122.08464000000001 37.422639999999994 0</gx:coord>
+        <when>2025-05-10T12:02:10Z</when><gx:coord>-122.08465 37.42265 0</gx:coord>
+        <when>2025-05-10T12:02:12Z</when><gx:coord>-122.08466 37.42266 0</gx:coord>
+        <when>2025-05-10T12:02:14Z</when><gx:coord>-122.08467 37.42267 0</gx:coord>
+        <when>2025-05-10T12:02:16Z</when><gx:coord>-122.08468 37.42268 0</gx:coord>
+        <when>2025-05-10T12:02:18Z</when><gx:coord>-122.08469000000001 37.422689999999996 0</gx:coord>
+        <when>2025-05-10T12:02:20Z</when><gx:coord>-122.0847 37.4227 0</gx:coord>
+        <when>2025-05-10T12:02:22Z</when><gx:coord>-122.08471 37.422709999999995 0</gx:coord>
+        <when>2025-05-10T12:02:24Z</when><gx:coord>-122.08472 37.42272 0</gx:coord>
+        <when>2025-05-10T12:02:26Z</when><gx:coord>-122.08473000000001 37.422729999999994 0</gx:coord>
+        <when>2025-05-10T12:02:28Z</when><gx:coord>-122.08474 37.42274 0</gx:coord>
+        <when>2025-05-10T12:02:30Z</when><gx:coord>-122.08475 37.42274999999999 0</gx:coord>
+        <when>2025-05-10T12:02:32Z</when><gx:coord>-122.08476 37.42276 0</gx:coord>
+        <when>2025-05-10T12:02:34Z</when><gx:coord>-122.08477 37.42277 0</gx:coord>
+        <when>2025-05-10T12:02:36Z</when><gx:coord>-122.08478000000001 37.422779999999996 0</gx:coord>
+        <when>2025-05-10T12:02:38Z</when><gx:coord>-122.08479 37.42279 0</gx:coord>
+        <when>2025-05-10T12:02:40Z</when><gx:coord>-122.0848 37.422799999999995 0</gx:coord>
+        <when>2025-05-10T12:02:42Z</when><gx:coord>-122.08481 37.42281 0</gx:coord>
+        <when>2025-05-10T12:02:44Z</when><gx:coord>-122.08482000000001 37.422819999999994 0</gx:coord>
+        <when>2025-05-10T12:02:46Z</when><gx:coord>-122.08483 37.42283 0</gx:coord>
+        <when>2025-05-10T12:02:48Z</when><gx:coord>-122.08484 37.422839999999994 0</gx:coord>
+        <when>2025-05-10T12:02:50Z</when><gx:coord>-122.08485 37.42285 0</gx:coord>
+        <when>2025-05-10T12:02:52Z</when><gx:coord>-122.08486 37.42286 0</gx:coord>
+        <when>2025-05-10T12:02:54Z</when><gx:coord>-122.08487000000001 37.422869999999996 0</gx:coord>
+        <when>2025-05-10T12:02:56Z</when><gx:coord>-122.08488 37.42288 0</gx:coord>
+        <when>2025-05-10T12:02:58Z</when><gx:coord>-122.08489 37.422889999999995 0</gx:coord>
+        <when>2025-05-10T12:03:00Z</when><gx:coord>-122.0849 37.4229 0</gx:coord>
+        <when>2025-05-10T12:03:02Z</when><gx:coord>-122.08491000000001 37.422909999999995 0</gx:coord>
+        <when>2025-05-10T12:03:04Z</when><gx:coord>-122.08492 37.42292 0</gx:coord>
+        <when>2025-05-10T12:03:06Z</when><gx:coord>-122.08493 37.422929999999994 0</gx:coord>
+        <when>2025-05-10T12:03:08Z</when><gx:coord>-122.08494 37.42294 0</gx:coord>
+        <when>2025-05-10T12:03:10Z</when><gx:coord>-122.08495 37.42295 0</gx:coord>
+        <when>2025-05-10T12:03:12Z</when><gx:coord>-122.08496000000001 37.422959999999996 0</gx:coord>
+        <when>2025-05-10T12:03:14Z</when><gx:coord>-122.08497 37.42297 0</gx:coord>
+        <when>2025-05-10T12:03:16Z</when><gx:coord>-122.08498 37.422979999999995 0</gx:coord>
+        <when>2025-05-10T12:03:18Z</when><gx:coord>-122.08499 37.42299 0</gx:coord>
+      </gx:Track>
+    </Placemark>
+  </Document>
+</kml>

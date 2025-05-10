@@ -1,6 +1,7 @@
 .native-header {
     background-color: #FFA726;
     position: fixed;
+    height: 52px;
     top: 0;
     left: 0;
     right: 0;

@@ -72,14 +72,14 @@
 
     <!-- Medals Display Section -->
     <div class="row">
-        <div class="col-md-6">
+        <div class="col">
             <!-- Medal Display -->
             <div class="row g-3">
                 @if (FilteredMedals != null)
                 {
                     @foreach (var medal in FilteredMedals)
                     {
-                        <div class="col-6 col-sm-4 col-md-3">
+                        <div class="col-6 col-sm-4 col-md-2">
                             <MedalCard MedalDto="@medal"
                             IsAchieved="@achievedMedals.Any(a => a.Id == medal.Id)"
                             OnMedalClick="@(() => ShowMedalDetails(medal))"
@@ -119,7 +119,7 @@
             .Where(m => !achievedIds.Contains(m.Id))
             .ToList();
 
-        var activities = await ActivityService.GetUserActivitiesAsync();
+        var activities = await ActivityService.GetFeedAsync();
         medalProgress.Clear();
 
         foreach (var medal in allMedals)

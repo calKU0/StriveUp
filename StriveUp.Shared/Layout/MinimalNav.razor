@@ -1,26 +1,41 @@
 ﻿@inject IPlatformService PlatformService
             @if (!PlatformService.IsNativeApp())
             {
-<nav class="navbar position-fixed">
-    <div class="container-fluid justify-content-between align-items-center">
-        <!-- Left section: Brand + NavLinks -->
-        <div class="d-flex align-items-center">
-            <a class="navbar-brand" href="">
-                <img class="logo-image img-fluid" src="images/StriveUp-logo.png" alt="Logo" />
-            </a>
-            <div class="d-flex">
-                <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All">
-                    Home
+    <!-- Desktop Navbar (fixed top) -->
+    <nav class="navbar fixed-top d-none d-md-flex">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3">
+            <!-- Left Section -->
+            <div class="d-flex align-items-center">
+                <a class="navbar-brand me-3" href="">
+                    <img class="logo-image img-fluid" src="images/StriveUp-logo-light.png" alt="Logo" />
+                </a>
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
+                    <i class="fas fa-home icon"></i>
+                    <span class="small-text">Home</span>
+                </NavLink>
+            </div>
+
+            <!-- Right Section -->
+            <div>
+                <NavLink class="nav-link text-end d-flex flex-column align-items-center" href="login">
+                    <i class="fas fa-sign-in-alt icon"></i>
+                    <span class="small-text">Login</span>
                 </NavLink>
             </div>
         </div>
+    </nav>
 
-        <!-- Right section: Login -->
-        <div class="d-flex">
-            <NavLink class="nav-link text-black" href="login">
-                Login
+    <!-- Mobile Navbar (fixed bottom) -->
+    <nav class="navbar fixed-bottom d-flex d-md-none">
+        <div class="container-fluid d-flex justify-content-around align-items-center px-2">
+            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
+                <i class="fas fa-home icon"></i>
+                <span class="small-text">Home</span>
+            </NavLink>
+            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="login">
+                <i class="fas fa-sign-in-alt icon"></i>
+                <span class="small-text">Login</span>
             </NavLink>
         </div>
-    </div>
-</nav>
+    </nav>
             }
