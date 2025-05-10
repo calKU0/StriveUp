@@ -15,8 +15,10 @@ namespace StriveUp.Shared.DTOs
         public DateTime DateStart { get; set; }
         public DateTime DateEnd { get; set; }
         public double DurationSeconds { get; set; }
+        public double Distance { get; set; }
         public List<GeoPointDto> Route { get; set; }
         public List<ActivityHrDto> HrData { get; set; } = new();
+        public List<ActivitySpeedDto> SpeedData { get; set; } = new();
     }
 
 }

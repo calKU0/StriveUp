@@ -11,7 +11,7 @@ namespace StriveUp.Shared.Interfaces
     public interface IBleHeartRateService
     {
         event Action<int> OnHeartRateChanged;
-        Task<List<BluetoothDeviceDto>> GetAvailableDevicesAsync();
+        List<BluetoothDeviceDto> GetAvailableDevicesAsync();
         Task<bool> ConnectAsync(string deviceId);
         void Disconnect();
     }
