@@ -128,7 +128,9 @@ namespace StriveUp.API.Controllers
         {
             try
             {
-                var activities = await _context.Activities.ToListAsync();
+                var activities = await _context.Activities
+                    .Include(a => a.Config)
+                    .ToListAsync();
                 var activityDtos = _mapper.Map<List<ActivityDto>>(activities);
                 return Ok(activityDtos);
             }

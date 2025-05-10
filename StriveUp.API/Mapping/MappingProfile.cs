@@ -36,7 +36,11 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
             // Activity <-> DTO
-            CreateMap<Activity, ActivityDto>();
+            CreateMap<Activity, ActivityDto>()
+                .ForMember(dest => dest.MeasurementType, opt => opt.MapFrom(src => src.Config.MeasurementType))
+                .ForMember(dest => dest.ElevationRelevant, opt => opt.MapFrom(src => src.Config.ElevationRelevant))
+                .ForMember(dest => dest.IndoorCapable, opt => opt.MapFrom(src => src.Config.IndoorCapable));
+
 
             // Medal <-> DTO
             CreateMap<Medal, MedalDto>();
