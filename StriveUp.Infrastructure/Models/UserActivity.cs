@@ -31,6 +31,7 @@ namespace StriveUp.Infrastructure.Models
         [Required]
         [Range(1, 1440)]
         public double DurationSeconds { get; set; }
+        public double Distance { get; set; }
         [Required]
         public int CaloriesBurned { get; set; }
         [Required]
@@ -40,6 +41,8 @@ namespace StriveUp.Infrastructure.Models
         public List<ActivityLike> ActivityLikes { get; set; } = new();
         public List<ActivityComment> ActivityComments { get; set; } = new();
         public List<GeoPoint> Route { get; set; } = new();
+        public List<ActivityHr> HrData { get; set; } = new();
+        public List<ActivitySpeed> SpeedData { get; set; } = new();
 
         //[NotMapped]
         //public List<string>? ImageUrls { get; set; }

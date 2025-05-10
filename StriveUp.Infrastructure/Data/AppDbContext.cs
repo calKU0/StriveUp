@@ -23,6 +23,7 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<MedalEarned> MedalsEarned { get; set; }
         public DbSet<GeoPoint> GeoPoints { get; set; }
         public DbSet<ActivityHr> ActivityHrs { get; set; }
+        public DbSet<ActivitySpeed> ActivitySpeeds { get; set; }
         public DbSet<ActivityConfig> ActivityConfig { get; set; }
 
 

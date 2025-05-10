@@ -25,7 +25,11 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.DurationSeconds, opt => opt.MapFrom(src => src.DurationSeconds));
 
             // CreateUserActivityDto <-> DTO
-            CreateMap<CreateUserActivityDto, UserActivity>();
+            CreateMap<CreateUserActivityDto, UserActivity>()
+                .ForMember(dest => dest.HrData, opt => opt.MapFrom(src => src.HrData))
+                .ForMember(dest => dest.SpeedData, opt => opt.MapFrom(src => src.SpeedData))
+                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route));
+
             CreateMap<UserActivityDto, UserActivity>();
 
             // GeoPoint <-> DTO

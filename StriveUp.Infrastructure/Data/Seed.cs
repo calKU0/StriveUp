@@ -47,7 +47,6 @@ namespace StriveUp.Infrastructure.Data
                 {
                     new ActivityConfig
                     {
-                        Id = 1,
                         ActivityId = runningActivity.Id,
                         MeasurementType = "pace",
                         DefaultDistanceUnit = "km",
@@ -57,7 +56,6 @@ namespace StriveUp.Infrastructure.Data
                     },
                     new ActivityConfig
                     {
-                        Id = 2,
                         ActivityId = bikingActivity.Id,
                         MeasurementType = "speed",
                         DefaultDistanceUnit = "km",
@@ -67,7 +65,6 @@ namespace StriveUp.Infrastructure.Data
                     },
                     new ActivityConfig
                     {
-                        Id = 3,
                         ActivityId = swimmingActivity.Id,
                         MeasurementType = "pace",
                         DefaultDistanceUnit = "m",
@@ -76,6 +73,8 @@ namespace StriveUp.Infrastructure.Data
                         IndoorCapable = true,
                     }
                 };
+                context.ActivityConfig.AddRange(configs);
+                context.SaveChanges();
             }
 
             if (!context.Medals.Any())

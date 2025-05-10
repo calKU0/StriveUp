@@ -25,8 +25,8 @@ namespace StriveUp.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost("addUserActivity")]
-        public async Task<IActionResult> AddUserActivity(CreateUserActivityDto dto)
+        [HttpPost("addActivity")]
+        public async Task<IActionResult> AddActivity(CreateUserActivityDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -46,8 +46,8 @@ namespace StriveUp.API.Controllers
 
 
 
-        [HttpGet("userActivities")]
-        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetUserActivities()
+        [HttpGet("activities")]
+        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetActivities()
         {
             try
             {
@@ -59,6 +59,8 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.ActivityLikes)
                     .Include(ua => ua.ActivityComments).ThenInclude(c => c.User)
                     .Include(ua => ua.Route)
+                    .Include(ua => ua.HrData)
+                    .Include(ua => ua.SpeedData)
                     .Where(ua => ua.UserId == userId)
                     .ToListAsync();
 
@@ -81,8 +83,8 @@ namespace StriveUp.API.Controllers
             }
         }
 
-        [HttpGet("userFeed")]
-        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetUserFeed()
+        [HttpGet("feed")]
+        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetFeed()
         {
             try
             {
@@ -99,6 +101,8 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.Route)
                     .Include(ua => ua.User)
+                    .Include(ua => ua.HrData)
+                    .Include(ua => ua.SpeedData)
                     .Include(ua => ua.ActivityLikes)
                     .Include(ua => ua.ActivityComments)
                         .ThenInclude(c => c.User)
@@ -123,8 +127,41 @@ namespace StriveUp.API.Controllers
             }
         }
 
+        [HttpGet("activity/{id:int}")]
+        public async Task<ActionResult<UserActivityDto>> GetActivityById(int id)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var activity = await _context.UserActivities
+                    .Include(ua => ua.Activity)
+                    .Include(ua => ua.User)
+                    .Include(ua => ua.ActivityLikes)
+                    .Include(ua => ua.ActivityComments).ThenInclude(c => c.User)
+                    .Include(ua => ua.Route)
+                    .Include(ua => ua.HrData)
+                    .Include(ua => ua.SpeedData)
+                    .FirstOrDefaultAsync(ua => ua.Id == id && ua.UserId == userId);
+
+                if (activity == null)
+                    return NotFound("Activity not found or access denied.");
+
+                var dto = _mapper.Map<UserActivityDto>(activity);
+                dto.IsLikedByCurrentUser = activity.ActivityLikes.Any(l => l.UserId == userId);
+                dto.Comments = _mapper.Map<List<CommentDto>>(activity.ActivityComments);
+
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("availableActivities")]
-        public async Task<ActionResult<IEnumerable<ActivityDto>>> GetActivities()
+        public async Task<ActionResult<IEnumerable<ActivityDto>>> GetAvaliableActivities()
         {
             try
             {
@@ -139,7 +176,6 @@ namespace StriveUp.API.Controllers
                 Console.WriteLine($"Error occurred: {ex}");
                 return StatusCode(500, "Internal server error");
             }
-
         }
 
         [HttpPost("like/{activityId}")]

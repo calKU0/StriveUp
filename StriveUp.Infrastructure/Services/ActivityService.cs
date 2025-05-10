@@ -53,7 +53,7 @@ namespace StriveUp.Infrastructure.Services
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                var response = await _httpClient.PostAsJsonAsync("activity/AddUserActivity", activity);
+                var response = await _httpClient.PostAsJsonAsync("activity/addActivity", activity);
                 var content = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(content);
                 return response.IsSuccessStatusCode;
@@ -78,12 +78,12 @@ namespace StriveUp.Infrastructure.Services
                 return false;
             }
         }
-        public async Task<List<UserActivityDto>?> GetUserActivitiesAsync()
+        public async Task<List<UserActivityDto>?> GetFeedAsync()
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>("activity/userFeed");
+                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>("activity/feed");
             }
             catch (Exception ex)
             {
@@ -91,6 +91,7 @@ namespace StriveUp.Infrastructure.Services
                 return null;
             }
         }
+
         public async Task LikeActivityAsync(int activityId)
         {
             try
