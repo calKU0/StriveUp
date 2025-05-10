@@ -37,12 +37,49 @@ namespace StriveUp.Infrastructure.Data
                 context.SaveChanges();
             }
 
+            var runningActivity = context.Activities.First(a => a.Name == "Run");
+            var bikingActivity = context.Activities.First(a => a.Name == "Bike");
+            var swimmingActivity = context.Activities.First(a => a.Name == "Swim");
+
+            if (!context.ActivityConfig.Any())
+            {
+                var configs = new List<ActivityConfig>
+                {
+                    new ActivityConfig
+                    {
+                        Id = 1,
+                        ActivityId = runningActivity.Id,
+                        MeasurementType = "pace",
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        IndoorCapable = true,
+                    },
+                    new ActivityConfig
+                    {
+                        Id = 2,
+                        ActivityId = bikingActivity.Id,
+                        MeasurementType = "speed",
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
+                        ElevationRelevant = true,
+                        IndoorCapable = false,
+                    },
+                    new ActivityConfig
+                    {
+                        Id = 3,
+                        ActivityId = swimmingActivity.Id,
+                        MeasurementType = "pace",
+                        DefaultDistanceUnit = "m",
+                        UseHeartRate = false,
+                        ElevationRelevant = false,
+                        IndoorCapable = true,
+                    }
+                };
+            }
+
             if (!context.Medals.Any())
             {
-                var runningActivity = context.Activities.First(a => a.Name == "Run");
-                var bikingActivity = context.Activities.First(a => a.Name == "Bike");
-                var swimmingActivity = context.Activities.First(a => a.Name == "Swim");
-
                 var medals = new List<Medal>
                 {
                     // Running medals

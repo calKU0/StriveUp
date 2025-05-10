@@ -10,5 +10,8 @@ namespace StriveUp.Shared.DTOs.Activity
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string MeasurementType { get; set; }
+        public bool ElevationRelevant { get; set; }
+        public bool IndoorCapable { get; set; }
     }
 }

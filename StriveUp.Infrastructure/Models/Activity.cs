@@ -23,5 +23,6 @@ namespace StriveUp.Infrastructure.Models
         public ICollection<UserActivity>? UserActivities { get; set; }
 
         public ICollection<Medal>? Medals { get; set; }
+        public ActivityConfig? Config { get; set; }
     }
 }

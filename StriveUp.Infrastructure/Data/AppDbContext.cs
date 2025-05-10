@@ -22,6 +22,8 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<Medal> Medals { get; set; }
         public DbSet<MedalEarned> MedalsEarned { get; set; }
         public DbSet<GeoPoint> GeoPoints { get; set; }
+        public DbSet<ActivityHr> ActivityHrs { get; set; }
+        public DbSet<ActivityConfig> ActivityConfig { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
