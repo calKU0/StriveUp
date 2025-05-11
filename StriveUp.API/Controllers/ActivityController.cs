@@ -28,20 +28,28 @@ namespace StriveUp.API.Controllers
         [HttpPost("addActivity")]
         public async Task<IActionResult> AddActivity(CreateUserActivityDto dto)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var activity = await _context.Activities.FindAsync(dto.ActivityId);
-            if (activity == null)
-                return BadRequest("Invalid activity ID.");
+                var activity = await _context.Activities.FindAsync(dto.ActivityId);
+                if (activity == null)
+                    return BadRequest("Invalid activity ID.");
 
-            var userActivity = _mapper.Map<UserActivity>(dto);
-            userActivity.UserId = userId!;
-            userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((double)(activity.AverageCaloriesPerHour / 3600) * dto.DurationSeconds));
+                var userActivity = _mapper.Map<UserActivity>(dto);
+                userActivity.UserId = userId!;
+                userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((double)(activity.AverageCaloriesPerHour / 3600) * dto.DurationSeconds));
 
-            _context.UserActivities.Add(userActivity);
-            await _context.SaveChangesAsync();
+                _context.UserActivities.Add(userActivity);
+                await _context.SaveChangesAsync();
 
-            return Ok(userActivity.Id);
+                return Ok(userActivity.Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Internal server error");
+            }
         }
 
 

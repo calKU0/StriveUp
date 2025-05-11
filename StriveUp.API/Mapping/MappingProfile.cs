@@ -69,8 +69,9 @@ namespace StriveUp.API.Mapping
             CreateMap<EditUserProfileDto, AppUser>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
-            CreateMap<ActivityHr, ActivityHrDto>();
             CreateMap<ActivityHrDto, ActivityHr>();
+
+            CreateMap<ActivitySpeedDto, ActivitySpeed>();
 
             CreateMap<AppUser, FollowDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
