@@ -47,13 +47,20 @@ namespace StriveUp.API.Controllers
                 var actorIds = notifDtos.Select(n => n.ActorId).Distinct().ToList();
                 var users = await _userManager.Users
                     .Where(u => actorIds.Contains(u.Id))
-                    .ToDictionaryAsync(u => u.Id, u => u.UserName);
+                    .Select(u => new
+                    {
+                        u.Id,
+                        u.UserName,
+                        u.Avatar
+                    })
+                    .ToDictionaryAsync(u => u.Id);
 
                 foreach (var dto in notifDtos)
                 {
-                    if (users.TryGetValue(dto.ActorId, out var name))
+                    if (users.TryGetValue(dto.ActorId, out var user))
                     {
-                        dto.ActorName = name;
+                        dto.ActorName = user.UserName;
+                        dto.ActorAvatar = user.Avatar;
                     }
                 }
 

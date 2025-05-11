@@ -23,7 +23,7 @@ namespace StriveUp.Shared.DTOs
         [Required]
         public double DurationSeconds { get; set; }
         [Required]
-        public int Distance { get; set; }
+        public double Distance { get; set; }
         [Required]
         public DateTime DateStart { get; set; }
         [Required]

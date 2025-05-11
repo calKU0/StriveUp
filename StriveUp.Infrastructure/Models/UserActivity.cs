@@ -38,11 +38,11 @@ namespace StriveUp.Infrastructure.Models
         public DateTime DateStart { get; set; }
         [Required]
         public DateTime DateEnd { get; set; }
-        public List<ActivityLike> ActivityLikes { get; set; } = new();
-        public List<ActivityComment> ActivityComments { get; set; } = new();
-        public List<GeoPoint> Route { get; set; } = new();
-        public List<ActivityHr> HrData { get; set; } = new();
-        public List<ActivitySpeed> SpeedData { get; set; } = new();
+        public List<ActivityLike>? ActivityLikes { get; set; }
+        public List<ActivityComment>? ActivityComments { get; set; }
+        public List<GeoPoint>? Route { get; set; }
+        public List<ActivityHr>? HrData { get; set; }
+        public List<ActivitySpeed>? SpeedData { get; set; }
 
         //[NotMapped]
         //public List<string>? ImageUrls { get; set; }

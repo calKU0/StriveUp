@@ -13,6 +13,9 @@ namespace StriveUp.Shared.DTOs
         public string UserId { get; set; }
 
         public string ActorId { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Title { get; set; }
 
         [Required]
         [MaxLength(256)]

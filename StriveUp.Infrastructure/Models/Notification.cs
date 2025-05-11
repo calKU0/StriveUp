@@ -19,6 +19,9 @@ namespace StriveUp.Infrastructure.Models
 
         public string? ActorId { get; set; }
         public AppUser? Actor { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Title { get; set; }
 
         [Required]
         [MaxLength(256)]

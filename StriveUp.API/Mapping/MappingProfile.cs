@@ -79,7 +79,8 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.IsFollowed, opt => opt.Ignore());
 
             CreateMap<Notification, NotificationDto>()
-                .ForMember(dest => dest.ActorName, opt => opt.Ignore());
+                .ForMember(dest => dest.ActorName, opt => opt.Ignore())
+                .ForMember(dest => dest.ActorAvatar, opt => opt.Ignore());
 
             CreateMap<CreateNotificationDto, Notification>();
         }

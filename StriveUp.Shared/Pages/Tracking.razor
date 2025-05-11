@@ -4,7 +4,10 @@
 @inject ISecurableService SecurableService
 @inject IBleHeartRateService HeartRateService
 @inject NavigationManager Navigation
+@implements IDisposable
 
+@using GeolocatorPlugin
+@using GeolocatorPlugin.Abstractions
 @using Microsoft.Maui
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
@@ -97,7 +100,6 @@ OnResume="@ResumeTracking" />
     private string mapToken;
     private bool btPermission = false;
     private bool isSheetExpanded = false;
-    private bool isLocationTrackingActive = false;
     private double smoothedSpeed = 0;
     private const double smoothingAlpha = 0.2;
     private Location lastLocation;
@@ -124,7 +126,6 @@ OnResume="@ResumeTracking" />
 
         selectedActivity = availableActivities.FirstOrDefault();
         mapToken = await SecurableService.GetMapboxTokenAsync();
-        Navigation.LocationChanged += HandleLocationChanged;
         _ = StartLocationTracking(); // Start tracking immediately
     }  
 
@@ -139,39 +140,45 @@ OnResume="@ResumeTracking" />
                 return;
             }
 
-            isLocationTrackingActive = true;
+            var locator = CrossGeolocator.Current;
+            locator.DesiredAccuracy = 10;
+            locator.PositionChanged += OnPositionChanged;
 
-            while (isLocationTrackingActive) 
+            if (!locator.IsListening)
             {
-                var location = await Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Best));
-                if (location != null)
-                {
-                    currentLocation = location;
-
-                    if (!mapInitialized)
-                    {
-                        mapInitialized = true;
-                        mapVisible = true;
-                        await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
-                    }
-
-                    await JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
-                    isLoadingLocation = false;
-                    StateHasChanged();
-
-                    if (isTracking)
-                    {
-                        UpdateTrackingData(location);
-                    }
-                }
-
-                await Task.Delay(500);
-            }
+                await locator.StartListeningAsync(TimeSpan.FromSeconds(2), 10, true);
+            }  
         }
         catch (Exception ex)
         {
             Console.WriteLine("Location error: " + ex.Message);
             isLoadingLocation = false;
+        }
+    }
+
+    private void OnPositionChanged(object sender, PositionEventArgs e)
+    {
+        var location = new Location(e.Position.Latitude, e.Position.Longitude)
+            {
+                Timestamp = e.Position.Timestamp
+            };
+
+        currentLocation = location;
+
+        if (!mapInitialized)
+        {
+            mapInitialized = true;
+            mapVisible = true;
+            _ = JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
+        }
+
+        _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
+        isLoadingLocation = false;
+        StateHasChanged();
+
+        if (isTracking)
+        {
+            UpdateTrackingData(location);
         }
     }
 
@@ -250,10 +257,6 @@ OnResume="@ResumeTracking" />
         else
         {
             _ = StartTracking();
-            if (!isLocationTrackingActive)
-            {
-                _ = StartLocationTracking();
-            }
         }
     }
 
@@ -287,6 +290,12 @@ OnResume="@ResumeTracking" />
         isTracking = false;
         isPaused = true;
         durationCts?.Cancel();
+        var locator = CrossGeolocator.Current;
+        if (locator.IsListening)
+        {
+            locator.PositionChanged -= OnPositionChanged;
+            await locator.StopListeningAsync();
+        }
         StateHasChanged();
     }
 
@@ -362,8 +371,11 @@ OnResume="@ResumeTracking" />
             return;
         }
 
-        Compass.Default.ReadingChanged += OnCompassReadingChanged;
-        Compass.Default.Start(SensorSpeed.UI);
+        if (!Compass.IsMonitoring)
+        {
+            Compass.Default.ReadingChanged += OnCompassReadingChanged;
+            Compass.Default.Start(SensorSpeed.UI);
+        }
     }
 
     private void OnCompassReadingChanged(object sender, CompassChangedEventArgs e)
@@ -376,17 +388,15 @@ OnResume="@ResumeTracking" />
         currentHeading = e.Reading.HeadingMagneticNorth;
     }
 
-    private void HandleLocationChanged(object sender, LocationChangedEventArgs e)
-    {
-        // Handle cleanup here if needed (e.g., saving data or canceling tasks)
-        Dispose();
-    }
 
-    private void Dispose()
+    public void Dispose()
     {
         // Unsubscribe when the component is disposed to avoid memory leaks
         Compass.Default.Stop();
         Compass.Default.ReadingChanged -= OnCompassReadingChanged;
+        var locator = CrossGeolocator.Current;
+        locator.PositionChanged -= OnPositionChanged;
+        locator.StopListeningAsync();
     }
     private string GetSpeedOrPace()
     {

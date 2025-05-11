@@ -71,11 +71,7 @@ function updateMap(lat, lng, heading, shouldTrack) {
 
     if (userMarker) {
         userMarker.setLngLat(lngLat);
-
-        const arrowIcon = userMarker.getElement().querySelector('img');
-        if (arrowIcon) {
-            arrowIcon.style.transform = `rotate(${heading - 90}deg)`;  // Rotate the arrow
-        }
+        userMarker.getElement().querySelector('img');
     }
 
     if (shouldTrack) {

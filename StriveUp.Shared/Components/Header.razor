@@ -1,5 +1,6 @@
 ﻿@inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject INotificationService NotificationService
 
 <div class="native-header d-flex justify-content-between align-items-center px-3 py-2">
     <!-- Left side: Back Button -->
@@ -23,7 +24,15 @@
         }
         @if (showBell)
         {
-            <i class="fas fa-bell text-dark"></i>
+            <div class="position-relative">
+                <i class="fas fa-bell text-dark" @onclick="OnBellClick"></i>
+                @if (notificationCount > 0)
+                {
+                    <span class="notification-count badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
+                        @notificationCount
+                    </span>
+                }
+            </div>
         }
         @if (showSettings)
         {
@@ -35,12 +44,14 @@
 @code {
     [Parameter] public string pageTitle { get; set; } = string.Empty;
 
-    public bool showBell = true;
-    public bool showSearch = true;
-    public bool showBackButton = false;
-    public bool showSettings = false;
+    private bool showBell = true;
+    private bool showSearch = true;
+    private bool showBackButton = false;
+    private bool showSettings = false;
 
-    protected override void OnInitialized()
+    private int notificationCount = 0;
+
+    protected override async Task OnInitializedAsync()
     {
         if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search")
         {
@@ -50,12 +61,15 @@
             showSettings = false;
         }
         Navigation.LocationChanged += OnLocationChanged;
+
+        // Start periodic refresh for notifications
+        await PeriodicRefresh();
     }
 
 
     private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search")
+        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Notifications")
         {
             showBell = false;
             showSearch = false;
@@ -83,9 +97,30 @@
         Navigation.NavigateTo("/search");
     }
 
+    private void OnBellClick()
+    {
+        Navigation.NavigateTo("/notifications");
+    }
+
     public void Dispose()
     {
         // Unsubscribe when the component is disposed to avoid memory leaks
         Navigation.LocationChanged -= OnLocationChanged;
+    }
+
+    private async Task PeriodicRefresh()
+    {
+        while (true)
+        {
+            await LoadNotifications();
+            await Task.Delay(30000);
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        var notifications = await NotificationService.GetMyNotificationsAsync();
+        notificationCount = notifications.Count(n => !n.IsRead);
+        StateHasChanged();
     }
 }

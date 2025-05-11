@@ -4,29 +4,41 @@
 @inject INotificationService NotificationService
 @inject NavigationManager Navigation
 
-<div class="notification-panel">
-    @if (notifications.Count == 0)
-    {
-        <p class="text-muted">No notifications yet.</p>
-    }
-    else
-    {
-        <ul>
-            @foreach (var notif in notifications)
-            {
-                <li class="notification-item @(notif.IsRead ? "read" : "unread")">
-                    <div>
-                        <strong>@notif.ActorName:</strong> @notif.Message
-                        <span class="time">@notif.CreatedAt.ToLocalTime().ToString("g")</span>
-                    </div>
-                    @if (!notif.IsRead)
+<div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-body p-0">
+                    @if (notifications.Count == 0)
                     {
-                        <button class="mark-read-btn" @onclick="() => MarkAsRead(notif.Id)">Mark as read</button>
+                        <div class="text-center p-4 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            No notifications yet.
+                        </div>
                     }
-                </li>
-            }
-        </ul>
-    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var notif in notifications)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-start notification-item @(!notif.IsRead ? "bg-light" : "")"
+                                    @onclick="() => OnNotificationClick(notif)">
+                                    <div class="d-flex align-items-start">
+                                        <img src="@notif.ActorAvatar" alt="Avatar" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <div>
+                                            <div class="fw-bold">@notif.Title</div>
+                                            <div><strong>@notif.ActorName</strong>: @notif.Message</div>
+                                            <div class="text-muted small">@GetTimeAgo(notif.CreatedAt)</div>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
@@ -41,7 +53,7 @@
 
             if (currentUser.Identity?.IsAuthenticated ?? false)
             {
-                // Token is valid, fetch activities
+                // Token is valid, fetch notifications
                 notifications = await NotificationService.GetMyNotificationsAsync();
             }
             else
@@ -56,5 +68,23 @@
     {
         await NotificationService.MarkAsReadAsync(id);
         notifications = await NotificationService.GetMyNotificationsAsync();
+    }
+
+    private async Task OnNotificationClick(NotificationDto notif)
+    {
+        await NotificationService.MarkAsReadAsync(notif.Id);
+        Navigation.NavigateTo(notif.RedirectUrl);
+    }
+
+    private string GetTimeAgo(DateTime timestamp)
+    {
+        var timeAgo = DateTime.Now - timestamp;
+
+        if (timeAgo.TotalMinutes < 60)
+            return $"{(int)timeAgo.TotalMinutes} minutes ago";
+        else if (timeAgo.TotalHours < 24)
+            return $"{(int)timeAgo.TotalHours} hours ago";
+        else
+            return $"{(int)timeAgo.TotalDays} days ago";
     }
 }
