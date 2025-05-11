@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,20 +24,36 @@ namespace StriveUp.API.Controllers
             _mapper = mapper;
         }
 
+        private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         [HttpPost("addActivity")]
         public async Task<IActionResult> AddActivity(CreateUserActivityDto dto)
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
                 var activity = await _context.Activities.FindAsync(dto.ActivityId);
                 if (activity == null)
                     return BadRequest("Invalid activity ID.");
 
                 var userActivity = _mapper.Map<UserActivity>(dto);
-                userActivity.UserId = userId!;
+                userActivity.UserId = userId;
                 userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((double)(activity.AverageCaloriesPerHour / 3600) * dto.DurationSeconds));
+                userActivity.MaxSpeed = userActivity.SpeedData?.Any() == true 
+                    ? userActivity.SpeedData.Max(s => s.SpeedValue) 
+                    : null;
+                userActivity.AvarageSpeed = userActivity.SpeedData?.Any() == true
+                    ? userActivity.SpeedData.Average(s => s.SpeedValue)
+                    : null;
+                userActivity.AvarageHr = userActivity.HrData?.Any() == true
+                    ? Convert.ToInt32(userActivity.HrData.Average(s => s.HearthRateValue))
+                    : null;
+                userActivity.MaxHr = userActivity.HrData?.Any() == true
+                    ? userActivity.HrData.Max(s => s.HearthRateValue)
+                    : null;
+
 
                 _context.UserActivities.Add(userActivity);
                 await _context.SaveChangesAsync();
@@ -52,16 +67,17 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
-
         [HttpGet("activities")]
         public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetActivities()
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
                 var activities = await _context.UserActivities
+                    .AsSplitQuery()
+                    .Where(ua => ua.UserId == userId)
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.User)
                     .Include(ua => ua.ActivityLikes)
@@ -69,7 +85,6 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.Route)
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
-                    .Where(ua => ua.UserId == userId)
                     .ToListAsync();
 
                 var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
@@ -82,7 +97,6 @@ namespace StriveUp.API.Controllers
                 }
 
                 return Ok(activityDtos);
-
             }
             catch (Exception ex)
             {
@@ -94,35 +108,28 @@ namespace StriveUp.API.Controllers
         [HttpGet("feed")]
         public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetFeed()
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId is null)
-                    return Unauthorized();
-
-                // Get IDs of users you follow
                 var followedUserIds = await _context.UserFollowers
                     .Where(f => f.FollowerId == userId)
                     .Select(f => f.FollowedId)
                     .ToListAsync();
 
-                // Include own ID
-                var userIds = followedUserIds
-                    .Append(userId)
-                    .Distinct()
-                    .ToList();
+                var userIds = followedUserIds.Append(userId).Distinct().ToList();
 
-                // Fetch activities from followed users and yourself
                 var activities = await _context.UserActivities
+                    .AsSplitQuery()
+                    .Where(ua => userIds.Contains(ua.UserId))
                     .Include(ua => ua.Activity)
-                    .Include(ua => ua.Route)
                     .Include(ua => ua.User)
+                    .Include(ua => ua.ActivityLikes)
+                    .Include(ua => ua.ActivityComments).ThenInclude(c => c.User)
+                    .Include(ua => ua.Route)
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
-                    .Include(ua => ua.ActivityLikes)
-                    .Include(ua => ua.ActivityComments)
-                        .ThenInclude(c => c.User)
-                    .Where(ua => userIds.Contains(ua.UserId))
                     .OrderByDescending(ua => ua.DateStart)
                     .ToListAsync();
 
@@ -145,15 +152,17 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
-        [HttpGet("activity/{id:int}")]
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<UserActivityDto>> GetActivityById(int id)
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
                 var activity = await _context.UserActivities
+                    .AsSplitQuery()
+                    .Where(ua => ua.Id == id && ua.UserId == userId)
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.User)
                     .Include(ua => ua.ActivityLikes)
@@ -161,7 +170,7 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.Route)
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
-                    .FirstOrDefaultAsync(ua => ua.Id == id && ua.UserId == userId);
+                    .FirstOrDefaultAsync();
 
                 if (activity == null)
                     return NotFound("Activity not found or access denied.");
@@ -180,13 +189,14 @@ namespace StriveUp.API.Controllers
         }
 
         [HttpGet("availableActivities")]
-        public async Task<ActionResult<IEnumerable<ActivityDto>>> GetAvaliableActivities()
+        public async Task<ActionResult<IEnumerable<ActivityDto>>> GetAvailableActivities()
         {
             try
             {
                 var activities = await _context.Activities
                     .Include(a => a.Config)
                     .ToListAsync();
+
                 var activityDtos = _mapper.Map<List<ActivityDto>>(activities);
                 return Ok(activityDtos);
             }
@@ -200,10 +210,11 @@ namespace StriveUp.API.Controllers
         [HttpPost("like/{activityId}")]
         public async Task<IActionResult> LikeActivity(int activityId)
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
                 var existingLike = await _context.ActivityLikes
                     .FirstOrDefaultAsync(l => l.UserActivityId == activityId && l.UserId == userId);
 
@@ -234,10 +245,11 @@ namespace StriveUp.API.Controllers
         [HttpPost("comment/{activityId}")]
         public async Task<IActionResult> AddComment(int activityId, AddCommentDto dto)
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
                 var comment = new ActivityComment
                 {
                     UserActivityId = activityId,
@@ -267,8 +279,8 @@ namespace StriveUp.API.Controllers
                     .Where(c => c.UserActivityId == activityId)
                     .ToListAsync();
 
-                var commentsDtos = _mapper.Map<List<ActivityCommentDto>>(comments);
-                return Ok(commentsDtos);
+                var commentDtos = _mapper.Map<List<ActivityCommentDto>>(comments);
+                return Ok(commentDtos);
             }
             catch (Exception ex)
             {

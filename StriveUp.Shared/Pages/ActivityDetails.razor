@@ -1,0 +1,230 @@
+﻿@page "/activity/{activityId:int}"
+@using StriveUp.Shared.Components
+@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.Helpers
+@using System.Security.Claims
+
+@inject IJSRuntime JS
+@inject IActivityService ActivityService
+@inject INotificationService NotificationService
+@inject ICustomAuthStateProvider AuthStateProvider
+
+
+<div class="container-fluid container-md px-0 px-md-4 my-4">
+    @if (isLoading)
+    {
+        <!-- Loading Spinner -->
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+            <p class="loading-text">Loading activity. Please wait...</p>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow rounded-4 overflow-hidden w-100">
+            <!-- Header -->
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center p-4">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="@Activity.UserAvatar" class="rounded-circle" width="60" height="60" alt="User" />
+                    <div>
+                        <h5 class="mb-0">@Activity.UserName</h5>
+                        <small>@Activity.DateStart.ToLongDateString()</small>
+                    </div>
+                </div>
+                <span class="badge bg-primary fs-6">@Activity.ActivityName</span>
+            </div>
+
+            <!-- Route Map -->
+            @if (Activity.Route?.Count > 1)
+            {
+                <div class="mb-4">
+                    <MapRoute Route="Activity.Route" Height="300px" IsInteractive=true Style="border-bottom-left-radius: 24px;border-bottom-right-radius: 24px;" />
+                </div>
+            }
+
+            <div class="card-body p-4">
+                <!-- Title and Description -->
+                <div class="mb-4">
+                    <h3 class="fw-bold">@Activity.Title</h3>
+                    <p class="text-muted">@Activity.Description</p>
+                </div>
+
+                <!-- Metrics -->
+                <div class="row text-center g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded-3">
+                            <i class="bi bi-clock fs-3 text-primary"></i>
+                            <h5 class="mt-2">@TimeSpan.FromSeconds(Activity.DurationSeconds).ToString(@"hh\:mm\:ss")</h5>
+                            <small class="text-muted">Duration</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded-3">
+                            <i class="bi bi-signpost-split fs-3 text-primary"></i>
+                            <h5 class="mt-2">@(Math.Round(Activity.Distance, 2)) km</h5>
+                            <small class="text-muted">Distance</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded-3">
+                            <i class="bi bi-fire fs-3 text-primary"></i>
+                            <h5 class="mt-2">@Activity.CaloriesBurned kcal</h5>
+                            <small class="text-muted">Calories</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded-3">
+                            <i class="bi bi-activity fs-3 text-success"></i>
+                            <h6 class="mt-2">Max HR: 0 bpm</h6>
+                            <small class="text-muted">Max Heart Rate</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded-3">
+                            <i class="bi bi-speedometer2 fs-3 text-success"></i>
+                            <h6 class="mt-2">Max Speed: 0 km/h</h6>
+                            <small class="text-muted">Max Speed</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded-3">
+                            <i class="bi bi-heart-pulse fs-3 text-info"></i>
+                            <h6 class="mt-2">Avg HR: 0 bpm</h6>
+                            <small class="text-muted">Avg Heart Rate</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded-3">
+                            <i class="bi bi-tachometer fs-3 text-info"></i>
+                            <h6 class="mt-2">Avg Speed: @(Math.Round(0.0, 2)) km/h</h6>
+                            <small class="text-muted">Avg Speed</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Heart Rate Chart -->
+                @if (Activity.HrData?.Any() == true)
+                {
+                    <div class="mb-4">
+                        <h5 class="text-primary">Heart Rate Over Time</h5>
+                        <div style="position: relative; height: 300px;">
+                            <canvas id="hrChart"></canvas>
+                        </div>
+                    </div>
+                }
+
+                <!-- Speed Chart -->
+                @if (Activity.SpeedData?.Any() == true)
+                {
+                    <div class="mb-4">
+                        <h5 class="text-primary">Speed Over Time</h5>
+                        <div style="position: relative; height: 300px;">
+                            <canvas id="speedChart"></canvas>
+                        </div>
+                    </div>
+                }
+
+                <!-- Buttons -->
+                <div class="d-flex gap-3 mt-3">
+                    <button class="btn btn-outline-danger rounded-pill px-4" @onclick="ToggleLike">
+                        <i class="bi bi-heart-fill me-2"></i>@Activity.LikeCount
+                    </button>
+                    <a href="/activity/@Activity.Id/comments" class="btn btn-outline-primary rounded-pill px-4">
+                        <i class="bi bi-chat-dots-fill me-2"></i>Comments (@(Activity.Comments?.Count ?? 0))
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter] public int activityId { get; set; }
+    private UserActivityDto Activity = new();
+    private string userId = "";
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = await AuthStateProvider.GetAuthenticationStateAsync();
+            userId = user.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            Activity = await ActivityService.GetActivityByIdAsync(activityId) ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        if (firstRender)
+        {
+            try
+            {
+                if (Activity.HrData?.Any() == true)
+                {
+                    var hrLabels = Activity.HrData
+                        .Select(d =>
+                            // Calculate the time elapsed from the start of the activity
+                            TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(Activity.DateStart).TotalMilliseconds)
+                                .ToString(@"hh\:mm\:ss")
+                        ).ToArray();
+
+                    var hrValues = Activity.HrData.Select(d => d.HearthRateValue).ToArray();
+
+                    await JS.InvokeVoidAsync("renderLineChartById", "hrChart", hrLabels, hrValues, "Heart Rate (bpm)");
+                }
+
+                if (Activity.SpeedData?.Any() == true)
+                {
+                    var speedLabels = Activity.SpeedData
+                        .Select(d =>
+                            // Calculate the time elapsed from the start of the activity
+                            TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(Activity.DateStart).TotalMilliseconds)
+                                .ToString(@"hh\:mm\:ss")
+                        ).ToArray();
+
+                    var speedValues = Activity.SpeedData.Select(d => d.SpeedValue).ToArray();
+
+                    await JS.InvokeVoidAsync("renderLineChartById", "speedChart", speedLabels, speedValues, "Speed (km/h)");
+                } 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            finally
+            {
+                await InvokeAsync(() => StateHasChanged());
+            }
+        }
+    }
+
+    private async Task ToggleLike()
+    {
+        try
+        {
+            await ActivityUtils.ToggleLikeAsync(
+                Activity,
+                userId,
+                ActivityService,
+                NotificationService
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Like toggle error: {ex.Message}");
+        }
+    }
+}

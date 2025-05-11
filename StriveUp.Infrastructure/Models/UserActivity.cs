@@ -34,6 +34,10 @@ namespace StriveUp.Infrastructure.Models
         public double Distance { get; set; }
         [Required]
         public int CaloriesBurned { get; set; }
+        public double? AvarageSpeed { get; set; }
+        public double? MaxSpeed { get; set; }
+        public int? AvarageHr { get; set; }
+        public int? MaxHr { get; set; }
         [Required]
         public DateTime DateStart { get; set; }
         [Required]

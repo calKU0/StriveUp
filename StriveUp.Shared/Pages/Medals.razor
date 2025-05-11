@@ -8,96 +8,109 @@
 <div class="container my-4">
 
     <h2 class="text-center mb-4">Medals</h2>
-
-    @if (showFilters)
+    @if (isLoading)
     {
-        <!-- Tabs for Frequency -->
-        <ul class="nav nav-tabs mb-4" id="medalFrequencyTabs" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link @(activeFrequencyTab == "all" ? "active" : "")" @onclick="@(() => SetFrequencyTab("all"))">
-                    All
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link @(activeFrequencyTab == "once" ? "active" : "")" @onclick="@(() => SetFrequencyTab("once"))">
-                    Once
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link @(activeFrequencyTab == "weekly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("weekly"))">
-                    Weekly
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link @(activeFrequencyTab == "monthly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("monthly"))">
-                    Monthly
-                </button>
-            </li>
-        </ul>
-
-        <!-- Tabs for Status -->
-        <ul class="nav nav-tabs mb-4" id="medalStatusTabs" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link @(statusFilter == "all" ? "active" : "")" @onclick="@(() => SetStatusFilter("all"))">
-                    All
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link @(statusFilter == "achieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("achieved"))">
-                    Achieved
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link @(statusFilter == "notachieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("notachieved"))">
-                    Not Achieved
-                </button>
-            </li>
-        </ul>
-
-        <!-- Dropdown for Order -->
-        <div class="mb-3">
-            <button class="btn btn-outline-secondary" @onclick="CycleOrder">
-                <i class="fas fa-sort"></i> @GetOrderLabel()
-            </button>
+        <!-- Loading Spinner -->
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+            <p class="loading-text">Loading feed. Please wait...</p>
         </div>
     }
-    <!-- Toggle Button for Filters -->
-    <div class="text-end mb-3">
-        <button class="btn btn-sm btn-outline-primary" @onclick="ToggleFilters">
-            <i class="fas @(showFilters ? "fa-eye-slash" : "fa-sliders-h")"></i>
-            Filters
-        </button>
-    </div>
+    else
+    {
+        @if (showFilters)
+        {
+            <!-- Tabs for Frequency -->
+            <ul class="nav nav-tabs mb-4" id="medalFrequencyTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link @(activeFrequencyTab == "all" ? "active" : "")" @onclick="@(() => SetFrequencyTab("all"))">
+                        All
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeFrequencyTab == "once" ? "active" : "")" @onclick="@(() => SetFrequencyTab("once"))">
+                        Once
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeFrequencyTab == "weekly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("weekly"))">
+                        Weekly
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(activeFrequencyTab == "monthly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("monthly"))">
+                        Monthly
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tabs for Status -->
+            <ul class="nav nav-tabs mb-4" id="medalStatusTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link @(statusFilter == "all" ? "active" : "")" @onclick="@(() => SetStatusFilter("all"))">
+                        All
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(statusFilter == "achieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("achieved"))">
+                        Achieved
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(statusFilter == "notachieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("notachieved"))">
+                        Not Achieved
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Dropdown for Order -->
+            <div class="mb-3">
+                <button class="btn btn-outline-secondary" @onclick="CycleOrder">
+                    <i class="fas fa-sort"></i> @GetOrderLabel()
+                </button>
+            </div>
+        }
+        <!-- Toggle Button for Filters -->
+        <div class="text-end mb-3">
+            <button class="btn btn-sm btn-outline-primary" @onclick="ToggleFilters">
+                <i class="fas @(showFilters ? "fa-eye-slash" : "fa-sliders-h")"></i>
+                Filters
+            </button>
+        </div>
 
 
-    <!-- Medals Display Section -->
-    <div class="row">
-        <div class="col">
-            <!-- Medal Display -->
-            <div class="row g-3">
-                @if (FilteredMedals != null)
-                {
-                    @foreach (var medal in FilteredMedals)
+        <!-- Medals Display Section -->
+        <div class="row">
+            <div class="col">
+                <!-- Medal Display -->
+                <div class="row g-3">
+                    @if (FilteredMedals != null)
                     {
-                        <div class="col-6 col-sm-4 col-md-2">
-                            <MedalCard MedalDto="@medal"
-                            IsAchieved="@achievedMedals.Any(a => a.Id == medal.Id)"
-                            OnMedalClick="@(() => ShowMedalDetails(medal))"
-                            ProgressPercent="@(medalProgress.TryGetValue(medal.Id, out var progress) ? progress : 0)" />
-                        </div>
+                        @foreach (var medal in FilteredMedals)
+                        {
+                            <div class="col-6 col-sm-4 col-md-2">
+                                <MedalCard MedalDto="@medal"
+                                IsAchieved="@achievedMedals.Any(a => a.Id == medal.Id)"
+                                OnMedalClick="@(() => ShowMedalDetails(medal))"
+                                ProgressPercent="@(medalProgress.TryGetValue(medal.Id, out var progress) ? progress : 0)" />
+                            </div>
+                        }
                     }
-                }
+                </div>
             </div>
         </div>
-    </div>
+    }
 </div>
 @if (@selectedMedal != null)
 {
     <MedalDetailsModal Medal="@selectedMedal" MedalProgress="medalProgress[selectedMedal.Id]" IsVisible="@isMedalModalVisible" IsVisibleChanged="@(v => isMedalModalVisible = v)" />
 }
 @code {
+    private bool isLoading = true;
+    private List<MedalDto> allMedals = new();
     private List<MedalDto> achievedMedals = new();
     private List<MedalDto> notAchievedMedals = new();
+    private List<MedalDto> userMedals = new();
     private Dictionary<int, int> medalProgress = new();
     private MedalDto selectedMedal;
     private bool isMedalModalVisible = false;
@@ -109,25 +122,35 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var allMedals = await MedalService.GetAllMedalsAsync();
-        var userMedals = await MedalService.GetUserMedalsAsync();
-
-        achievedMedals = userMedals ?? new();
-        var achievedIds = achievedMedals.Select(m => m.Id).ToHashSet();
-
-        notAchievedMedals = (allMedals ?? new())
-            .Where(m => !achievedIds.Contains(m.Id))
-            .ToList();
-
-        var activities = await ActivityService.GetFeedAsync();
-        medalProgress.Clear();
-
-        foreach (var medal in allMedals)
+        try
         {
-            int progress = CalculateMedalProgress(medal, activities);
-            medalProgress[medal.Id] = progress;
-        }
+            allMedals = await MedalService.GetAllMedalsAsync() ?? new();
+            userMedals = await MedalService.GetUserMedalsAsync() ?? new();
 
+            achievedMedals = userMedals ?? new();
+            var achievedIds = achievedMedals.Select(m => m.Id).ToHashSet();
+
+            notAchievedMedals = (allMedals ?? new())
+                .Where(m => !achievedIds.Contains(m.Id))
+                .ToList();
+
+            var activities = await ActivityService.GetFeedAsync();
+            medalProgress.Clear();
+
+            foreach (var medal in allMedals)
+            {
+                int progress = CalculateMedalProgress(medal, activities);
+                medalProgress[medal.Id] = progress;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
     private void CycleOrder()
@@ -206,7 +229,8 @@
                 // Weekly progress calculation
                 {
                     var today = DateTime.Today;
-                    var startOfWeek = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+                    var diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+                    var startOfWeek = today.AddDays(-diff);
                     var endOfWeek = startOfWeek.AddDays(7).AddSeconds(-1);
 
                     totalDistance = activities

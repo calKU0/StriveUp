@@ -18,52 +18,56 @@
 @using Plugin.BLE.Abstractions.Contracts;
 
 
-@if (isLoadingLocation)
-{
-    <div class="loading-overlay">
-        <div class="spinner"></div>
-        <p class="loading-text">Acquiring GPS. Please wait...</p>
-    </div>
-}
 
 <div class="page-wrapper container-full @(mapVisible ? "map-visible" : "")">
-    <div class="slides">
-        <div class="map-section">
-            <div id="map"></div>
-        </div>
-
-        <div class="controls">
-            <ActivityControls AvailableActivities="availableActivities"
-            SelectedActivity="@selectedActivity"
-            IsTracking="@isTracking"
-            IsPaused="@isPaused"
-            OnSelectedSensorChanged="@(sensor => ConnectHrDevice(sensor))"
-            SelectedActivityChanged="@((ActivityDto a) => selectedActivity = a)"
-            OnStartClick="@ToggleTracking"
-            OnStopClick="@ToggleTracking"
-            OnResumeClick="@ResumeTracking"
-            OnFinishClick="@ShowFinishModal" />
-        </div>
-    </div>
-    @if (isTracking || isPaused)
+    @if (isLoadingLocation)
     {
-        <div class="slides" id="tracking-section">
-            <div class="tiles-wrapper p-2">
-                <!-- Info Tiles -->
-                <div class="row g-3">
-                    <InfoTile Label="Distance" Value="@($"{Math.Round(Distance, 2):F2} km")" IconClass="fas fa-route" />
-                    <!-- Conditional display of Speed or Pace -->
-                    <InfoTile Label="@GetSpeedOrPaceLabel()"
-                    Value="@GetSpeedOrPace()"
-                    IconClass="fas fa-tachometer-alt" />
-                    <InfoTile Label="Heart Rate" Value="@($"{HeartRate} bpm")" IconClass="fas fa-heartbeat" />
-                    <InfoTile Label="Duration" Value="@Duration.ToString(@"hh\:mm\:ss")" IconClass="fas fa-stopwatch" />
-                    <InfoTile Label="Tile 5" Value="--" />
-                    <InfoTile Label="Tile 6" Value="--" />
-                </div>
-            </div>
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+            <p class="loading-text">Acquiring GPS. Please wait...</p>
         </div>
     }
+    else
+    {
+        <div class="slides">
+            <div class="map-section">
+                <div id="map"></div>
+            </div>
+
+            <div class="controls">
+                <ActivityControls AvailableActivities="availableActivities"
+                                  SelectedActivity="@selectedActivity"
+                                  IsTracking="@isTracking"
+                                  IsPaused="@isPaused"
+                                  OnSelectedSensorChanged="@(sensor => ConnectHrDevice(sensor))"
+                                  SelectedActivityChanged="@((ActivityDto a) => selectedActivity = a)"
+                                  OnStartClick="@ToggleTracking"
+                                  OnStopClick="@ToggleTracking"
+                                  OnResumeClick="@ResumeTracking"
+                                  OnFinishClick="@ShowFinishModal" />
+            </div>
+        </div>
+        @if (isTracking || isPaused)
+        {
+            <div class="slides" id="tracking-section">
+                <div class="tiles-wrapper p-2">
+                    <!-- Info Tiles -->
+                    <div class="row g-3">
+                        <InfoTile Label="Distance" Value="@($"{Math.Round(Distance, 2):F2} km")" IconClass="fas fa-route" />
+                        <!-- Conditional display of Speed or Pace -->
+                        <InfoTile Label="@GetSpeedOrPaceLabel()"
+                                  Value="@GetSpeedOrPace()"
+                                  IconClass="fas fa-tachometer-alt" />
+                        <InfoTile Label="Heart Rate" Value="@($"{HeartRate} bpm")" IconClass="fas fa-heartbeat" />
+                        <InfoTile Label="Duration" Value="@Duration.ToString(@"hh\:mm\:ss")" IconClass="fas fa-stopwatch" />
+                        <InfoTile Label="Tile 5" Value="--" />
+                        <InfoTile Label="Tile 6" Value="--" />
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    
 
 </div>
 
@@ -141,12 +145,12 @@ OnResume="@ResumeTracking" />
             }
 
             var locator = CrossGeolocator.Current;
-            locator.DesiredAccuracy = 10;
+            locator.DesiredAccuracy = 5;
             locator.PositionChanged += OnPositionChanged;
 
             if (!locator.IsListening)
             {
-                await locator.StartListeningAsync(TimeSpan.FromSeconds(2), 10, true);
+                await locator.StartListeningAsync(TimeSpan.FromSeconds(3), 10);
             }  
         }
         catch (Exception ex)
@@ -158,10 +162,18 @@ OnResume="@ResumeTracking" />
 
     private void OnPositionChanged(object sender, PositionEventArgs e)
     {
+        isLoadingLocation = false;
         var location = new Location(e.Position.Latitude, e.Position.Longitude)
-            {
-                Timestamp = e.Position.Timestamp
-            };
+        {
+            Timestamp = e.Position.Timestamp
+        };
+
+        double distanceMoved = currentLocation != null ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers) : 0;
+        if (distanceMoved > 0.05 || e.Position.Accuracy > 5)
+        {
+            Console.WriteLine("Suspicious jump filtered: " + distanceMoved + " meters");
+            return;
+        }
 
         currentLocation = location;
 
@@ -173,7 +185,6 @@ OnResume="@ResumeTracking" />
         }
 
         _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
-        isLoadingLocation = false;
         StateHasChanged();
 
         if (isTracking)

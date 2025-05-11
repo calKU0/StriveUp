@@ -34,6 +34,10 @@ namespace StriveUp.API.Controllers
             try
             {
                 var user = await _context.Users
+                    .AsSplitQuery()
+                    .Where(u => u.UserName == userName)
+                    .Include(u => u.MedalsEarned)
+                        .ThenInclude(me => me.Medal)
                     .Include(u => u.UserActivities)
                         .ThenInclude(ua => ua.Route)
                     .Include(u => u.UserActivities)
@@ -47,9 +51,7 @@ namespace StriveUp.API.Controllers
                             .ThenInclude(c => c.User)
                     .Include(u => u.UserActivities)
                         .ThenInclude(ua => ua.Activity)
-                    .Include(u => u.MedalsEarned)
-                        .ThenInclude(me => me.Medal)
-                    .FirstOrDefaultAsync(u => u.UserName == userName);
+                    .FirstOrDefaultAsync();
 
                 if (user == null)
                 {
@@ -62,12 +64,17 @@ namespace StriveUp.API.Controllers
                     ?.OrderByDescending(a => a.DateStart)
                     .ToList();
 
+                // Optimize lookup by creating a dictionary from user.UserActivities
+                var activityLookup = user.UserActivities
+                    .ToDictionary(a => a.Id);
+
                 foreach (var activityDto in userProfile.Activities ?? Enumerable.Empty<UserActivityDto>())
                 {
-                    var activityEntity = user.UserActivities.FirstOrDefault(a => a.Id == activityDto.Id);
-                    if (activityEntity != null)
+                    if (activityLookup.TryGetValue(activityDto.Id, out var activityEntity))
                     {
-                        activityDto.IsLikedByCurrentUser = activityEntity.ActivityLikes.Any(l => l.UserId == currentUserId);
+                        activityDto.IsLikedByCurrentUser = activityEntity.ActivityLikes
+                            .Any(l => l.UserId == currentUserId);
+
                         activityDto.Comments = _mapper.Map<List<ActivityCommentDto>>(activityEntity.ActivityComments);
                     }
                 }

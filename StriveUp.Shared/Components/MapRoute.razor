@@ -3,13 +3,19 @@
 @inject ISecurableService securableService
 @implements IDisposable
 
-<div class="map-container" id="@mapId"></div>
+<div class="map-container" id="@mapId" style="height: @(Height); @Style" @onclick="OnMapClick" @onmouseover="OnMapClick" @onmouseout="OnMapMouseOut"></div>
 
 @code {
     [Parameter] public List<GeoPointDto> Route { get; set; } = new();
+    [Parameter] public string Style { get; set; } = "border-radius: 12px;border-radius: 12px;";
+    [Parameter] public string Height { get; set; } = "250px"; 
+    [Parameter] public bool IsInteractive { get; set; } = false;
+
     private string mapId = $"map_{Guid.NewGuid().ToString().Replace("-", "")}";
     private IJSObjectReference? module;
-    string token;
+    private IJSObjectReference? mapInstance;
+    private string token;
+    private string originalHeight;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -17,7 +23,37 @@
         {
             token = await securableService.GetMapboxTokenAsync();
             module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/staticMap.js");
-            await module.InvokeVoidAsync("renderStaticRoute", mapId, Route, token);
+            mapInstance = await module.InvokeAsync<IJSObjectReference>("renderStaticRoute", mapId, Route, token, IsInteractive);
+            originalHeight = Height; 
+        }
+    }
+
+    // Triggered when the map is clicked to expand
+    private async Task OnMapClick()
+    {
+        if (IsInteractive)
+        {
+            Height = "500px";
+            StateHasChanged();
+
+            if (mapInstance != null)
+            {
+                await module.InvokeVoidAsync("resizeMap", mapId);
+            }
+        }
+    }
+
+    private async Task OnMapMouseOut()
+    {
+        if (IsInteractive)
+        {
+            Height = originalHeight;
+            StateHasChanged();
+
+            if (mapInstance != null)
+            {
+                await module.InvokeVoidAsync("resizeMap", mapId);
+            }
         }
     }
 
