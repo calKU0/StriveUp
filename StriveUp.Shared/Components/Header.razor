@@ -42,7 +42,7 @@
 
     protected override void OnInitialized()
     {
-        if (pageTitle == "Tracking" || pageTitle == "Comments")
+        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search")
         {
             showBell = false;
             showSearch = false;
@@ -55,7 +55,7 @@
 
     private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        if (pageTitle == "Tracking" || pageTitle == "Comments")
+        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search")
         {
             showBell = false;
             showSearch = false;

@@ -26,6 +26,10 @@
                     <i class="fas fa-rss icon"></i>
                     <span class="small-text">Feed</span>
                 </NavLink>
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="notifications">
+                    <i class="fas fa-rss icon"></i>
+                    <span class="small-text">Feed</span>
+                </NavLink>
                 @if (PlatformService.IsNativeApp())
                 {
                     <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="tracking">
@@ -117,7 +121,7 @@
     {
         var currentPage = Navigation.Uri;
 
-        if (currentPage.Contains("login") || currentPage.Contains("register") || currentPage.Contains("tracking"))
+        if (currentPage.Contains("login") || currentPage.Contains("register") || currentPage.Contains("tracking") || currentPage.Contains("comments") || currentPage.Contains("search"))
         {
             return true;
         }

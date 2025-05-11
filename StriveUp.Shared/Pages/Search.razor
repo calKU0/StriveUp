@@ -1,5 +1,6 @@
 ﻿@page "/search"
 @inject IFollowService FollowService
+@inject NavigationManager Navigation
 
 @using System.Security.Claims
 @using StriveUp.Shared.DTOs
@@ -7,8 +8,9 @@
 
 <div class="container py-5">
     <div class="mb-4">
-        <input type="text" class="form-control form-control-lg"
-               placeholder="Search users..."
+        <input type="text"
+               class="form-control"
+               placeholder="🔍 Search users..."
                @oninput="HandleInput" />
     </div>
 
@@ -21,7 +23,7 @@
         <ul class="list-group">
             @foreach (var user in searchResults)
             {
-                <li class="list-group-item d-flex justify-content-between align-items-center">
+                <li class="list-group-item d-flex justify-content-between align-items-center search-list-item" @onclick="() => OnListItemClick(user.UserName)">
                     <div class="d-flex align-items-center">
                         <img src="@GetAvatar(user.Avatar)" class="rounded-circle me-3" width="48" height="48" />
                         <div>
@@ -93,5 +95,10 @@
     {
         searchText = e.Value?.ToString() ?? "";
         await OnSearchChanged();
+    }
+
+    private void OnListItemClick(string userName)
+    {
+        Navigation.NavigateTo($"/profile/{userName}");
     }
 }

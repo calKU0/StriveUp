@@ -29,6 +29,7 @@ namespace StriveUp.Shared.DTOs
         [Required]
         public DateTime DateEnd { get; set; }
         public int CaloriesBurned { get; set; }
+        public string UserId { get; set; }
         public string UserName { get; set; }
         public int LikeCount { get; set; }
         public bool IsLikedByCurrentUser { get; set; }

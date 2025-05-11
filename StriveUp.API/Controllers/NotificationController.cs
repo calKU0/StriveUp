@@ -1,0 +1,109 @@
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using StriveUp.Infrastructure.Data;
+using StriveUp.Infrastructure.Identity;
+using StriveUp.Infrastructure.Models;
+using StriveUp.Shared.DTOs;
+using System.Security.Claims;
+
+namespace StriveUp.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public class NotificationsController : Controller
+    {
+        private readonly AppDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly IMapper _mapper;
+
+        public NotificationsController(AppDbContext context, UserManager<AppUser> userManager, IMapper mapper)
+        {
+            _context = context;
+            _userManager = userManager;
+            _mapper = mapper;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<NotificationDto>>> GetUserNotifications()
+        {
+            try
+            {
+
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                var notifs = await _context.Notifications
+                    .Where(n => n.UserId == userId)
+                    .OrderByDescending(n => n.CreatedAt)
+                    .Take(20)
+                    .ToListAsync();
+
+                var notifDtos = _mapper.Map<List<NotificationDto>>(notifs);
+
+                // Enrich with actor names
+                var actorIds = notifDtos.Select(n => n.ActorId).Distinct().ToList();
+                var users = await _userManager.Users
+                    .Where(u => actorIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => u.UserName);
+
+                foreach (var dto in notifDtos)
+                {
+                    if (users.TryGetValue(dto.ActorId, out var name))
+                    {
+                        dto.ActorName = name;
+                    }
+                }
+
+                return Ok(notifDtos);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var notification = _mapper.Map<Notification>(dto);
+            notification.CreatedAt = DateTime.UtcNow;
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost("read/{id}")]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
+            if (notif == null) return NotFound();
+
+            notif.IsRead = true;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost("readAll")]
+        public async Task<IActionResult> MarkAsReadAll()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.IsRead == false && n.UserId == userId);
+            if (notif == null) return NotFound();
+
+            notif.IsRead = true;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+    }
+}

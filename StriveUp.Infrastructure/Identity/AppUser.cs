@@ -28,5 +28,7 @@ namespace StriveUp.Infrastructure.Identity
 
         public ICollection<UserFollower>? Followers { get; set; }
         public ICollection<UserFollower>? Following { get; set; }
+
+        public ICollection<Notification>? Notifications { get; set; }
     }
 }

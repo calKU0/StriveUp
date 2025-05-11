@@ -21,7 +21,15 @@
                             <div class="activity-image-container">
                                 <img src="@GetActivityImageUrl(activity.Id, "light")" alt="@activity.Name" class="activity-image" />
                             </div>
-                            <span class="activity-name">@activity.Name</span>
+                            <span class="activity-name me-2">@activity.Name</span>
+                            @if (SelectedActivity?.Id == activity.Id)
+                            {
+                                <i class="fas fa-dot-circle text-success ms-auto"></i>
+                            }
+                            else
+                            {
+                                <i class="far fa-circle text-muted ms-auto"></i>
+                            }
                         </a>
                     }
                 }
@@ -37,13 +45,17 @@
                 {
                     @foreach (var sensor in AvailableSensors)
                     {
-                        <!-- Sensors Dropdown -->
                         <a class="dropdown-item d-flex align-items-center"
-                        @onchange="OnSensorChanged"
-                        value="@SelectedSensorId">
-
-                            <span class="@sensor.Id">@sensor.Name</span>
-
+                           @onclick="@(() => OnSensorSelected(sensor))">
+                            <span class="activity-name me-2">@sensor.Name</span>
+                            @if (sensor.Id == SelectedSensorId)
+                            {
+                                <i class="fas fa-dot-circle text-success ms-auto"></i>
+                            }
+                            else
+                            {
+                                <i class="far fa-circle text-muted ms-auto"></i>
+                            }
                         </a>
                     }
                 }
@@ -79,8 +91,9 @@
     [Parameter] public EventCallback OnResumeClick { get; set; }
     [Parameter] public EventCallback OnFinishClick { get; set; }
     [Parameter] public EventCallback<BluetoothDeviceDto> OnSelectedSensorChanged { get; set; }
+    [Parameter] public EventCallback<ActivityDto> SelectedActivityChanged { get; set; }
 
-    private int SelectedSensorId { get; set; } = 0;
+    private string SelectedSensorId { get; set; } = "";
     private List<BluetoothDeviceDto> AvailableSensors { get; set; } = new();
     private bool ShowActivitySelect { get; set; } = false;
     private bool ShowSensorSelect { get; set; } = false;
@@ -109,6 +122,14 @@
             ");
 
     }
+
+    private async void OnSensorSelected(BluetoothDeviceDto sensor)
+    {
+        SelectedSensorId = sensor.Id;
+        await OnSelectedSensorChanged.InvokeAsync(sensor);
+        ShowSensorSelect = false;
+    }
+
 
     private string GetActivityImageUrl(int activityId, string theme)
     {
@@ -144,10 +165,11 @@
         ShowSensorSelect = !ShowSensorSelect;
     }
 
-    private void SelectActivity(ActivityDto activity)
+    private async void SelectActivity(ActivityDto activity)
     {
         SelectedActivity = activity;
         ShowActivitySelect = false;
+        await SelectedActivityChanged.InvokeAsync(activity);
     }
 
 }

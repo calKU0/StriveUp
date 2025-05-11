@@ -14,6 +14,7 @@ namespace StriveUp.API.Mapping
             // UserActivity <-> DTO
             CreateMap<UserActivity, UserActivityDto>()
                 .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.User.Id))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
                 .ForMember(dest => dest.LikeCount, opt => opt.MapFrom(src => src.ActivityLikes.Count))
                 .ForMember(dest => dest.IsLikedByCurrentUser, opt => opt.Ignore())
@@ -75,6 +76,11 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
                 .ForMember(dest => dest.IsFollowed, opt => opt.Ignore());
+
+            CreateMap<Notification, NotificationDto>()
+                .ForMember(dest => dest.ActorName, opt => opt.Ignore());
+
+            CreateMap<CreateNotificationDto, Notification>();
         }
     }
 }

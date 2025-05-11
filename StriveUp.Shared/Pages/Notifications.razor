@@ -1,0 +1,60 @@
+﻿@page "/notifications"
+@using StriveUp.Shared.DTOs
+@inject ICustomAuthStateProvider AuthStateProvider
+@inject INotificationService NotificationService
+@inject NavigationManager Navigation
+
+<div class="notification-panel">
+    @if (notifications.Count == 0)
+    {
+        <p class="text-muted">No notifications yet.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var notif in notifications)
+            {
+                <li class="notification-item @(notif.IsRead ? "read" : "unread")">
+                    <div>
+                        <strong>@notif.ActorName:</strong> @notif.Message
+                        <span class="time">@notif.CreatedAt.ToLocalTime().ToString("g")</span>
+                    </div>
+                    @if (!notif.IsRead)
+                    {
+                        <button class="mark-read-btn" @onclick="() => MarkAsRead(notif.Id)">Mark as read</button>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    private List<NotificationDto> notifications = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated ?? false)
+            {
+                // Token is valid, fetch activities
+                notifications = await NotificationService.GetMyNotificationsAsync();
+            }
+            else
+            {
+                Navigation.NavigateTo("/login");  // Redirect to login page
+            }
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    private async Task MarkAsRead(int id)
+    {
+        await NotificationService.MarkAsReadAsync(id);
+        notifications = await NotificationService.GetMyNotificationsAsync();
+    }
+}
