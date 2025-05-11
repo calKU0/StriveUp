@@ -16,7 +16,6 @@ namespace StriveUp.Infrastructure.Data
 
         public DbSet<Activity> Activities { get; set; }
         public DbSet<UserActivity> UserActivities { get; set; }
-        public DbSet<Friendship> Friendships { get; set; }
         public DbSet<ActivityLike> ActivityLikes { get; set; }
         public DbSet<ActivityComment> ActivityComments { get; set; }
         public DbSet<Medal> Medals { get; set; }
@@ -25,6 +24,7 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<ActivityHr> ActivityHrs { get; set; }
         public DbSet<ActivitySpeed> ActivitySpeeds { get; set; }
         public DbSet<ActivityConfig> ActivityConfig { get; set; }
+        public DbSet<UserFollower> UserFollowers { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -59,6 +59,21 @@ namespace StriveUp.Infrastructure.Data
                 .HasOne(me => me.User)
                 .WithMany()
                 .HasForeignKey(me => me.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFollower>()
+                .HasKey(x => new { x.FollowerId, x.FollowedId });
+
+            modelBuilder.Entity<UserFollower>()
+                .HasOne(x => x.Follower)
+                .WithMany(x => x.Following)
+                .HasForeignKey(x => x.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFollower>()
+                .HasOne(x => x.Followed)
+                .WithMany(x => x.Followers)
+                .HasForeignKey(x => x.FollowedId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

@@ -22,8 +22,11 @@ namespace StriveUp.Infrastructure.Identity
         //public string? Bio { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public ICollection<UserActivity>? UserActivities { get; set; }
 
+        public ICollection<UserActivity>? UserActivities { get; set; }
         public ICollection<MedalEarned>? MedalsEarned { get; set; }
+
+        public ICollection<UserFollower>? Followers { get; set; }
+        public ICollection<UserFollower>? Following { get; set; }
     }
 }

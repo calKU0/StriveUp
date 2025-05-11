@@ -118,5 +118,19 @@ namespace StriveUp.Infrastructure.Services
                 Console.WriteLine(ex);
             }
         }
+
+        public async Task<List<ActivityCommentDto>?> GetActivityComments(int activityId)
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                return await _httpClient.GetFromJsonAsync<List<ActivityCommentDto>?>($"activity/activityComments/{activityId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return null;
+            }
+}
     }
 }

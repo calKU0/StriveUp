@@ -36,7 +36,7 @@ namespace StriveUp.API.Controllers
 
             var userActivity = _mapper.Map<UserActivity>(dto);
             userActivity.UserId = userId!;
-            userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((double)(activity.AverageCaloriesPerHour / 60) * dto.DurationSeconds));
+            userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((double)(activity.AverageCaloriesPerHour / 3600) * dto.DurationSeconds));
 
             _context.UserActivities.Add(userActivity);
             await _context.SaveChangesAsync();
@@ -70,7 +70,7 @@ namespace StriveUp.API.Controllers
                 {
                     var entity = activities.First(a => a.Id == dto.Id);
                     dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
-                    dto.Comments = _mapper.Map<List<CommentDto>>(entity.ActivityComments);
+                    dto.Comments = _mapper.Map<List<ActivityCommentDto>>(entity.ActivityComments);
                 }
 
                 return Ok(activityDtos);
@@ -89,14 +89,22 @@ namespace StriveUp.API.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId is null)
+                    return Unauthorized();
 
-                var friends = await _context.Friendships
-                    .Where(f => f.UserId == userId)
-                    .Select(f => f.FriendId)
+                // Get IDs of users you follow
+                var followedUserIds = await _context.UserFollowers
+                    .Where(f => f.FollowerId == userId)
+                    .Select(f => f.FollowedId)
                     .ToListAsync();
 
-                var userIds = friends.Append(userId).ToList(); // własne + znajomi
+                // Include own ID
+                var userIds = followedUserIds
+                    .Append(userId)
+                    .Distinct()
+                    .ToList();
 
+                // Fetch activities from followed users and yourself
                 var activities = await _context.UserActivities
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.Route)
@@ -107,14 +115,16 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.ActivityComments)
                         .ThenInclude(c => c.User)
                     .Where(ua => userIds.Contains(ua.UserId))
+                    .OrderByDescending(ua => ua.DateStart)
                     .ToListAsync();
 
                 var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
+
                 foreach (var dto in activityDtos)
                 {
                     var entity = activities.First(a => a.Id == dto.Id);
                     dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
-                    dto.Comments = _mapper.Map<List<CommentDto>>(entity.ActivityComments);
+                    dto.Comments = _mapper.Map<List<ActivityCommentDto>>(entity.ActivityComments);
                     dto.Route = _mapper.Map<List<GeoPointDto>>(entity.Route.OrderBy(p => p.Timestamp));
                 }
 
@@ -126,6 +136,7 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
 
         [HttpGet("activity/{id:int}")]
         public async Task<ActionResult<UserActivityDto>> GetActivityById(int id)
@@ -149,7 +160,7 @@ namespace StriveUp.API.Controllers
 
                 var dto = _mapper.Map<UserActivityDto>(activity);
                 dto.IsLikedByCurrentUser = activity.ActivityLikes.Any(l => l.UserId == userId);
-                dto.Comments = _mapper.Map<List<CommentDto>>(activity.ActivityComments);
+                dto.Comments = _mapper.Map<List<ActivityCommentDto>>(activity.ActivityComments);
 
                 return Ok(dto);
             }
@@ -230,6 +241,26 @@ namespace StriveUp.API.Controllers
                 await _context.SaveChangesAsync();
 
                 return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred: {ex}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("activityComments/{activityId}")]
+        public async Task<ActionResult<IEnumerable<ActivityCommentDto>>> GetActivityComments(int activityId)
+        {
+            try
+            {
+                var comments = await _context.ActivityComments
+                    .Include(c => c.User)
+                    .Where(c => c.UserActivityId == activityId)
+                    .ToListAsync();
+
+                var commentsDtos = _mapper.Map<List<ActivityCommentDto>>(comments);
+                return Ok(commentsDtos);
             }
             catch (Exception ex)
             {

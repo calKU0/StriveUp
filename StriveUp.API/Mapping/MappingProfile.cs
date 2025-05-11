@@ -36,7 +36,7 @@ namespace StriveUp.API.Mapping
             CreateMap<GeoPoint, GeoPointDto>().ReverseMap();
 
             // Comment  <-> DTO
-            CreateMap<ActivityComment, CommentDto>()
+            CreateMap<ActivityComment, ActivityCommentDto>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
             // Activity <-> DTO
@@ -70,6 +70,11 @@ namespace StriveUp.API.Mapping
 
             CreateMap<ActivityHr, ActivityHrDto>();
             CreateMap<ActivityHrDto, ActivityHr>();
+
+            CreateMap<AppUser, FollowDto>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
+                .ForMember(dest => dest.IsFollowed, opt => opt.Ignore());
         }
     }
 }

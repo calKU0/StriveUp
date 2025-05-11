@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StriveUp.Shared.DTOs
+namespace StriveUp.Shared.DTOs.Activity
 {
-    public class CommentDto
+    public class ActivityCommentDto
     {
         public string UserName { get; set; }
         public string Content { get; set; }

@@ -22,15 +22,15 @@ namespace StriveUp.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<UserProfileDto>> GetProfile(string userId)
+        [HttpGet("{userName}")]
+        public async Task<ActionResult<UserProfileDto>> GetProfile(string userName)
         {
             try
             {
                 var user = await _context.Users
                     .Include(u => u.UserActivities)
                     .Include(u => u.MedalsEarned).ThenInclude(me => me.Medal)
-                    .Where(u => u.Id == userId)
+                    .Where(u => u.UserName == userName)
                     .FirstOrDefaultAsync();
 
                 if (user == null)

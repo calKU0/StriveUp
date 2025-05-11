@@ -15,6 +15,7 @@ namespace StriveUp.Shared.Interfaces
         Task<bool> UpdateActivityAsync(int activityId, CreateUserActivityDto activity);
         Task<List<ActivityDto>?> GetAvailableActivitiesAsync();
         Task<UserActivityDto?> GetActivityByIdAsync(int activityId);
+        Task<List<ActivityCommentDto>?> GetActivityComments(int activityId);
         Task AddCommentAsync(int activityId, string comment);
         Task LikeActivityAsync(int activityId);
     }

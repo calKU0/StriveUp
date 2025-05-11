@@ -25,12 +25,12 @@ namespace StriveUp.Infrastructure.Services
             _tokenStorage = tokenStorage;
         }
 
-        public async Task<(bool Success, ErrorResponse? Error, UserProfileDto profile)> GetProfile(string userId)
+        public async Task<(bool Success, ErrorResponse? Error, UserProfileDto profile)> GetProfile(string userName)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                var response = await _httpClient.GetFromJsonAsync<UserProfileDto>($"user/profile/{userId}");
+                var response = await _httpClient.GetFromJsonAsync<UserProfileDto>($"user/profile/{userName}");
 
                 if (response != null)
                 {
