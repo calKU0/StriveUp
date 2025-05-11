@@ -19,7 +19,7 @@
     <div class="right-icons d-flex align-items-center">
         @if (showSearch)
         {
-            <i class="fas fa-search text-dark"></i>
+            <i class="fas fa-search text-dark" @onclick="OnSearchClick"></i>
         }
         @if (showBell)
         {
@@ -76,6 +76,11 @@
     private async Task BackButtonClick()
     {
         await JSRuntime.InvokeVoidAsync("history.back");
+    }
+
+    private void OnSearchClick()
+    {
+        Navigation.NavigateTo("/search");
     }
 
     public void Dispose()

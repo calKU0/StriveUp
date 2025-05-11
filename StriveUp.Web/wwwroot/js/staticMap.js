@@ -1,7 +1,4 @@
-﻿import mapboxgl from 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-
-
-export function renderStaticRoute(mapId, route, accessToken) {
+﻿export function renderStaticRoute(mapId, route, accessToken) {
     mapboxgl.accessToken = accessToken;
     const coords = route.map(p => [p.longitude, p.latitude]);
     const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));

@@ -1,0 +1,97 @@
+﻿@page "/search"
+@inject IFollowService FollowService
+
+@using System.Security.Claims
+@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Profile
+
+<div class="container py-5">
+    <div class="mb-4">
+        <input type="text" class="form-control form-control-lg"
+               placeholder="Search users..."
+               @oninput="HandleInput" />
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center"><div class="spinner-border"></div></div>
+    }
+    else if (searchResults?.Any() == true)
+    {
+        <ul class="list-group">
+            @foreach (var user in searchResults)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <img src="@GetAvatar(user.Avatar)" class="rounded-circle me-3" width="48" height="48" />
+                        <div>
+                            <strong>@user.FullName</strong><br />
+                            <span class="text-muted">@user.UserName</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm @(user.IsFollowed ? "btn-outline-danger" : "btn-primary")"
+                    @onclick="@(() => ToggleFollow(user))">
+                        @(user.IsFollowed ? "Unfollow" : "Follow")
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+    else if (!string.IsNullOrWhiteSpace(searchText))
+    {
+        <p class="text-muted">No users found.</p>
+    }
+</div>
+
+@code {
+    private string searchText = "";
+    private List<FollowDto> searchResults = new();
+    private bool isLoading = false;
+    private string currentUserId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        searchText = e.Value?.ToString() ?? "";
+        await OnSearchChanged();
+    }
+
+    private async Task OnSearchChanged()
+    {
+        if (string.IsNullOrWhiteSpace(searchText) || searchText.Length < 2)
+        {
+            searchResults.Clear();
+            return;
+        }
+        if (searchText.Length > 2)
+        {
+
+            isLoading = true;
+            searchResults = await FollowService.SearchUsersAsync(searchText);
+            isLoading = false;
+        }
+    }
+
+    private async Task ToggleFollow(FollowDto user)
+    {
+        if (user.IsFollowed)
+            await FollowService.UnfollowAsync(currentUserId, user.UserId);
+        else
+            await FollowService.FollowAsync(currentUserId, user.UserId);
+
+        user.IsFollowed = !user.IsFollowed;
+    }
+
+    private string GetAvatar(string? avatar) =>
+        string.IsNullOrWhiteSpace(avatar) ? "https://via.placeholder.com/48" : avatar;
+
+    private async Task HandleSearch(ChangeEventArgs e)
+    {
+        searchText = e.Value?.ToString() ?? "";
+        await OnSearchChanged();
+    }
+}

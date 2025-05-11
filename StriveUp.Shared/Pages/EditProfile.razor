@@ -72,8 +72,8 @@
 
                 if (user.Identity?.IsAuthenticated ?? false)
                 {
-                    var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    var (success, error, profile) = await ProfileService.GetProfile(userId);
+                    var userName = user.Identity.Name;
+                    var (success, error, profile) = await ProfileService.GetProfile(userName);
 
                     if (success && profile != null)
                     {

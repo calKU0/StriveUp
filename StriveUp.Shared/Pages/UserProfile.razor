@@ -1,4 +1,5 @@
 ﻿@page "/profile"
+@page "/profile/{username?}"
 @inject IAuthService AuthService
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -65,12 +66,10 @@
                 <h5 class="mb-3">Activities</h5>
                 @if (userProfile.Activities?.Any() == true)
                 {
-                    <div class="row g-4">
+                    <div class="row g-3">
                         @foreach (var activity in userProfile.Activities)
                         {
-                            <div class="col-md-6">
-                                <ActivityCard Activity="activity" />
-                            </div>
+                            <ActivityCard Activity="activity" />
                         }
                     </div>
                 }
@@ -124,11 +123,13 @@
 </div>
 
 @code {
+    [Parameter]
+    public string? Username { get; set; }
     private bool isLoading = true;
     private string? errorMessage;
     private UserProfileDto userProfile = new();
     private bool isEditable = false;
-    private string userId = "";
+    private string userName = "";
     private string activeTab = "activities";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -142,14 +143,14 @@
 
                 if (currentUser.Identity?.IsAuthenticated == true)
                 {
-                    userId = currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    userName = Username ?? currentUser.Identity.Name;
 
-                    var (success, error, profile) = await ProfileService.GetProfile(userId);
+                    var (success, error, profile) = await ProfileService.GetProfile(userName);
 
                     if (success && profile != null)
                     {
                         userProfile = profile;
-                        isEditable = userProfile.UserName == currentUser.Identity?.Name;
+                        isEditable = (userName == currentUser.Identity?.Name);
                     }
                     else
                     {
@@ -164,8 +165,8 @@
             finally
             {
                 isLoading = false;
+                await InvokeAsync(StateHasChanged);
             }
-            await InvokeAsync(StateHasChanged);
         }
     }
 

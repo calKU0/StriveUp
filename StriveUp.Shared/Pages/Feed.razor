@@ -1,10 +1,12 @@
 ﻿@page "/feed"
 @inject IActivityService ActivityService
+@inject IProfileService ProfileService
 @inject NavigationManager Navigation
 @inject ICustomAuthStateProvider AuthStateProvider
 @using StriveUp.Shared.DTOs
 @using System.Security.Claims
 @using StriveUp.Shared.Components;
+@using StriveUp.Shared.DTOs.Activity
 
 
 <PageTitle>Activity Feed</PageTitle>
@@ -18,61 +20,7 @@
         <div class="row g-3">
             @foreach (var activity in activities)
             {
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100 shadow rounded-4 border-0 bg-light-subtle transition hover-shadow">
-                        <div class="card-body d-flex flex-column gap-3 p-4">
-                            <!-- User Info -->
-                            <div class="d-flex align-items-center gap-3">
-                                <img alt="User" width="48" height="48" class="rounded-circle bg-secondary" />
-                                <div>
-                                    <div class="fw-bold fs-6">@activity.UserName</div>
-                                    <div class="text-muted small">@activity.DateStart.ToShortDateString()</div>
-                                </div>
-                            </div>
-
-                            <!-- Title & Description -->
-                            <div>
-                                <div class="fs-5 fw-semibold">@activity.Title</div>
-                                <p class="text-muted mb-1">@activity.Description</p>
-                            </div>
-
-                            <!-- Optional Map -->
-                            @if (activity.Route?.Count > 1)
-                            {
-                                <MapRoute Route="activity.Route" />
-                            }
-
-                            <!-- Stats Row -->
-                            <div class="d-flex justify-content-around text-center py-2 border-top border-bottom">
-                                <div>
-                                    <span class="fw-semibold">@activity.DurationSeconds</span><br />
-                                    <small class="text-muted">min</small>
-                                </div>
-                                <div>
-                                    <span class="fw-semibold">@activity.CaloriesBurned</span><br />
-                                    <small class="text-muted">kcal</small>
-                                </div>
-                                <div>
-                                    <span class="fw-semibold">@activity.ActivityName</span><br />
-                                    <small class="text-muted">Type</small>
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <button class="btn btn-sm px-3 @(activity.IsLikedByCurrentUser ? "btn-danger" : "btn-outline-danger")"
-                                        @onclick="() => ToggleLike(activity)">
-                                    ❤️ @activity.LikeCount
-                                </button>
-
-                                <a class="small text-primary text-decoration-none"
-                                   href="@($"/activity/{activity.Id}/comments")">
-                                    💬 @(activity.Comments?.Count ?? 0) Comments
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <ActivityCard Activity="activity" />
             }
         </div>
     }
@@ -81,7 +29,6 @@
 @code {
     private List<UserActivityDto> activities = new();
     private string? errorMessage;
-    private Dictionary<int, string> commentInputs = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -94,17 +41,6 @@
             {
                 // Token is valid, fetch activities
                 activities = await ActivityService.GetFeedAsync();
-
-                if (activities != null)
-                {   
-                    foreach (var activity in activities)
-                    {
-                        if (!commentInputs.ContainsKey(activity.Id))
-                        {
-                            commentInputs[activity.Id] = "";
-                        }
-                    }
-                }
             }
             else
             {
@@ -117,58 +53,6 @@
         {
             Console.WriteLine($"Error fetching activities: {ex}");
             errorMessage = $"An error occurred: {ex.Message}";
-        }
-    }
-
-    private async Task ToggleLike(UserActivityDto activity)
-    {
-        try
-        {
-            await ActivityService.LikeActivityAsync(activity.Id);
-
-            // Optimistically update UI
-            if (activity.IsLikedByCurrentUser)
-            {
-                activity.LikeCount--;
-            }
-            else
-            {
-                activity.LikeCount++;
-            }
-
-            activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Like toggle error: {ex}");
-        }
-    }
-
-    private async Task AddComment(int activityId)
-    {
-        try
-        {
-            if (commentInputs.TryGetValue(activityId, out var content) && !string.IsNullOrWhiteSpace(content))
-            {
-                await ActivityService.AddCommentAsync(activityId, content);
-
-                var activity = activities.FirstOrDefault(a => a.Id == activityId);
-                if (activity != null)
-                {
-                    activity.Comments.Add(new CommentDto
-                        {
-                            UserName = "You",
-                            Content = content,
-                            CreatedAt = DateTime.Now
-                        });
-                }
-
-                commentInputs[activityId] = string.Empty;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error {ex}");
         }
     }
 

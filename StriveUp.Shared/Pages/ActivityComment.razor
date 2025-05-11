@@ -1,33 +1,29 @@
 ﻿@page "/activity/{ActivityId:int}/comments"
-@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Activity
 @inject IActivityService ActivityService
 
 @code {
     [Parameter] public int ActivityId { get; set; }
-    private UserActivityDto activity;
+    private List<ActivityCommentDto>? comments;
 
     protected override async Task OnInitializedAsync()
     {
-        activity = await ActivityService.GetActivityByIdAsync(ActivityId);
+        comments = await ActivityService.GetActivityComments(ActivityId);
     }
 }
 
-@if (activity == null)
+@if (comments == null)
 {
     <p>Loading comments...</p>
 }
 else
 {
     <div class="container py-4">
-        <h2>@activity.Title</h2>
-        <p class="text-muted">@activity.Description</p>
-
+        <h5>@(comments?.Count ?? 0) Comments</h5>
         <hr />
-        <h5>Comments (@activity.Comments?.Count ?? 0)</h5>
-
-        @if (activity.Comments?.Any() ?? false)
+        @if (comments?.Any() ?? false)
         {
-            foreach (var comment in activity.Comments)
+            foreach (var comment in comments)
             {
                 <div class="mb-3 border-bottom pb-2">
                     <strong>@comment.UserName</strong>
@@ -57,7 +53,12 @@ else
         {
             await ActivityService.AddCommentAsync(ActivityId, newComment);
             newComment = string.Empty;
-            activity = await ActivityService.GetActivityByIdAsync(ActivityId);
+            comments?.Add(new ActivityCommentDto
+                {
+                    Content = newComment,
+                    CreatedAt = DateTime.UtcNow,
+                    UserName = "You"
+                });
         }
     }
 }
