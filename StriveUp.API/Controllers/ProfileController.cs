@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StriveUp.Infrastructure.Data;
+using StriveUp.Shared.DTOs.Activity;
+using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Profile;
 using System.Security.Claims;
 
@@ -25,13 +27,29 @@ namespace StriveUp.API.Controllers
         [HttpGet("{userName}")]
         public async Task<ActionResult<UserProfileDto>> GetProfile(string userName)
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(currentUserId))
+                return Unauthorized();
+
             try
             {
                 var user = await _context.Users
                     .Include(u => u.UserActivities)
-                    .Include(u => u.MedalsEarned).ThenInclude(me => me.Medal)
-                    .Where(u => u.UserName == userName)
-                    .FirstOrDefaultAsync();
+                        .ThenInclude(ua => ua.Route)
+                    .Include(u => u.UserActivities)
+                        .ThenInclude(ua => ua.HrData)
+                    .Include(u => u.UserActivities)
+                        .ThenInclude(ua => ua.SpeedData)
+                    .Include(u => u.UserActivities)
+                        .ThenInclude(ua => ua.ActivityLikes)
+                    .Include(u => u.UserActivities)
+                        .ThenInclude(ua => ua.ActivityComments)
+                            .ThenInclude(c => c.User)
+                    .Include(u => u.UserActivities)
+                        .ThenInclude(ua => ua.Activity)
+                    .Include(u => u.MedalsEarned)
+                        .ThenInclude(me => me.Medal)
+                    .FirstOrDefaultAsync(u => u.UserName == userName);
 
                 if (user == null)
                 {
@@ -39,6 +57,20 @@ namespace StriveUp.API.Controllers
                 }
 
                 var userProfile = _mapper.Map<UserProfileDto>(user);
+
+                userProfile.Activities = userProfile.Activities
+                    ?.OrderByDescending(a => a.DateStart)
+                    .ToList();
+
+                foreach (var activityDto in userProfile.Activities ?? Enumerable.Empty<UserActivityDto>())
+                {
+                    var activityEntity = user.UserActivities.FirstOrDefault(a => a.Id == activityDto.Id);
+                    if (activityEntity != null)
+                    {
+                        activityDto.IsLikedByCurrentUser = activityEntity.ActivityLikes.Any(l => l.UserId == currentUserId);
+                        activityDto.Comments = _mapper.Map<List<ActivityCommentDto>>(activityEntity.ActivityComments);
+                    }
+                }
 
                 return Ok(userProfile);
             }
