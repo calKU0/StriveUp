@@ -20,6 +20,8 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.IsLikedByCurrentUser, opt => opt.Ignore())
                 .ForMember(dest => dest.Comments, opt => opt.Ignore())
                 .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route))
+                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route))
+                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route))
                 .ForMember(dest => dest.ActivityId, opt => opt.MapFrom(src => src.Activity.Id))
                 .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Activity.Description))
@@ -70,8 +72,10 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             CreateMap<ActivityHrDto, ActivityHr>();
+            CreateMap<ActivityHrDto, ActivityHr>().ReverseMap();
 
             CreateMap<ActivitySpeedDto, ActivitySpeed>();
+            CreateMap<ActivitySpeedDto, ActivitySpeed>().ReverseMap();
 
             CreateMap<AppUser, FollowDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
