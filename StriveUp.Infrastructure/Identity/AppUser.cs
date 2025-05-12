@@ -18,6 +18,11 @@ namespace StriveUp.Infrastructure.Identity
         [MaxLength(50)]
         public string LastName { get; set; }
         public string? Avatar { get; set; }
+        [Required]
+        public int CurrentXP { get; set; } = 100;
+        [Required]
+        public int LevelId { get; set; } = 1;
+        public Level Level { get; set; }
         //[MaxLength(150)]
         //public string? Bio { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using System;
@@ -26,7 +27,7 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<ActivityConfig> ActivityConfig { get; set; }
         public DbSet<UserFollower> UserFollowers { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-
+        public DbSet<Level> Levels { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -87,7 +88,7 @@ namespace StriveUp.Infrastructure.Data
                 .HasOne(n => n.Actor)
                 .WithMany()
                 .HasForeignKey(n => n.ActorId)
-                .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

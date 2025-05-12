@@ -1,50 +1,136 @@
 ﻿@using StriveUp.Shared.DTOs
+@inject IMedalService MedalsService;
+@inject IJSRuntime JS
 
-<div class="medal-card @(IsAchieved ? "" : "opacity-50")" @onclick="HandleClick">
-    <img src="images/medals/@(Uri.EscapeDataString(MedalDto.Name.Replace(" ","_")).ToLower()).webp" class="mx-auto mb-2" alt="@MedalDto.Name" />
-    <h6 class="fw-bold">@MedalDto.Name</h6>
-    <span class="badge @(GetBadgeClass(MedalDto.Frequency))">@MedalDto.Frequency</span>
-    @if(MedalDto.DateEarned != null)
-    {
-        <div class="mt-1 text-muted small">Earned: @MedalDto.DateEarned?.ToShortDateString()</div>
-    }
+<div class="col-6 col-sm-4 col-md-2">
+    <div class="medal-card h-100 d-flex flex-column @(IsAchieved || isClaimable ? "" : "opacity-50") @(isJustAchieved ? "claimed" : "")" @onclick="HandleClick">
+        <div class="card-body d-flex flex-column">
+            <img src="images/medals/@(Uri.EscapeDataString(MedalDto.Name.Replace(" ","_")).ToLower()).webp" class="mx-auto mb-2" alt="@MedalDto.Name" />
+            <h6 class="fw-bold">@MedalDto.Name</h6>
+            <span class="badge @(GetBadgeClass(MedalDto.Frequency))">@MedalDto.Frequency</span>
 
-    <div class="progress mt-2">
-        <div class="progress-bar bg-info" role="progressbar"
-                style="width: @ProgressPercent%"
-                aria-valuenow="@ProgressPercent"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                data-label="@ProgressPercent%">
+            <!-- Make the footer auto-push to bottom -->
+            <div class="medal-card-footer mt-auto">
+                @if (ShowRedeemButton && !IsAchieved)
+                {
+                    <button class="btn btn-primary btn-sm claim-animate mt-3"
+                            @onclick:stopPropagation="true"
+                            @onclick="ClaimMedal">
+                        🎉 Claim Medal
+                    </button>
+                }
+                else if (ShowProgressBar && !IsAchieved)
+                {
+                    <div class="progress mt-2">
+                        <div class="progress-bar @GetProgressGradientClass()"
+                             role="progressbar"
+                             style="width: @DisplayedProgress%"
+                             aria-valuenow="@DisplayedProgress"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <div class="progress-text text-center mt-2">
+                        <span>@AnimatedPercent% Completed</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="mt-1 text-muted small">Earned: @MedalDto.DateEarned?.ToShortDateString()</div>
+                }
+            </div>
         </div>
     </div>
-    <div class="progress-text text-center mt-2">
-        <span>@ProgressPercent% Completed</span>
-    </div>
-    
-
 </div>
 
 @code {
     [Parameter] public MedalDto MedalDto { get; set; }
     [Parameter] public bool IsAchieved { get; set; }
     [Parameter] public EventCallback OnMedalClick { get; set; }
-    [Parameter] public int ProgressPercent { get; set; }
+
+    private bool isClaimable => MedalDto.ProgressPercent == 100;
+    private int AnimatedPercent = 0;
+    private int DisplayedProgress = 0;
+    private bool ShowProgressBar = true;
+    private bool ShowRedeemButton = false;
+    private bool isJustAchieved = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            DisplayedProgress = 0;
+            AnimatedPercent = 0;
+            StateHasChanged();
+
+            await Task.Delay(100);
+
+            DisplayedProgress = MedalDto.ProgressPercent;
+            StateHasChanged();
+
+            int duration = 1500;
+
+            int delay = MedalDto.ProgressPercent > 0 ? duration / MedalDto.ProgressPercent : 0;
+            while (AnimatedPercent < MedalDto.ProgressPercent)
+            {
+                AnimatedPercent++;
+                StateHasChanged();
+                await Task.Delay(delay);
+            }
+
+            if (MedalDto.ProgressPercent == 100)
+            {
+                await Task.Delay(100);
+                ShowProgressBar = false;
+                ShowRedeemButton = true;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private string GetProgressGradientClass()
+    {
+        if (MedalDto.ProgressPercent >= 100)
+            return "progress-100";
+        else if (MedalDto.ProgressPercent >= 75)
+            return "progress-75";
+        else if (MedalDto.ProgressPercent >= 50)
+            return "progress-50";
+        else if (MedalDto.ProgressPercent >= 25)
+            return "progress-25";
+        else
+            return "progress-0";
+    }
+
 
     private string GetBadgeClass(string frequency)
     {
-        // You can modify this logic based on the frequency ranges or specific values you want
         return frequency switch
         {
             "Once" => "bg-success",
-            "Weekly" => "bg-primary",   
-            "Monthly" => "bg-danger",     
-            _ => "bg-secondary", 
+            "Weekly" => "bg-primary",
+            "Monthly" => "bg-danger",
+            _ => "bg-secondary",
         };
     }
 
     private async Task HandleClick()
     {
         await OnMedalClick.InvokeAsync();
+    }
+
+    private async Task ClaimMedal()
+    {
+        var response = await MedalsService.ClaimMedal(MedalDto.Id);
+
+        if (response)
+        {
+            ShowRedeemButton = false;
+            await JS.InvokeVoidAsync("launchConfetti");
+
+            IsAchieved = true;
+            MedalDto.DateEarned = DateTime.Now;
+            StateHasChanged();
+        }
     }
 }

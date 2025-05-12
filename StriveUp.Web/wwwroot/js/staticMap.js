@@ -51,6 +51,12 @@
             .addTo(map);
     });
 
+    //new mapboxgl.Marker({
+    //    element: createCustomMarker('https://yourdomain.com/icons/start.png')
+    //})
+    //    .setLngLat(coords[0])
+    //    .addTo(map);
+
     window[mapId] = map; 
     return map; 
 }
@@ -71,5 +77,15 @@ export function resizeMap(mapId) {
             }
         }, 10); // 10ms interval
     }
+}
+
+// helper
+function createCustomMarker(iconUrl) {
+    const img = document.createElement('img');
+    img.src = iconUrl;
+    img.style.width = '32px';
+    img.style.height = '32px';
+    img.style.transform = 'translate(-50%, -100%)';
+    return img;
 }
 

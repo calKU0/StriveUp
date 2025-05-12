@@ -63,3 +63,30 @@
 
     tryRender();
 };
+
+window.launchConfetti = () => {
+    if (window.confetti) {
+        // Create a canvas if not already
+        if (!window._confettiCanvas) {
+            const canvas = document.createElement('canvas');
+            canvas.id = 'confetti-canvas';
+            canvas.style.position = 'fixed';
+            canvas.style.top = 0;
+            canvas.style.left = 0;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = 9999; // Very high to overlay modal
+            document.body.appendChild(canvas);
+            window._confettiCanvas = canvas;
+            window.confetti = window.confetti.create(canvas, { resize: true });
+        }
+
+        // Launch confetti
+        window.confetti({
+            particleCount: 160,
+            spread: 90,
+            origin: { y: 0.6 }
+        });
+    }
+};

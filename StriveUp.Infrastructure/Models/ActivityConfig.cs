@@ -23,6 +23,8 @@ namespace StriveUp.Infrastructure.Models
         public bool ElevationRelevant { get; set; }
 
         public bool IndoorCapable { get; set; }
+        [Required]
+        public double PointsPerMinute { get; set; }
 
         // Foreign key relationship
         public int ActivityId { get; set; }

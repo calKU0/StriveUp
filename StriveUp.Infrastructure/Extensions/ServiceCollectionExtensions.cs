@@ -38,7 +38,7 @@ namespace StriveUp.Infrastructure.Extensions
         public static IServiceCollection AddClientInfrastructure(this IServiceCollection services)
         {
             services.AddScoped<IActivityService, ActivityService>();
-            services.AddScoped<IMedalsService, MedalService>();
+            services.AddScoped<IMedalService, MedalService>();
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<ISecurableService, SecurableService>();
             services.AddScoped<IFollowService, FollowService>();

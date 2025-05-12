@@ -16,14 +16,17 @@ namespace StriveUp.Infrastructure.Models
 
         [Required]
         public int MedalId { get; set; }
+        [Required]
         public Medal Medal { get; set; }
 
         [Required]
         public string UserId { get; set; }
+        [Required]
         public AppUser User { get; set; }
 
         [Required]
         public int ActivityId { get; set; }
+        [Required]
         public Activity Activity { get; set; }
 
         [Required]
