@@ -10,7 +10,7 @@ StriveUp is a cross-platform activity‐tracking app built with Blazor Hybrid an
 - **ASP.NET Core API** with Entity Framework Core (`StriveUp.API`)
 - **Shared Models/Services** (`StriveUp.Shared`)
 - **Infrastructure**: EF Core migrations and database-related tooling (`StriveUp.Infrastructure`)
-- **Azure Functions**: External integrations and background jobs (`StriveUp.Functions`)
+- **Azure Functions**: External integrations and background jobs (`StriveUp.Sync`)
 
 All services and apps are deployed to Azure App Service, Azure SQL Database, and Azure Functions.
 
@@ -25,11 +25,10 @@ All services and apps are deployed to Azure App Service, Azure SQL Database, and
 5. [Prerequisites](#prerequisites)
 6. [Getting Started](#getting-started)
 7. [Configuration](#configuration)
-8. [Running Locally](#running-locally)
-9. [External Integrations](#external-integrations)
-10. [Deployment](#deployment)
-11. [Contributing](#contributing)
-12. [License](#license)
+8. [External Integrations](#external-integrations)
+9. [Deployment](#deployment)
+10. [Contributing](#contributing)
+11. [License](#license)
 
 ---
 
@@ -82,9 +81,10 @@ StriveUp/
 ├── .gitignore
 ├── package.json              # for Blazor Web client assets
 ├── package-lock.json
+├── .github/				  # Github related things, workflows
 ├── StriveUp.API/             # ASP.NET Core Web API
 ├── StriveUp.Infrastructure/  # EF Core migrations, domain models
-├── StriveUp.Functions/       # Azure Functions
+├── StriveUp.Sync/       	  # Azure Functions
 ├── StriveUp.Shared/          # DTOs, shared services, shared components
 ├── StriveUp.Web/             # Blazor Hybrid web project
 └── StriveUp.MAUI/            # .NET MAUI native app
@@ -128,7 +128,7 @@ StriveUp/
      ```
      In another terminal:
      ```bash
-     cd StriveUp.Functions
+     cd StriveUp.Sync
      func start
      ```
    - **Web App**:
