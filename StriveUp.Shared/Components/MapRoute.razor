@@ -1,9 +1,17 @@
 ﻿@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.Helpers
 @inject IJSRuntime JS
 @inject ISecurableService securableService
 @implements IDisposable
 
-<div class="map-container" id="@mapId" style="height: @(Height); @Style" @onclick="OnMapClick" @onmouseover="OnMapClick" @onmouseout="OnMapMouseOut"></div>
+@if (IsInteractive)
+{
+    <div class="map-container" id="@mapId" style="height: @(Height); @Style" @onclick="OnMapClick" @onmouseover="OnMapClick" @onmouseout="OnMapMouseOut"></div>
+}
+else
+{
+    <img src="@MapboxUtils.GetStaticMapUrl(Route, token, 400, Convert.ToInt32(Height.Replace("px","")))" alt="Route preview" class="map-container" />
+}
 
 @code {
     [Parameter] public List<GeoPointDto> Route { get; set; } = new();
@@ -22,9 +30,14 @@
         if (firstRender && Route.Count > 1)
         {
             token = await securableService.GetMapboxTokenAsync();
-            module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/staticMap.js");
-            mapInstance = await module.InvokeAsync<IJSObjectReference>("renderStaticRoute", mapId, Route, token, IsInteractive);
-            originalHeight = Height; 
+            
+            if (IsInteractive)
+            {
+                module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/staticMap.js");
+                mapInstance = await module.InvokeAsync<IJSObjectReference>("renderStaticRoute", mapId, Route, token, IsInteractive);
+                originalHeight = Height;
+            }
+            StateHasChanged();
         }
     }
 
