@@ -9,15 +9,29 @@ namespace StriveUp.Shared.Helpers
 {
     public static class MapboxUtils
     {
-        public static string GetStaticMapUrl(List<GeoPointDto> route, string token, int width = 400, int height = 200)
+        public static string GetStaticMapUrl(List<GeoPointDto> route, string token, int width = 300, int height = 200, int padding = 40)
         {
             if (route == null || route.Count < 2)
-                return ""; // Or fallback image
+                return "";
 
             var encoded = Encode(route);
-            var path = $"path-5+f44-0.5({Uri.EscapeDataString(encoded)})";
+            var path = $"path-5+ffa726-0.8({Uri.EscapeDataString(encoded)})";
 
-            return $"https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/{path}/auto/{width}x{height}?padding=40,40,40,40?access_token={token}";
+            var start = route.First();
+            var end = route.Last();
+
+            //string startIconUrl = Uri.EscapeDataString("https://yourdomain.com/icons/start.png");
+            //string finishIconUrl = Uri.EscapeDataString("https://yourdomain.com/icons/finish.png");
+
+            //string startIconOverlay = $"url-{startIconUrl}({start.Longitude.ToString(CultureInfo.InvariantCulture)},{start.Latitude.ToString(CultureInfo.InvariantCulture)})";
+            //string endIconOverlay = $"url-{finishIconUrl}({end.Longitude.ToString(CultureInfo.InvariantCulture)},{end.Latitude.ToString(CultureInfo.InvariantCulture)})";
+
+            string startMarker = $"pin-s-a+285A98({start.Longitude.ToString(CultureInfo.InvariantCulture)},{start.Latitude.ToString(CultureInfo.InvariantCulture)})";
+            string endMarker = $"pin-s-b+FF5722({end.Longitude.ToString(CultureInfo.InvariantCulture)},{end.Latitude.ToString(CultureInfo.InvariantCulture)})";
+
+            string overlay = $"{path},{startMarker},{endMarker}";
+
+            return $"https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/{overlay}/auto/{width}x{height}?padding={padding}&access_token={token}";
         }
 
 

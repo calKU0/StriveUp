@@ -8,7 +8,7 @@
         style: 'mapbox://styles/mapbox/streets-v12',
         interactive: isInteractive,
         bounds: bounds,
-        fitBoundsOptions: { padding: 30 },
+        fitBoundsOptions: { padding: 60 },
         attributionControl: false
     });
 
@@ -33,6 +33,22 @@
                 'line-width': 4
             }
         });
+
+        // Add start marker
+        new mapboxgl.Marker({
+            color: "#285A98" // Blue
+        })
+            .setLngLat(coords[0])
+            .setPopup(new mapboxgl.Popup().setText("Start")) // Optional
+            .addTo(map);
+
+        // Add end marker
+        new mapboxgl.Marker({
+            color: "#FF5722" // Orange
+        })
+            .setLngLat(coords[coords.length - 1])
+            .setPopup(new mapboxgl.Popup().setText("Finish")) // Optional
+            .addTo(map);
     });
 
     window[mapId] = map; 
