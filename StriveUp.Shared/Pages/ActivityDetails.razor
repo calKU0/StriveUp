@@ -38,7 +38,7 @@
             @if (Activity.Route?.Count > 1)
             {
                 <div class="mb-4">
-                    <MapRoute Route="Activity.Route" Height="300px" IsInteractive=true Style="border-bottom-left-radius: 24px;border-bottom-right-radius: 24px;" />
+                    <MapRoute Route="Activity.Route" Height="300px" IsInteractive=true Style="border-bottom-left-radius: 24px;border-bottom-right-radius: 24px;"/>
                 </div>
             }
 
@@ -167,7 +167,6 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
         if (firstRender)
         {
             try

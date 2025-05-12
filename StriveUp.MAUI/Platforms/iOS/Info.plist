@@ -1,32 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-    <key>LSRequiresIPhoneOS</key>
-    <true/>
-    <key>UIDeviceFamily</key>
-    <array>
-        <integer>1</integer>
-        <integer>2</integer>
-    </array>
-    <key>UIRequiredDeviceCapabilities</key>
-    <array>
-        <string>arm64</string>
-    </array>
-    <key>UISupportedInterfaceOrientations</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
-    <key>UISupportedInterfaceOrientations~ipad</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationPortraitUpsideDown</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
-    <key>XSAppIconAssets</key>
-    <string>Assets.xcassets/appicon.appiconset</string>
-</dict>
+	<dict>
+		<key>LSRequiresIPhoneOS</key>
+		<true/>
+
+		<key>UIDeviceFamily</key>
+		<array>
+			<integer>1</integer>
+			<integer>2</integer>
+		</array>
+
+		<key>UIRequiredDeviceCapabilities</key>
+		<array>
+			<string>arm64</string>
+		</array>
+
+		<key>UISupportedInterfaceOrientations</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+
+		<key>UISupportedInterfaceOrientations~ipad</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationPortraitUpsideDown</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+
+		<key>XSAppIconAssets</key>
+		<string>Assets.xcassets/appicon.appiconset</string>
+
+		<!-- Required Location Permissions -->
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>This app uses your location to track your activities.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>This app needs your location even when running in the background.</string>
+
+		<!-- Enable background location updates -->
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>location</string>
+		</array>
+
+		<!-- Required Bluetooth Permissions -->
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>This app uses Bluetooth to connect to heart rate monitors and other fitness devices.</string>
+		<key>NSBluetoothPeripheralUsageDescription</key>
+		<string>This app uses Bluetooth to connect to heart rate monitors and other fitness devices.</string>
+
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+		</dict>
+	</dict>
 </plist>

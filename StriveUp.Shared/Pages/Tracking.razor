@@ -148,9 +148,18 @@ OnResume="@ResumeTracking" />
             locator.DesiredAccuracy = 5;
             locator.PositionChanged += OnPositionChanged;
 
+            var listenerSettings = new ListenerSettings
+            {
+                AllowBackgroundUpdates = true,
+                ActivityType = ActivityType.Fitness,
+                DeferLocationUpdates = false,
+                ListenForSignificantChanges = false,
+                PauseLocationUpdatesAutomatically = false
+            };
+
             if (!locator.IsListening)
             {
-                await locator.StartListeningAsync(TimeSpan.FromSeconds(3), 10);
+                await locator.StartListeningAsync(TimeSpan.FromSeconds(3), 10, false, listenerSettings);
             }  
         }
         catch (Exception ex)
