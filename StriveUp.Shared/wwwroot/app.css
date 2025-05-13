@@ -203,6 +203,15 @@ h1:focus {
     animation: spin 1s linear infinite;
 }
 
+.spinner-small {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #FFA726;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+}
+
 .loading-text {
     margin-top: 15px;
     font-size: 1.2rem;

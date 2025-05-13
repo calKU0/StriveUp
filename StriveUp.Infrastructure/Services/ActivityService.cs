@@ -75,19 +75,22 @@ namespace StriveUp.Infrastructure.Services
                 return false;
             }
         }
-        public async Task<List<UserActivityDto>?> GetFeedAsync()
+        public async Task<List<UserActivityDto>?> GetFeedAsync(int page, int pageSize)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>("activity/feed");
+
+                var url = $"activity/feed?page={page}&pageSize={pageSize}";
+                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine($"Error fetching paginated feed: {ex}");
                 return null;
             }
         }
+
 
         public async Task LikeActivityAsync(int activityId)
         {

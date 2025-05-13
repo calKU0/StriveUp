@@ -125,7 +125,7 @@ namespace StriveUp.API.Controllers
         }
 
         [HttpGet("feed")]
-        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetFeed()
+        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 5)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
@@ -150,6 +150,8 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
                     .OrderByDescending(ua => ua.DateStart)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
 
                 var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
@@ -170,6 +172,7 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<UserActivityDto>> GetActivityById(int id)
