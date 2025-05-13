@@ -34,8 +34,7 @@ namespace StriveUp.Infrastructure.Models
         [Required]
         public DateTime CreatedAt { get; set; }
 
-        [Url]
-        public string? ImageUrl { get; set; }
+        public int Points { get; set; }
 
         public int ActivityId { get; set; }
         public Activity Activity { get; set; }

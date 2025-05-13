@@ -7,7 +7,7 @@ using System.Net.Http.Json;
 
 namespace StriveUp.Infrastructure.Services
 {
-    public class MedalService : IMedalsService
+    public class MedalService : IMedalService
     {
         private readonly HttpClient _httpClient;
         private readonly ITokenStorageService _tokenStorage;
@@ -18,9 +18,19 @@ namespace StriveUp.Infrastructure.Services
             _tokenStorage = tokenStorage;
         }
 
-        public Task<bool> AwardMedalToUserAsync(string userId, int medalId)
+        public async Task<bool> ClaimMedal(int medalId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                var result = await _httpClient.PostAsync($"medal/claim/{medalId}", null);
+                return result.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return false;
+            }
         }
 
         public async Task<List<MedalDto>> GetAllMedalsAsync()
@@ -35,6 +45,21 @@ namespace StriveUp.Infrastructure.Services
             {
                 Console.WriteLine(ex);
                 return null;
+            }
+        }
+
+        public async Task<int> GetMedalsToClaimCountAsync()
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                var result = await _httpClient.GetFromJsonAsync<int>("medal/medalsToClaimCount");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return 0;
             }
         }
 

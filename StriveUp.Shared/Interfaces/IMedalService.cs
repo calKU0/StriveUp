@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace StriveUp.Shared.Interfaces
 {
-    public interface IMedalsService
+    public interface IMedalService
     {
         Task<List<MedalDto>> GetAllMedalsAsync();
         Task<List<MedalDto>> GetUserMedalsAsync();
-        Task<bool> AwardMedalToUserAsync(string userId, int medalId);
+        Task<int> GetMedalsToClaimCountAsync();
+        Task<bool> ClaimMedal(int medalId);
     }
 }

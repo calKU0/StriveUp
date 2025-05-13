@@ -1,52 +1,136 @@
 ﻿@using StriveUp.Shared.DTOs
 
+@inject IMedalService MedalsService;
+@inject IJSRuntime JS
+
 @if (IsVisible)
 {
     <div class="custom-modal-backdrop" @onclick="OnBackdropClick">
-        <div class="custom-modal" @onclick:stopPropagation>
+        <div class="custom-modal container p-3" @onclick:stopPropagation>
             <div class="custom-modal-header">
                 <h5>@Medal.Name</h5>
                 <button class="btn-close" @onclick="CloseModal" aria-label="Close"></button>
             </div>
-            <div class="custom-modal-body">
+            <div class="text-center">
                 <img src="images/medals/@(Uri.EscapeDataString(Medal.Name.Replace(" ","_")).ToLower()).webp" class="modal-image" alt="@Medal.Name" />
-                <p class ="text-muted text-center">@Medal.Description</p>
-                <p><strong>Level:</strong> @Medal.Level</p>
-                <p><strong>Target Value:</strong> @Medal.TargetValue</p>
-                <p><strong>Frequency:</strong> @Medal.Frequency</p>
-                @if (Medal?.DateEarned.HasValue == true)
-                {
-                    <p><strong>Date Earned:</strong> @Medal?.DateEarned?.ToShortDateString()</p>
-                }
+                <p class="text-muted text-center">@Medal.Description</p>
 
-                <!-- Progress Bar -->
-                @if (Medal != null)
-                {
-                    <div class="progress mt-3">
-                        <div class="progress-bar bg-info" role="progressbar"
-                             style="width: @MedalProgress%"
-                             aria-valuenow="@MedalProgress"
-                             aria-valuemin="0"
-                             aria-valuemax="100">
+                <!-- Target Value and Frequency Section -->
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="card info-card border border-secondary">
+                            <div class="card-body">
+                                <span class="stat-icon"><i class="fas fa-route"></i></span>
+                                <p><strong>Target Distance</strong></p>
+                                <p>@Medal.TargetValue km</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="progress-text">
-                        <span>@MedalProgress % Completed</span>
+
+                    <div class="col-6">
+                        <div class="card info-card border border-secondary">
+                            <div class="card-body">
+                                <span class="stat-icon"><i class="fas fa-trophy"></i></span>
+                                <p><strong>To Earn Medal</strong></p>
+                                <p>@(Math.Round(Medal.DistanceToEarn,2)) km</p>
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="col-6">
+                        <div class="card info-card border border-secondary">
+                            <div class="card-body">
+                                <span class="stat-icon"><i class="fas fa-star"></i></span>
+                                <p><strong>Exp</strong></p>
+                                <p>@Medal.Points points</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="card info-card border border-secondary">
+                            <div class="card-body">
+                                <span class="stat-icon"><i class="fas fa-redo-alt"></i></span>
+                                <p><strong>Repeatable</strong></p>
+                                <p>@(Medal.Frequency == "Once" ? "No" : Medal.Frequency)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+
+            <div class="progress mt-3">
+                <div class="progress-bar @GetProgressGradientClass()"
+                role="progressbar"
+                style="width: @DisplayedProgress%"
+                aria-valuenow="@DisplayedProgress"
+                aria-valuemin="0"
+                aria-valuemax="100">
+                </div>
+            </div>
+            <div class="progress-text text-center mt-2">
+                <span>@AnimatedPercent% Completed</span>
+            </div>
+
+            <div class="custom-modal-footer d-flex justify-content-end gap-2">
+                @if (isClaimable && Medal.DateEarned == null)
+                {
+                    <button class="btn btn-primary claim-animate" @onclick="ClaimMedal">🎉 Claim Medal</button>
                 }
+                <button class="btn btn-secondary" @onclick="CloseModal">Close</button>
             </div>
-            <div class="custom-modal-footer">
-                <button class="btn btn-primary" @onclick="CloseModal">Close</button>
-            </div>
+
         </div>
     </div>
 }
 
 @code {
     [Parameter] public MedalDto Medal { get; set; }
-    [Parameter] public int MedalProgress { get; set; }
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback<int> OnModalClaim { get; set; }
+
+    private bool isClaimable => Medal.ProgressPercent == 100;
+    private int AnimatedPercent = 0;
+    private int DisplayedProgress = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reset progress state for the new medal
+        DisplayedProgress = 0;
+        AnimatedPercent = 0;
+
+        // Animate the progress bar
+        await Task.Delay(100); // Short delay to trigger animation cleanly
+        DisplayedProgress = Medal.ProgressPercent;
+        StateHasChanged();
+
+        int duration = 1500;
+        int delay = Medal.ProgressPercent > 0 ? duration / Medal.ProgressPercent : 0;
+
+        while (AnimatedPercent < Medal.ProgressPercent)
+        {
+            AnimatedPercent++;
+            StateHasChanged();
+            await Task.Delay(delay);
+        }
+    }
+
+    private string GetProgressGradientClass()
+    {
+        if (Medal.ProgressPercent >= 100)
+            return "progress-100";
+        else if (Medal.ProgressPercent >= 75)
+            return "progress-75";
+        else if (Medal.ProgressPercent >= 50)
+            return "progress-50";
+        else if (Medal.ProgressPercent >= 25)
+            return "progress-25";
+        else
+            return "progress-0";
+    }
 
     private async Task CloseModal()
     {
@@ -56,5 +140,20 @@
     private async Task OnBackdropClick()
     {
         await CloseModal();
+    }
+
+    private async Task ClaimMedal()
+    {
+        var response = await MedalsService.ClaimMedal(Medal.Id);
+
+        if (response)
+        {
+            await JS.InvokeVoidAsync("launchConfetti");
+
+            Medal.DateEarned = DateTime.Now;
+            await OnModalClaim.InvokeAsync(Medal.Id);
+            StateHasChanged();
+
+        }
     }
 }

@@ -1,16 +1,16 @@
 ﻿@page "/medals"
 @using StriveUp.Shared.Components
 @using StriveUp.Shared.DTOs
-@inject IMedalsService MedalService
+@inject IMedalService MedalService
 @inject IActivityService ActivityService
 @inject NavigationManager Navigation
 
 <div class="container my-4">
 
     <h2 class="text-center mb-4">Medals</h2>
+
     @if (isLoading)
     {
-        <!-- Loading Spinner -->
         <div class="loading-overlay">
             <div class="spinner"></div>
             <p class="loading-text">Loading feed. Please wait...</p>
@@ -23,43 +23,29 @@
             <!-- Tabs for Frequency -->
             <ul class="nav nav-tabs mb-4" id="medalFrequencyTabs" role="tablist">
                 <li class="nav-item">
-                    <button class="nav-link @(activeFrequencyTab == "all" ? "active" : "")" @onclick="@(() => SetFrequencyTab("all"))">
-                        All
-                    </button>
+                    <button class="nav-link @(activeFrequencyTab == "all" ? "active" : "")" @onclick="@(() => SetFrequencyTab("all"))">All</button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link @(activeFrequencyTab == "once" ? "active" : "")" @onclick="@(() => SetFrequencyTab("once"))">
-                        Once
-                    </button>
+                    <button class="nav-link @(activeFrequencyTab == "once" ? "active" : "")" @onclick="@(() => SetFrequencyTab("once"))">Once</button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link @(activeFrequencyTab == "weekly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("weekly"))">
-                        Weekly
-                    </button>
+                    <button class="nav-link @(activeFrequencyTab == "weekly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("weekly"))">Weekly</button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link @(activeFrequencyTab == "monthly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("monthly"))">
-                        Monthly
-                    </button>
+                    <button class="nav-link @(activeFrequencyTab == "monthly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("monthly"))">Monthly</button>
                 </li>
             </ul>
 
             <!-- Tabs for Status -->
             <ul class="nav nav-tabs mb-4" id="medalStatusTabs" role="tablist">
                 <li class="nav-item">
-                    <button class="nav-link @(statusFilter == "all" ? "active" : "")" @onclick="@(() => SetStatusFilter("all"))">
-                        All
-                    </button>
+                    <button class="nav-link @(statusFilter == "all" ? "active" : "")" @onclick="@(() => SetStatusFilter("all"))">All</button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link @(statusFilter == "achieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("achieved"))">
-                        Achieved
-                    </button>
+                    <button class="nav-link @(statusFilter == "achieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("achieved"))">Achieved</button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link @(statusFilter == "notachieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("notachieved"))">
-                        Not Achieved
-                    </button>
+                    <button class="nav-link @(statusFilter == "notachieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("notachieved"))">Not Achieved</button>
                 </li>
             </ul>
 
@@ -70,6 +56,7 @@
                 </button>
             </div>
         }
+
         <!-- Toggle Button for Filters -->
         <div class="text-end mb-3">
             <button class="btn btn-sm btn-outline-primary" @onclick="ToggleFilters">
@@ -78,70 +65,50 @@
             </button>
         </div>
 
-
         <!-- Medals Display Section -->
-        <div class="row">
-            <div class="col">
-                <!-- Medal Display -->
-                <div class="row g-3">
-                    @if (FilteredMedals != null)
-                    {
-                        @foreach (var medal in FilteredMedals)
-                        {
-                            <div class="col-6 col-sm-4 col-md-2">
-                                <MedalCard MedalDto="@medal"
-                                IsAchieved="@achievedMedals.Any(a => a.Id == medal.Id)"
-                                OnMedalClick="@(() => ShowMedalDetails(medal))"
-                                ProgressPercent="@(medalProgress.TryGetValue(medal.Id, out var progress) ? progress : 0)" />
-                            </div>
-                        }
-                    }
-                </div>
-            </div>
+        <div class="row g-3">
+            @if (FilteredMedals.Any())
+            {
+                @foreach (var medal in FilteredMedals)
+                {
+                    <MedalCard @key="medal.Id"
+                    MedalDto="@medal"
+                    IsAchieved="@claimedMedals.Any(a => a.Id == medal.Id)"
+                    OnMedalClick="@(() => ShowMedalDetails(medal))" />
+                }
+            }
         </div>
     }
 </div>
-@if (@selectedMedal != null)
+
+@if (selectedMedal != null)
 {
-    <MedalDetailsModal Medal="@selectedMedal" MedalProgress="medalProgress[selectedMedal.Id]" IsVisible="@isMedalModalVisible" IsVisibleChanged="@(v => isMedalModalVisible = v)" />
+    <MedalDetailsModal Medal="@selectedMedal"
+                       IsVisible="@isMedalModalVisible"
+                       IsVisibleChanged="@(v => isMedalModalVisible = v)"
+                       OnModalClaim="v => OnModalClaim(v)" />
 }
 @code {
     private bool isLoading = true;
     private List<MedalDto> allMedals = new();
-    private List<MedalDto> achievedMedals = new();
-    private List<MedalDto> notAchievedMedals = new();
-    private List<MedalDto> userMedals = new();
-    private Dictionary<int, int> medalProgress = new();
+    private List<MedalDto> claimedMedals = new();
+    private List<MedalDto> notClaimedMedals = new();
     private MedalDto selectedMedal;
     private bool isMedalModalVisible = false;
     private string activeFrequencyTab = "all";
     private string statusFilter = "all";
-    private string selectedOrder = "name";
+    private string selectedOrder = "% complete";
     private bool showFilters = false;
-    private List<MedalDto> FilteredMedals => GetFilteredMedals() ?? new List<MedalDto>();
+
+    private List<MedalDto> FilteredMedals => ApplyFilters();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             allMedals = await MedalService.GetAllMedalsAsync() ?? new();
-            userMedals = await MedalService.GetUserMedalsAsync() ?? new();
-
-            achievedMedals = userMedals ?? new();
-            var achievedIds = achievedMedals.Select(m => m.Id).ToHashSet();
-
-            notAchievedMedals = (allMedals ?? new())
-                .Where(m => !achievedIds.Contains(m.Id))
-                .ToList();
-
-            var activities = await ActivityService.GetFeedAsync();
-            medalProgress.Clear();
-
-            foreach (var medal in allMedals)
-            {
-                int progress = CalculateMedalProgress(medal, activities);
-                medalProgress[medal.Id] = progress;
-            }
+            claimedMedals = await MedalService.GetUserMedalsAsync() ?? new();
+            notClaimedMedals = allMedals.Where(medal => !claimedMedals.Contains(medal)).ToList();
         }
         catch (Exception ex)
         {
@@ -150,6 +117,7 @@
         finally
         {
             isLoading = false;
+            StateHasChanged();
         }
     }
 
@@ -161,6 +129,7 @@
             "date" => "frequency",
             _ => "name"
         };
+        StateHasChanged();
     }
 
     private string GetOrderLabel()
@@ -185,76 +154,70 @@
         showFilters = !showFilters;
     }
 
-    private void SetFrequencyTab(string frequency) => activeFrequencyTab = frequency;
-    private void SetStatusFilter(string status) => statusFilter = status;
-
-    private List<MedalDto> GetFilteredMedals()
+    private void SetFrequencyTab(string frequency)
     {
-        // Combine achieved/not achieved based on status
-        var baseList = statusFilter switch
-        {
-            "achieved" => achievedMedals,
-            "notachieved" => notAchievedMedals,
-            _ => achievedMedals.Concat(notAchievedMedals).ToList()
-        };
-
-        // Apply frequency filter
-        var freqFiltered = activeFrequencyTab switch
-        {
-            "once" => baseList.Where(m => m.Frequency == "Once"),
-            "weekly" => baseList.Where(m => m.Frequency == "Weekly"),
-            "monthly" => baseList.Where(m => m.Frequency == "Monthly"),
-            _ => baseList
-        };
-
-        // Apply ordering
-        return selectedOrder switch
-        {
-            "name" => freqFiltered.OrderBy(m => m.Name).ToList(),
-            "frequency" => freqFiltered.OrderBy(m => m.Frequency).ToList(),
-            _ => freqFiltered.ToList()
-        };
+        activeFrequencyTab = frequency;
+        StateHasChanged();
     }
 
-    private int CalculateMedalProgress(MedalDto medal, List<UserActivityDto> activities)
+    private void SetStatusFilter(string status)
     {
-        if (medal.ActivityId == 0 || medal.TargetValue <= 0)
-            return 0;
+        statusFilter = status;
+        StateHasChanged();
+    }
 
-        double totalDistance = 0;
+    private List<MedalDto> ApplyFilters()
+    {
+        IEnumerable<MedalDto> medalsToFilter = allMedals;
 
-        switch (medal.Frequency)
+        foreach (var medal in allMedals)
         {
-            case "Weekly":
-                // Weekly progress calculation
-                {
-                    var today = DateTime.Today;
-                    var diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
-                    var startOfWeek = today.AddDays(-diff);
-                    var endOfWeek = startOfWeek.AddDays(7).AddSeconds(-1);
-
-                    totalDistance = activities
-                        .Where(a => a.ActivityId == medal.ActivityId && a.DateStart >= startOfWeek && a.DateStart <= endOfWeek)
-                        .Sum(a => a.Distance);
-                    break;
-                }
-            case "Once":
-                // Once progress calculation
-                totalDistance = activities
-                    .Where(a => a.ActivityId == medal.ActivityId)
-                    .Sum(a => a.Distance);
-                break;
-            case "Monthly":
-                // Placeholder for monthly logic, can be customized later
-                totalDistance = 0;
-                break;
-            default:
-                return 0;
+            var claimed = claimedMedals.FirstOrDefault(cm => cm.Id == medal.Id);
+            if (claimed != null)
+            {
+                medal.DateEarned = claimed.DateEarned;
+            }
         }
 
-        // Calculate progress as percentage, for "Once" medals, you accumulate the total distance.
-        double progress = (totalDistance / medal.TargetValue) * 100;
-        return Math.Min(100, (int)Math.Round(progress));
+        // Apply Status Filter
+        if (statusFilter != "all")
+        {
+            medalsToFilter = statusFilter == "achieved"
+                ? medalsToFilter.Where(m => claimedMedals.Contains(m))
+                : medalsToFilter.Where(m => !claimedMedals.Contains(m));
+        }
+
+        // Apply Frequency Filter
+        if (activeFrequencyTab != "all")
+        {
+            medalsToFilter = medalsToFilter.Where(m => m.Frequency.Equals(activeFrequencyTab, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Apply Ordering
+        switch (selectedOrder)
+        {
+            case "name":
+                medalsToFilter = medalsToFilter.OrderBy(m => m.Name);
+                break;
+            case "date":
+                medalsToFilter = medalsToFilter.OrderBy(m => m.DateEarned);
+                break;
+            case "frequency":
+                medalsToFilter = medalsToFilter.OrderBy(m => m.Frequency);
+                break;
+            case "% complete":
+                medalsToFilter = medalsToFilter
+                    .OrderByDescending(m => m.ProgressPercent == 100 && !claimedMedals.Any(c => c.Id == m.Id))  // Claimable first
+                    .ThenByDescending(m => m.ProgressPercent);  // Then by highest completion
+                break;
+        }
+
+        return medalsToFilter.ToList();
     }
 
+    private void OnModalClaim(int medalId)
+    {
+        claimedMedals.Add(allMedals.First(m => m.Id == medalId));
+        StateHasChanged();
+    }
 }

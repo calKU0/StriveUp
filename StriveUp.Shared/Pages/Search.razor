@@ -51,11 +51,6 @@
     private bool isLoading = false;
     private string currentUserId = "";
 
-    protected override async Task OnInitializedAsync()
-    {
-
-    }
-
     private async Task HandleInput(ChangeEventArgs e)
     {
         searchText = e.Value?.ToString() ?? "";

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250512161157_Levels")]
+    partial class Levels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -524,6 +527,9 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<int>("ActivityId")
                         .HasColumnType("int");
 
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("DateEarned")
                         .HasColumnType("datetime2");
 
@@ -537,6 +543,8 @@ namespace StriveUp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ActivityId");
+
+                    b.HasIndex("AppUserId");
 
                     b.HasIndex("MedalId");
 
@@ -833,6 +841,10 @@ namespace StriveUp.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("StriveUp.Infrastructure.Identity.AppUser", null)
+                        .WithMany("MedalsEarned")
+                        .HasForeignKey("AppUserId");
+
                     b.HasOne("StriveUp.Infrastructure.Models.Medal", "Medal")
                         .WithMany()
                         .HasForeignKey("MedalId")
@@ -840,9 +852,9 @@ namespace StriveUp.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("StriveUp.Infrastructure.Identity.AppUser", "User")
-                        .WithMany("MedalsEarned")
+                        .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Activity");

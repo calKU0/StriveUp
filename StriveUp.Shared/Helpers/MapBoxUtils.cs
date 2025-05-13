@@ -1,8 +1,6 @@
 ﻿using System.Globalization;
 using Microsoft.Maui.Devices.Sensors;
 using System.Text;
-using PolylineEncoder.Net.Models;
-using PolylineEncoder.Net.Utility;
 using StriveUp.Shared.DTOs;
 
 namespace StriveUp.Shared.Helpers

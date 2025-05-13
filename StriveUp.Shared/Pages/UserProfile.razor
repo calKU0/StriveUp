@@ -31,6 +31,11 @@
             <div class="flex-grow-1">
                 <h4 class="fw-bold mb-0">@userProfile.UserName</h4>
                 <p class="text-muted mb-1">@userProfile.FirstName @userProfile.LastName</p>
+                <div class="d-flex align-items-center mt-2 level-info">
+                    <i class="fas fa-star me-2 text-warning"></i>
+                    <strong>Level @userProfile.LevelNumber</strong>
+                    <span class="ms-2 text-muted small">@userProfile.CurrentXP / @userProfile.LevelTotalXP XP</span>
+                </div>
             </div>
             @if (isEditable)
             {
@@ -107,9 +112,7 @@
                     <div class="row g-4">
                         @foreach (var medal in userProfile.Medals)
                         {
-                            <div class="col-md-4">
-                                <MedalCard Medal="medal" />
-                            </div>
+                            <MedalCard MedalDto="medal" IsAchieved=true />
                         }
                     </div>
                 }

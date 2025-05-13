@@ -230,10 +230,6 @@ h1:focus {
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
 
-.card-body {
-    padding: 1.5rem;
-}
-
 /* Buttons */
 .btn-sm {
     padding: 0.4rem 0.75rem;
@@ -315,6 +311,87 @@ textarea.form-control {
 .bg-light-subtle {
     background-color: #f8f9fa !important;
 }
+
+/* Progress Bar Container Styling */
+.progress {
+    height: 8px; /* Slightly thicker bar */
+    background-color: #f3f4f6; /* Light gray background for the unfilled part */
+    border-radius: 10px; /* Rounded corners */
+    overflow: hidden; /* Hide overflow of the bar */
+    position: relative;
+}
+
+/* Progress Bar Fill Styling */
+.progress-bar {
+    transition: width 1.5s ease-in-out;
+    height: 100%; /* Fill the full height of the container */
+    border-radius: 10px; /* Rounded corners to match the container */
+}
+
+    .progress-bar.progress-100 {
+        background: linear-gradient(to right, #28a745, #218838);
+    }
+
+    .progress-bar.progress-75 {
+        background: linear-gradient(to right, #ffc107, #e0a800);
+    }
+
+    .progress-bar.progress-50 {
+        background: linear-gradient(to right, #ffc107, #ff9800);
+    }
+
+    .progress-bar.progress-25 {
+        background: linear-gradient(to right, #dc3545, #c82333);
+    }
+
+    .progress-bar.progress-0 {
+        background: linear-gradient(to right, #6c757d, #495057); /* optional gray default */
+    }
+
+
+.claim-animate {
+    animation: redeemPop 0.6s ease-out;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+
+
+/* Styling the progress text */
+.progress-text {
+    font-size: 0.9rem;
+    color: #555;
+    font-weight: 500;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 0 0 0px rgba(40, 167, 69, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.6);
+    }
+}
+
+@keyframes redeemPop {
+    0% {
+        transform: scale(0.7);
+        opacity: 0;
+        box-shadow: none;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+        box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(40, 167, 69, 0.4);
+    }
+}
+
 
 @keyframes spin {
     0% {

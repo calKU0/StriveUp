@@ -34,29 +34,31 @@ namespace StriveUp.API.Controllers
             try
             {
                 var user = await _context.Users
-                    .AsSplitQuery()
+                    .AsNoTracking()  // AsNoTracking to improve performance for read-only queries
                     .Where(u => u.UserName == userName)
+                    .Include(u => u.Level)
                     .Include(u => u.MedalsEarned)
                         .ThenInclude(me => me.Medal)
-                    .Include(u => u.UserActivities)
-                        .ThenInclude(ua => ua.Route)
-                    .Include(u => u.UserActivities)
-                        .ThenInclude(ua => ua.HrData)
-                    .Include(u => u.UserActivities)
-                        .ThenInclude(ua => ua.SpeedData)
-                    .Include(u => u.UserActivities)
-                        .ThenInclude(ua => ua.ActivityLikes)
-                    .Include(u => u.UserActivities)
-                        .ThenInclude(ua => ua.ActivityComments)
-                            .ThenInclude(c => c.User)
-                    .Include(u => u.UserActivities)
-                        .ThenInclude(ua => ua.Activity)
                     .FirstOrDefaultAsync();
 
                 if (user == null)
                 {
                     return NotFound();
                 }
+
+                var userActivities = await _context.UserActivities
+                    .AsSplitQuery() // Use AsSplitQuery to break the query into multiple
+                    .Where(ua => ua.UserId == user.Id)
+                    .Include(ua => ua.Route)
+                    .Include(ua => ua.HrData)
+                    .Include(ua => ua.SpeedData)
+                    .Include(ua => ua.ActivityLikes)
+                    .Include(ua => ua.ActivityComments)
+                        .ThenInclude(c => c.User)
+                    .Include(ua => ua.Activity)
+                    .ToListAsync();
+
+                user.UserActivities = userActivities;           
 
                 var userProfile = _mapper.Map<UserProfileDto>(user);
 
