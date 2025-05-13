@@ -61,12 +61,15 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.Frequency, opt => opt.MapFrom(src => src.Medal.Frequency))
                 .ForMember(dest => dest.Points, opt => opt.MapFrom(src => src.Medal.Points))
                 .ForMember(dest => dest.DateEarned, opt => opt.MapFrom(src => src.DateEarned))
-                .ForMember(dest => dest.ProgressPercent, opt => opt.Ignore());
+                .ForMember(dest => dest.ProgressPercent, opt => opt.Ignore())
+                .ForMember(dest => dest.DistanceToEarn, opt => opt.Ignore());
 
             // AppUser <-> DTO
             CreateMap<AppUser, UserProfileDto>()
                 .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.UserActivities))
-                .ForMember(dest => dest.Medals, opt => opt.MapFrom(src => src.MedalsEarned));
+                .ForMember(dest => dest.Medals, opt => opt.MapFrom(src => src.MedalsEarned))
+                .ForMember(dest => dest.LevelNumber, opt => opt.MapFrom(src => src.Level.LevelNumber))
+                .ForMember(dest => dest.LevelTotalXP, opt => opt.MapFrom(src => src.Level.TotalXP));
 
             CreateMap<EditUserProfileDto, AppUser>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));

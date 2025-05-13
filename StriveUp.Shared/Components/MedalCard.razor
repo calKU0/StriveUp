@@ -1,5 +1,7 @@
 ﻿@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.Layout
 @inject IMedalService MedalsService;
+@inject IMedalStateService MedalState
 @inject IJSRuntime JS
 
 <div class="col-6 col-sm-4 col-md-2">
@@ -14,8 +16,8 @@
                 @if (ShowRedeemButton && !IsAchieved)
                 {
                     <button class="btn btn-primary btn-sm claim-animate mt-3"
-                            @onclick:stopPropagation="true"
-                            @onclick="ClaimMedal">
+                    @onclick:stopPropagation="true"
+                    @onclick="ClaimMedal">
                         🎉 Claim Medal
                     </button>
                 }
@@ -23,11 +25,11 @@
                 {
                     <div class="progress mt-2">
                         <div class="progress-bar @GetProgressGradientClass()"
-                             role="progressbar"
-                             style="width: @DisplayedProgress%"
-                             aria-valuenow="@DisplayedProgress"
-                             aria-valuemin="0"
-                             aria-valuemax="100">
+                        role="progressbar"
+                        style="width: @DisplayedProgress%"
+                        aria-valuenow="@DisplayedProgress"
+                        aria-valuemin="0"
+                        aria-valuemax="100">
                         </div>
                     </div>
                     <div class="progress-text text-center mt-2">
@@ -129,7 +131,9 @@
             await JS.InvokeVoidAsync("launchConfetti");
 
             IsAchieved = true;
+            isJustAchieved = true;
             MedalDto.DateEarned = DateTime.Now;
+            MedalState.DecrementMedalsCount();
             StateHasChanged();
         }
     }

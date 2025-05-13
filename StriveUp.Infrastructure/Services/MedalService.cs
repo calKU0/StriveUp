@@ -48,6 +48,21 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
+        public async Task<int> GetMedalsToClaimCountAsync()
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                var result = await _httpClient.GetFromJsonAsync<int>("medal/medalsToClaimCount");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return 0;
+            }
+        }
+
         public async Task<List<MedalDto>> GetUserMedalsAsync()
         {
             try

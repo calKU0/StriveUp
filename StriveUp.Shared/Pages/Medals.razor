@@ -108,10 +108,7 @@
         {
             allMedals = await MedalService.GetAllMedalsAsync() ?? new();
             claimedMedals = await MedalService.GetUserMedalsAsync() ?? new();
-
             notClaimedMedals = allMedals.Where(medal => !claimedMedals.Contains(medal)).ToList();
-
-            var activities = await ActivityService.GetFeedAsync();
         }
         catch (Exception ex)
         {
@@ -173,6 +170,15 @@
     {
         IEnumerable<MedalDto> medalsToFilter = allMedals;
 
+        foreach (var medal in allMedals)
+        {
+            var claimed = claimedMedals.FirstOrDefault(cm => cm.Id == medal.Id);
+            if (claimed != null)
+            {
+                medal.DateEarned = claimed.DateEarned;
+            }
+        }
+
         // Apply Status Filter
         if (statusFilter != "all")
         {
@@ -200,7 +206,9 @@
                 medalsToFilter = medalsToFilter.OrderBy(m => m.Frequency);
                 break;
             case "% complete":
-                medalsToFilter = medalsToFilter.OrderByDescending(m => m.ProgressPercent);
+                medalsToFilter = medalsToFilter
+                    .OrderByDescending(m => m.ProgressPercent == 100 && !claimedMedals.Any(c => c.Id == m.Id))  // Claimable first
+                    .ThenByDescending(m => m.ProgressPercent);  // Then by highest completion
                 break;
         }
 

@@ -49,6 +49,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISecurableService, SecurableService>();
+builder.Services.AddScoped<ILevelService, LevelService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<MapboxSettings>(builder.Configuration.GetSection("MapboxSettings"));
 builder.Services.AddAutoMapper(typeof(MappingProfile));

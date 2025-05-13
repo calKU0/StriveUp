@@ -44,3 +44,7 @@
 .text-muted {
     color: #6c757d !important;
 }
+
+.level-info {
+    font-size: 0.95rem;
+}

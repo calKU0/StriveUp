@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StriveUp.API.Services;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
@@ -17,11 +18,13 @@ namespace StriveUp.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ILevelService _levelService;
 
-        public ActivityController(AppDbContext context, IMapper mapper)
+        public ActivityController(AppDbContext context, IMapper mapper, ILevelService levelService)
         {
             _context = context;
             _mapper = mapper;
+            _levelService = levelService;
         }
 
         private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -30,6 +33,10 @@ namespace StriveUp.API.Controllers
         public async Task<IActionResult> AddActivity(CreateUserActivityDto dto)
         {
             var userId = GetUserId();
+            var user = await _context.Users
+                .Include(u => u.Level)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
             if (userId == null) return Unauthorized();
 
             try
@@ -54,10 +61,22 @@ namespace StriveUp.API.Controllers
                     ? userActivity.HrData.Max(s => s.HearthRateValue)
                     : null;
 
+                var activityConfig = await _context.ActivityConfig
+                    .FirstOrDefaultAsync(ac => ac.ActivityId == dto.ActivityId);
+
+                if (activityConfig != null)
+                {
+                    // Add XP 
+                    int xpReward = activityConfig.PointsPerMinute > 0 
+                        ? Convert.ToInt32(Math.Round(activityConfig.PointsPerMinute * userActivity.DurationSeconds / 60)) 
+                        : 1 * Convert.ToInt32(Math.Round(userActivity.DurationSeconds / 60));
+                    user.CurrentXP += xpReward;
+                }
 
                 _context.UserActivities.Add(userActivity);
-                await _context.SaveChangesAsync();
+                await _levelService.UpdateUserLevelAsync(user);
 
+                await _context.SaveChangesAsync();
                 return Ok(userActivity.Id);
             }
             catch (Exception ex)

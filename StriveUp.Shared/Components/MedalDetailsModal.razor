@@ -32,7 +32,7 @@
                             <div class="card-body">
                                 <span class="stat-icon"><i class="fas fa-trophy"></i></span>
                                 <p><strong>To Earn Medal</strong></p>
-                                <p>999 km</p>
+                                <p>@(Math.Round(Medal.DistanceToEarn,2)) km</p>
                             </div>
                         </div>
                     </div>
@@ -92,11 +92,9 @@
     [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
     [Parameter] public EventCallback<int> OnModalClaim { get; set; }
 
-    string isRepeatable = "";
     private bool isClaimable => Medal.ProgressPercent == 100;
     private int AnimatedPercent = 0;
     private int DisplayedProgress = 0;
-    private bool isJustAchieved = false;
 
     protected override async Task OnParametersSetAsync()
     {

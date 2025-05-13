@@ -19,7 +19,7 @@ namespace StriveUp.Infrastructure.Identity
         public string LastName { get; set; }
         public string? Avatar { get; set; }
         [Required]
-        public int CurrentXP { get; set; } = 100;
+        public int CurrentXP { get; set; }
         [Required]
         public int LevelId { get; set; } = 1;
         public Level Level { get; set; }

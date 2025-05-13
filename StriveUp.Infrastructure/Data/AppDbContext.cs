@@ -59,9 +59,9 @@ namespace StriveUp.Infrastructure.Data
 
             modelBuilder.Entity<MedalEarned>()
                 .HasOne(me => me.User)
-                .WithMany()
+                .WithMany(u => u.MedalsEarned)
                 .HasForeignKey(me => me.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<UserFollower>()
                 .HasKey(x => new { x.FollowerId, x.FollowedId });

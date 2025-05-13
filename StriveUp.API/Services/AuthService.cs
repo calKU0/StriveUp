@@ -11,7 +11,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using StriveUp.Infrastructure.Services;
 using StriveUp.Shared.Interfaces;
 
 public class AuthService : StriveUp.API.Services.IAuthService
@@ -35,7 +34,7 @@ public class AuthService : StriveUp.API.Services.IAuthService
         if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
             return (false, null);
 
-        var token = await GenerateJwtToken(user);
+        var token = GenerateJwtToken(user);
         return (true, token);
     }
 
@@ -74,7 +73,7 @@ public class AuthService : StriveUp.API.Services.IAuthService
         if (!result.Succeeded)
             return (result, null);
 
-        var token = await GenerateJwtToken(user);
+        var token = GenerateJwtToken(user);
         return (result, token);
     }
 
@@ -83,7 +82,7 @@ public class AuthService : StriveUp.API.Services.IAuthService
         await _signInManager.SignOutAsync();
     }
 
-    private async Task<string> GenerateJwtToken(AppUser user)
+    private string GenerateJwtToken(AppUser user)
     {
         var claims = new List<Claim>
         {
