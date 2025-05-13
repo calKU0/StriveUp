@@ -47,9 +47,9 @@ All services and apps are deployed to Azure App Service, Azure SQL Database, and
 
 ```
 ┌──────────────┐       	┌───────────────┐        ┌────────────────────┐
-│ StriveUp.Web │ ◀─────	│  StriveUp.API │ ◀───── │ Azure SQL Database │
+│ StriveUp.Web | ◀──── │  StriveUp.API │ ◀───── │ Azure SQL Database │
 │   (Blazor)   │       	│ (ASP.NET Core)│        └────────────────────┘
-└──────────────┘       	└───────────────┘       		 ▲
+└──────────────┘       	└───────────────┘                ▲
        ▲                        ▲                        │
        │                        │                        │
 ┌──────────────┐        ┌────────────────┐        ┌───────────────┐
@@ -81,10 +81,10 @@ StriveUp/
 ├── .gitignore
 ├── package.json              # for Blazor Web client assets
 ├── package-lock.json
-├── .github/				  # Github related things, workflows
+├── .github/                  # Github related things, workflows
 ├── StriveUp.API/             # ASP.NET Core Web API
 ├── StriveUp.Infrastructure/  # EF Core migrations, domain models
-├── StriveUp.Sync/       	  # Azure Functions
+├── StriveUp.Sync/            # Azure Functions
 ├── StriveUp.Shared/          # DTOs, shared services, shared components
 ├── StriveUp.Web/             # Blazor Hybrid web project
 └── StriveUp.MAUI/            # .NET MAUI native app
