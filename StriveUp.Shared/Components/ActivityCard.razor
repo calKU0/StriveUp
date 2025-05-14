@@ -56,13 +56,15 @@
                 <!-- Like Button -->
                 <button class="btn btn-light like-button d-flex align-items-center gap-2 px-3 py-1 border rounded-pill shadow-sm
                    @(Activity.IsLikedByCurrentUser ? "text-danger bg-danger-subtle like-active" : "text-body")"
-                @onclick="() => ToggleLike()">
+                        @onclick="() => ToggleLike()"
+                        @onclick:stopPropagation="true">
                     <i class="bi bi-heart-fill @(Activity.IsLikedByCurrentUser ? "" : "text-muted")"></i>
                     <span class="fw-semibold">@Activity.LikeCount</span>
                 </button>
 
                 <!-- Comments Link -->
                 <a href="@($"/activity/{Activity.Id}/comments")"
+                @onclick:stopPropagation="true"
                 class="comment-button d-flex align-items-center gap-2 text-decoration-none text-primary-emphasis small px-3 py-1 border rounded-pill bg-primary-subtle shadow-sm">
                     <i class="bi bi-chat-dots-fill"></i>
                     <span class="fw-semibold">@(Activity.Comments?.Count ?? 0)</span>

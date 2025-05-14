@@ -90,3 +90,25 @@ window.launchConfetti = () => {
         });
     }
 };
+
+// lazy loading (infinite scroll)
+window.initIntersectionObserver = (element, dotNetHelper) => {
+    console.log("Observer initialized");
+    if (!element) {
+        console.warn("Sentinel not found");
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            console.log("Observer entry:", entry);
+            if (entry.isIntersecting) {
+                console.log("Loading more activities...");
+                dotNetHelper.invokeMethodAsync('LoadMoreActivities');
+            }
+        });
+    });
+
+    observer.observe(element);
+};
+

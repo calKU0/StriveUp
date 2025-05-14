@@ -1,26 +1,29 @@
 ﻿@page "/feed"
-@inject IActivityService ActivityService
-@inject IProfileService ProfileService
-@inject NavigationManager Navigation
-@inject ICustomAuthStateProvider AuthStateProvider
+
 @using StriveUp.Shared.DTOs
 @using System.Security.Claims
 @using StriveUp.Shared.DTOs.Activity
 
+@inject IActivityService ActivityService
+@inject IProfileService ProfileService
+@inject NavigationManager Navigation
+@inject ICustomAuthStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+
 
 <PageTitle>Activity Feed</PageTitle>
 <div class="container d-flex flex-column justify-content-center">
-    @if (isLoading)
+    @if (isLoading && currentPage == 1)
     {
-        <!-- Loading Spinner -->
+        <!-- Initial loading spinner -->
         <div class="loading-overlay">
             <div class="spinner"></div>
             <p class="loading-text">Loading feed. Please wait...</p>
         </div>
     }
-    else if (activities?.Count == 0)
+    else if (!isLoading && activities.Count == 0)
     {
-        <!-- No Activities Call to Action -->
+        <!-- No activities CTA -->
         <div class="text-center py-5">
             <h4 class="mb-3 text-muted">Your activity feed is empty</h4>
             <p class="text-secondary">Start tracking your journey or log a past activity.</p>
@@ -36,12 +39,24 @@
     }
     else
     {
+        <!-- Show activity feed -->
         <div class="row g-3">
             @foreach (var activity in activities)
             {
                 <ActivityCard Activity="activity" />
             }
         </div>
+
+        @if (isLoading && currentPage > 1)
+        {
+            <div class="d-flex justify-content-center align-items-center py-3">
+                <div class="spinner-small"></div>
+            </div>
+        }
+        else if (hasMore)
+        {
+            <div @ref="sentinel" style="height: 1px;"></div>
+        }
     }
 </div>
 
@@ -50,6 +65,13 @@
     private List<UserActivityDto> activities = new();
     private bool isLoading = true;
     private string? errorMessage;
+    private bool hasMore = true;
+    private int currentPage = 1;
+    private const int PageSize = 6;
+    private bool observerInitialized = false;
+
+    private ElementReference sentinel;
+    private DotNetObjectReference<Feed>? dotNetRef;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,7 +82,7 @@
 
             if (currentUser.Identity?.IsAuthenticated ?? false)
             {
-                activities = await ActivityService.GetFeedAsync();
+                await LoadInitialActivities();
             }
             else
             {
@@ -70,17 +92,63 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching activities: {ex}");
+            Console.WriteLine($"Error initializing feed: {ex}");
             errorMessage = $"An error occurred: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
         }
     }
 
-    private void NavigateToEdit()
+    private async Task LoadInitialActivities()
     {
-        Navigation.NavigateTo("/edit-activity");
+        var initial = await ActivityService.GetFeedAsync(currentPage, PageSize);
+        activities.AddRange(initial);
+        currentPage++;
+        hasMore = initial.Count == PageSize;
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (hasMore && sentinel.Id != null && !observerInitialized)
+        {
+            try
+            {
+                dotNetRef = DotNetObjectReference.Create(this);
+                await JSRuntime.InvokeVoidAsync("initIntersectionObserver", sentinel, dotNetRef);
+                observerInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"JS interop error: {ex}");
+                errorMessage = $"An error occurred: {ex.Message}";
+            }
+        }
+    }
+
+
+    [JSInvokable]
+    public async Task LoadMoreActivities()
+    {
+        if (isLoading || !hasMore) return;
+
+        isLoading = true;
+        StateHasChanged();
+        var more = await ActivityService.GetFeedAsync(currentPage, PageSize);
+
+        if (more.Count < PageSize)
+        {
+            hasMore = false;
+        }
+
+        activities.AddRange(more);
+        currentPage++;
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        dotNetRef?.Dispose();
     }
 }
+

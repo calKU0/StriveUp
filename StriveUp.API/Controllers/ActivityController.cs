@@ -86,8 +86,8 @@ namespace StriveUp.API.Controllers
             }
         }
 
-        [HttpGet("activities")]
-        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetActivities()
+        [HttpGet("userActivities")]
+        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetActivities([FromQuery] int page = 1, [FromQuery] int pageSize = 5)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
@@ -100,10 +100,13 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.User)
                     .Include(ua => ua.ActivityLikes)
-                    .Include(ua => ua.ActivityComments).ThenInclude(c => c.User)
+                    .Include(ua => ua.ActivityComments)!.ThenInclude(c => c.User)
                     .Include(ua => ua.Route)
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
+                    .OrderByDescending(ua => ua.DateStart)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
 
                 var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
@@ -111,7 +114,8 @@ namespace StriveUp.API.Controllers
                 foreach (var dto in activityDtos)
                 {
                     var entity = activities.First(a => a.Id == dto.Id);
-                    dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
+                    if (entity.ActivityLikes != null)
+                        dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
                     dto.Comments = _mapper.Map<List<ActivityCommentDto>>(entity.ActivityComments);
                 }
 
@@ -125,7 +129,7 @@ namespace StriveUp.API.Controllers
         }
 
         [HttpGet("feed")]
-        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetFeed()
+        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 5)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
@@ -145,11 +149,13 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.User)
                     .Include(ua => ua.ActivityLikes)
-                    .Include(ua => ua.ActivityComments).ThenInclude(c => c.User)
+                    .Include(ua => ua.ActivityComments)!.ThenInclude(c => c.User)
                     .Include(ua => ua.Route)
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
                     .OrderByDescending(ua => ua.DateStart)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
 
                 var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
@@ -157,9 +163,13 @@ namespace StriveUp.API.Controllers
                 foreach (var dto in activityDtos)
                 {
                     var entity = activities.First(a => a.Id == dto.Id);
-                    dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
+
+                    if (entity.ActivityLikes != null)
+                        dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
+                    if (entity.Route != null)
+                        dto.Route = _mapper.Map<List<GeoPointDto>>(entity.Route.OrderBy(p => p.Timestamp));
+
                     dto.Comments = _mapper.Map<List<ActivityCommentDto>>(entity.ActivityComments);
-                    dto.Route = _mapper.Map<List<GeoPointDto>>(entity.Route.OrderBy(p => p.Timestamp));
                 }
 
                 return Ok(activityDtos);
@@ -170,6 +180,7 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<UserActivityDto>> GetActivityById(int id)
@@ -185,7 +196,7 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.User)
                     .Include(ua => ua.ActivityLikes)
-                    .Include(ua => ua.ActivityComments).ThenInclude(c => c.User)
+                    .Include(ua => ua.ActivityComments)!.ThenInclude(c => c.User)
                     .Include(ua => ua.Route)
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
@@ -195,7 +206,8 @@ namespace StriveUp.API.Controllers
                     return NotFound("Activity not found or access denied.");
 
                 var dto = _mapper.Map<UserActivityDto>(activity);
-                dto.IsLikedByCurrentUser = activity.ActivityLikes.Any(l => l.UserId == userId);
+                if (activity.ActivityLikes != null)
+                    dto.IsLikedByCurrentUser = activity.ActivityLikes.Any(l => l.UserId == userId);
                 dto.Comments = _mapper.Map<List<ActivityCommentDto>>(activity.ActivityComments);
 
                 return Ok(dto);

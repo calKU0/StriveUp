@@ -69,12 +69,17 @@
         <div class="row g-3">
             @if (FilteredMedals.Any())
             {
-                @foreach (var medal in FilteredMedals)
+                @for (int i = 0; i < FilteredMedals.Count; i++)
                 {
-                    <MedalCard @key="medal.Id"
-                    MedalDto="@medal"
-                    IsAchieved="@claimedMedals.Any(a => a.Id == medal.Id)"
-                    OnMedalClick="@(() => ShowMedalDetails(medal))" />
+                    var medal = FilteredMedals[i];
+                    <div class="col-6 col-sm-4 col-md-2">
+                        <div class="medal-drop-animation" style="animation-delay:@($"{i * 45}ms")">
+                            <MedalCard @key="medal.Id"
+                                       MedalDto="@medal"
+                                       IsAchieved="@claimedMedals.Any(a => a.Id == medal.Id)"
+                                       OnMedalClick="@(() => ShowMedalDetails(medal))" />
+                        </div>
+                    </div>
                 }
             }
         </div>

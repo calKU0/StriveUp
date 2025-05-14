@@ -37,7 +37,7 @@ namespace StriveUp.API.Controllers
                     .AsNoTracking()  // AsNoTracking to improve performance for read-only queries
                     .Where(u => u.UserName == userName)
                     .Include(u => u.Level)
-                    .Include(u => u.MedalsEarned)
+                    .Include(u => u.MedalsEarned)!
                         .ThenInclude(me => me.Medal)
                     .FirstOrDefaultAsync();
 
@@ -46,40 +46,7 @@ namespace StriveUp.API.Controllers
                     return NotFound();
                 }
 
-                var userActivities = await _context.UserActivities
-                    .AsSplitQuery() // Use AsSplitQuery to break the query into multiple
-                    .Where(ua => ua.UserId == user.Id)
-                    .Include(ua => ua.Route)
-                    .Include(ua => ua.HrData)
-                    .Include(ua => ua.SpeedData)
-                    .Include(ua => ua.ActivityLikes)
-                    .Include(ua => ua.ActivityComments)
-                        .ThenInclude(c => c.User)
-                    .Include(ua => ua.Activity)
-                    .ToListAsync();
-
-                user.UserActivities = userActivities;           
-
                 var userProfile = _mapper.Map<UserProfileDto>(user);
-
-                userProfile.Activities = userProfile.Activities
-                    ?.OrderByDescending(a => a.DateStart)
-                    .ToList();
-
-                // Optimize lookup by creating a dictionary from user.UserActivities
-                var activityLookup = user.UserActivities
-                    .ToDictionary(a => a.Id);
-
-                foreach (var activityDto in userProfile.Activities ?? Enumerable.Empty<UserActivityDto>())
-                {
-                    if (activityLookup.TryGetValue(activityDto.Id, out var activityEntity))
-                    {
-                        activityDto.IsLikedByCurrentUser = activityEntity.ActivityLikes
-                            .Any(l => l.UserId == currentUserId);
-
-                        activityDto.Comments = _mapper.Map<List<ActivityCommentDto>>(activityEntity.ActivityComments);
-                    }
-                }
 
                 return Ok(userProfile);
             }

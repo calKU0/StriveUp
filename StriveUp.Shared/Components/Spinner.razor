@@ -1,0 +1,23 @@
+﻿<div class="d-flex flex-column align-items-center py-5">
+    @if (!isSmall)
+    {
+        <svg class="material-spinner" viewBox="22 22 44 44">
+            <circle class="material-path" cx="44" cy="44" r="20.2" fill="none" stroke-width="3.6" />
+        </svg>
+        <p class="loading-text">@text</p>
+
+    }
+    else
+    {
+            <svg class="material-spinner-small" viewBox="22 22 44 44">
+                <circle class="material-path" cx="44" cy="44" r="20.2" fill="none" stroke-width="3.6" />
+            </svg>
+        
+    }
+</div>
+
+@code {
+    [Parameter] public bool isSmall { get; set; } = false;
+    [Parameter] public string text { get; set; } = "";
+
+}
