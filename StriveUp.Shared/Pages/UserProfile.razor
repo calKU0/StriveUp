@@ -5,19 +5,16 @@
 @inject NavigationManager Navigation
 @inject IProfileService ProfileService
 @inject IPlatformService PlatformService
+@inject IJSRuntime JSRuntime
+@inject IActivityService ActivityService
 
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Profile
-@using System.Security.Claims
-@using StriveUp.Shared.Components
 
 <div class="container py-5">
     @if (isLoading)
     {
-        <div class="loading-overlay">
-            <div class="spinner"></div>
-            <p class="loading-text">Loading profile. Please wait...</p>
-        </div>
+        <Spinner text="Loading profile. Please wait..."></Spinner>
     }
     else if (!string.IsNullOrWhiteSpace(errorMessage))
     {
@@ -68,15 +65,27 @@
         @if (activeTab == "activities")
         {
             <div>
-                <h5 class="mb-3">Activities</h5>
-                @if (userProfile.Activities?.Any() == true)
+                @if (pagedActivities.Any())
                 {
                     <div class="row g-3">
-                        @foreach (var activity in userProfile.Activities)
+                        @foreach (var activity in pagedActivities)
                         {
                             <ActivityCard Activity="activity" />
                         }
                     </div>
+
+                    @if (isActivitiesLoading && activityPage > 1)
+                    {
+                        <Spinner isSmall="true"></Spinner>
+                    }
+                    else if (hasMoreActivities)
+                    {
+                        <div @ref="sentinel" style="height: 1px;"></div>
+                    }
+                }
+                else if (isActivitiesLoading)
+                {
+                    <Spinner isSmall="false"></Spinner>
                 }
                 else
                 {
@@ -110,9 +119,12 @@
                 @if (userProfile.Medals?.Any() == true)
                 {
                     <div class="row g-4">
-                        @foreach (var medal in userProfile.Medals)
+                        @for (int i = 0; i < userProfile.Medals.Count; i++)
                         {
-                            <MedalCard MedalDto="medal" IsAchieved=true />
+                            var medal = userProfile.Medals[i];
+                            <div class="col-6 col-sm-4 col-md-2 medal-drop-animation" style="animation-delay:@($"{i * 45}ms")">
+                                <MedalCard MedalDto="medal" IsAchieved=true />
+                            </div>
                         }
                     </div>
                 }
@@ -126,8 +138,15 @@
 </div>
 
 @code {
-    [Parameter]
-    public string? Username { get; set; }
+    [Parameter] public string? Username { get; set; }
+    private List<UserActivityDto> pagedActivities = new();
+    private bool isActivitiesLoading = false;
+    private bool hasMoreActivities = true;
+    private int activityPage = 1;
+    private const int ActivityPageSize = 6;
+    private ElementReference sentinel;
+    private bool observerInitialized = false;
+    private DotNetObjectReference<UserProfile>? dotNetRef;
     private bool isLoading = true;
     private string? errorMessage;
     private UserProfileDto userProfile = new();
@@ -139,39 +158,83 @@
     {
         if (firstRender)
         {
+            await LoadInitialProfile();
+
+            if (activeTab == "activities")
+            {
+                await LoadMoreActivities();
+            }
+        }
+
+        if (activeTab == "activities" && hasMoreActivities && sentinel.Id != null && !observerInitialized)
+        {
             try
             {
-                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-                var currentUser = authState.User;
-
-                if (currentUser.Identity?.IsAuthenticated == true)
-                {
-                    userName = Username ?? currentUser.Identity.Name;
-
-                    var (success, error, profile) = await ProfileService.GetProfile(userName);
-
-                    if (success && profile != null)
-                    {
-                        userProfile = profile;
-                        isEditable = (userName == currentUser.Identity?.Name);
-                    }
-                    else
-                    {
-                        errorMessage = error?.Message + Environment.NewLine + error?.Details ?? "An unexpected error occurred.";
-                    }
-                }
-                else
-                {
-                    errorMessage = "You are not authenticated.";
-                }
+                dotNetRef = DotNetObjectReference.Create(this);
+                await JSRuntime.InvokeVoidAsync("initIntersectionObserver", sentinel, dotNetRef);
+                observerInitialized = true;
             }
-            finally
+            catch (Exception ex)
             {
-                isLoading = false;
-                await InvokeAsync(StateHasChanged);
+                Console.WriteLine($"JS interop error: {ex}");
             }
         }
     }
+
+
+    private async Task LoadInitialProfile()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var currentUser = authState.User;
+
+        if (currentUser.Identity?.IsAuthenticated == true)
+        {
+            userName = Username ?? currentUser.Identity.Name;
+
+            var (success, error, profile) = await ProfileService.GetProfile(userName);
+
+            if (success && profile != null)
+            {
+                userProfile = profile;
+                isEditable = (userName == currentUser.Identity?.Name);
+            }
+            else
+            {
+                errorMessage = error?.Message + Environment.NewLine + error?.Details ?? "An unexpected error occurred.";
+            }
+        }
+        else
+        {
+            errorMessage = "You are not authenticated.";
+        }
+
+        isLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task LoadMoreActivities()
+    {
+        if (isActivitiesLoading || !hasMoreActivities) return;
+
+        isActivitiesLoading = true;
+        StateHasChanged();
+
+        var pageActivities = await ActivityService.GetUserActivitiesAsync(activityPage, ActivityPageSize);
+
+        if (pageActivities.Count < ActivityPageSize)
+        {
+            hasMoreActivities = false;
+        }
+
+        pagedActivities.AddRange(pageActivities);
+        activityPage++;
+        isActivitiesLoading = false;
+
+        StateHasChanged();
+    }
+
+
 
     private async Task HandleLogout()
     {

@@ -91,6 +91,21 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
+        public async Task<List<UserActivityDto>?> GetUserActivitiesAsync(int page, int pageSize)
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+
+                var url = $"activity/userActivities?page={page}&pageSize={pageSize}";
+                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching paginated feed: {ex}");
+                return null;
+            }
+        }
 
         public async Task LikeActivityAsync(int activityId)
         {

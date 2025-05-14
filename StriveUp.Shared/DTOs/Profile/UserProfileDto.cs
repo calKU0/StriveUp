@@ -19,7 +19,6 @@ namespace StriveUp.Shared.DTOs.Profile
         public int CurrentXP { get; set; }
         public int LevelNumber { get; set; }
         public int LevelTotalXP { get; set; }
-        public List<UserActivityDto> Activities { get; set; }
         public List<MedalDto> Medals { get; set; }
     }
 }

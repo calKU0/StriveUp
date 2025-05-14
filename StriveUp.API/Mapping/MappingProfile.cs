@@ -66,7 +66,6 @@ namespace StriveUp.API.Mapping
 
             // AppUser <-> DTO
             CreateMap<AppUser, UserProfileDto>()
-                .ForMember(dest => dest.Activities, opt => opt.MapFrom(src => src.UserActivities))
                 .ForMember(dest => dest.Medals, opt => opt.MapFrom(src => src.MedalsEarned))
                 .ForMember(dest => dest.LevelNumber, opt => opt.MapFrom(src => src.Level.LevelNumber))
                 .ForMember(dest => dest.LevelTotalXP, opt => opt.MapFrom(src => src.Level.TotalXP));
