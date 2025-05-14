@@ -1,0 +1,43 @@
+﻿@inject NavigationManager Navigation
+@inject INotificationService NotificationService
+
+<div class="position-relative @Class">
+    <i class="fas fa-bell text-dark icon-header" @onclick="OnBellClick"></i>
+    @if (notificationCount > 0)
+    {
+        <span class="notification-count badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
+            @notificationCount
+        </span>
+    }
+</div>
+
+@code {
+    [Parameter] public string Class { get; set; } = "";
+    private int notificationCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await PeriodicRefresh();
+    }
+
+    private void OnBellClick()
+    {
+        Navigation.NavigateTo("/notifications");
+    }
+
+    private async Task PeriodicRefresh()
+    {
+        while (true)
+        {
+            await LoadNotifications();
+            await Task.Delay(30000);
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        var notifications = await NotificationService.GetMyNotificationsAsync();
+        notificationCount = notifications.Count(n => !n.IsRead);
+        StateHasChanged();
+    }
+}

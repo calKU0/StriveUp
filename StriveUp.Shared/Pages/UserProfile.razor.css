@@ -1,29 +1,29 @@
 /* Profile Card */
 .profile-card {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding: 2rem;
+    gap: 0.5rem;
     background-color: #fff;
     border-radius: 1rem;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
-/* Avatar */
-.profile-avatar {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid #e0e0e0;
+.avatar-overlay-container {
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    z-index: 2;
 }
 
-/* Edit / Logout buttons */
-.profile-actions button {
-    margin-left: 0.5rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
+.profile-avatar-overlay {
+    width: 120px; 
+    height: 120px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 4px solid #fff; 
 }
+
 
 /* Tabs */
 .nav-tabs .nav-link {
@@ -47,4 +47,26 @@
 
 .level-info {
     font-size: 0.95rem;
+}
+
+@media screen and (max-width: 992px) {
+    .avatar-overlay-container {
+        position: relative;
+        top: 0px;
+        left: 0px;
+        z-index: 2;
+    }
+    /* Tabs */
+    .nav-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 300;
+        padding: 0.45rem 1rem;
+    }
+
+        .nav-tabs .nav-link.active {
+            background-color: #0d6efd;
+            color: #fff;
+            border-radius: 0.5rem;
+        }
 }

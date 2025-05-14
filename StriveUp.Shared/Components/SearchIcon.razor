@@ -1,0 +1,11 @@
+﻿@inject NavigationManager Navigation
+<i class="fas fa-search text-dark @Class icon-header" @onclick="OnSearchClick"></i>
+
+@code {
+    [Parameter] public string Class { get; set; } = "";
+
+    private void OnSearchClick()
+    {
+        Navigation.NavigateTo("/search");
+    }
+}

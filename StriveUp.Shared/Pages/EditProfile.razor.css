@@ -1,0 +1,7 @@
+.avatar-image {
+    transition: filter 1s ease-in-out;
+}
+
+    .avatar-image:hover {
+        filter: brightness(50%);
+    }

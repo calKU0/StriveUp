@@ -12,15 +12,11 @@
 <div class="container-fluid container-md px-0 px-md-4 my-4">
     @if (isLoading)
     {
-        <!-- Loading Spinner -->
-        <div class="loading-overlay">
-            <div class="spinner"></div>
-            <p class="loading-text">Loading activity. Please wait...</p>
-        </div>
+        <Spinner text="Loading details. Please wait..."></Spinner>
     }
     else
     {
-        <div class="card border-0 shadow rounded-4 overflow-hidden w-100">
+        <div class="card border-0 shadow rounded-md-4 rounded-0 overflow-hidden w-100">
             <!-- Header -->
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center p-4">
                 <div class="d-flex align-items-center gap-3">

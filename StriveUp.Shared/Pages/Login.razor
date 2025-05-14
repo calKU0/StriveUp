@@ -6,49 +6,64 @@
 @inject IAuthService AuthService
 @attribute [AllowAnonymous]
 
-<div class="d-flex justify-content-center align-items-center container-full">
-    <div class="container text-center">
-        <img class="mb-4" src="images/StriveUp-logo-dark.png" alt="Logo" width="144" height="144">
-        <h5 class="fw-bold">Login to your account</h5>
-        <p>Enter your email and password</p>
+@if (isLoading)
+{
+    <Spinner></Spinner>
+}
+else
+{
+    <div class="d-flex justify-content-center align-items-center container-full">
+        <div class="container text-center">
+            <img class="mb-4" src="images/StriveUp-logo-dark.png" alt="Logo" width="144" height="144">
+            <h5 class="fw-bold">Login to your account</h5>
+            <p>Enter your email and password</p>
 
-        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin"
-                  class="text-center align-items-center d-flex flex-column">
-            <div class="form-floating col-12 col-md-6 mb-3">
-                <InputText class="form-control" @bind-Value="loginModel.Username"
-                           placeholder="email@domain.com" />
-                <label for="floatingInput">Email</label>
+            <EditForm Model="@loginModel" OnValidSubmit="HandleLogin"
+            class="text-center align-items-center d-flex flex-column">
+                <div class="form-floating col-12 col-md-6 mb-3">
+                    <InputText class="form-control" @bind-Value="loginModel.Username"
+                    placeholder="email@domain.com" />
+                    <label for="floatingInput">Email</label>
+                </div>
+                <div class="form-floating col-12 col-md-6 mb-3">
+                    <InputText class="form-control" @bind-Value="loginModel.Password" type="password"
+                    placeholder="Password" />
+                    <label for="floatingPassword">Password</label>
+                </div>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                @if (!string.IsNullOrEmpty(loginError))
+                {
+                    <div class="text-danger col-12 col-md-6 mb-3">@loginError</div>
+                }
+                <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Log in</button>
+            </EditForm>
+
+            <p class="text-muted text-center mb-2">or</p>
+
+            <button class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Continue with Google</button>
+            <button class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Continue with apple</button>
+
+            <div class="text-center">
+                <p class="text-muted m-0 p-0">Don't have an account yet?</p>
+                <a href="" @onclick="RegisterClick">Register here!</a>
             </div>
-            <div class="form-floating col-12 col-md-6 mb-3">
-                <InputText class="form-control" @bind-Value="loginModel.Password" type="password"
-                           placeholder="Password" />
-                <label for="floatingPassword">Password</label>
-            </div>
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            @if (!string.IsNullOrEmpty(loginError))
-            {
-                <div class="text-danger col-12 col-md-6 mb-3">@loginError</div>
-            }
-            <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Log in</button>
-        </EditForm>
-
-        <p class="text-muted text-center mb-2">or</p>
-
-        <button class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Continue with Google</button>
-        <button class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Continue with apple</button>
-
-        <div class="text-center">
-            <p class="text-muted m-0 p-0">Don't have an account yet?</p>
-            <a href="" @onclick="RegisterClick">Register here!</a>
         </div>
     </div>
-</div>
-
+}
 
 @code {
     private LoginRequest loginModel = new();
     private string? loginError;
+    private bool isLoading = true;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = false;
+        }
+    }
 
     private async Task HandleLogin()
     {

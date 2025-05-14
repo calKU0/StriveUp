@@ -7,6 +7,8 @@
 @inject IPlatformService PlatformService
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
+@implements IDisposable
+
 
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Profile
@@ -22,30 +24,88 @@
     }
     else
     {
-        <!-- Profile Header -->
-        <div class="profile-card mb-4">
-            <img src="@GetAvatarUrl()" alt="Avatar" class="profile-avatar" />
-            <div class="flex-grow-1">
-                <h4 class="fw-bold mb-0">@userProfile.UserName</h4>
-                <p class="text-muted mb-1">@userProfile.FirstName @userProfile.LastName</p>
-                <div class="d-flex align-items-center mt-2 level-info">
-                    <i class="fas fa-star me-2 text-warning"></i>
-                    <strong>Level @userProfile.LevelNumber</strong>
-                    <span class="ms-2 text-muted small">@userProfile.CurrentXP / @userProfile.LevelTotalXP XP</span>
-                </div>
-            </div>
-            @if (isEditable)
+        <div class="container py-5">
+            @if (isLoading)
             {
-                <div class="profile-actions text-end">
-                    <button class="btn btn-outline-secondary btn-sm me-2" @onclick="HandleEdit">
-                        <i class="fas fa-edit me-1"></i> Edit Profile
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">
-                        <i class="fas fa-sign-out-alt me-1"></i> Logout
-                    </button>
+                <Spinner text="Loading profile. Please wait..."></Spinner>
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+            else
+            {
+                <!-- Profile Header -->
+                <div class="profile-card mb-4 position-relative row p-3">
+                    <!-- Avatar, Overlapping and Centered at the Left Border of the Card -->
+                    <div class="col-12 col-md-4 col-lg-3 d-flex justify-content-center justify-content-md-start">
+                        <div class="avatar-overlay-container">
+                            <img src="@GetAvatarUrl()" alt="Avatar" class="profile-avatar-overlay" />
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-8 col-lg-9 d-flex flex-column">
+                        <div class="ms-0 ms-md-5">
+                            <!-- User Name and Full Name -->
+                            <h4 class="fw-bold mb-0">@userProfile.UserName</h4>
+                            <p class="text-muted mb-1">@userProfile.FirstName @userProfile.LastName</p>
+
+                            <!-- Location Info -->
+                            <div class="mb-2 text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                @FormatLocation(userProfile.City, userProfile.State, userProfile.Country)
+                            </div>
+
+                            @if (userProfile?.Birthday != null)
+                            {
+                                <span><i class="bi bi-cake2"></i> @userProfile.Birthday.Value.ToShortDateString()</span>
+                            }
+
+                            <!-- XP & Level -->
+                            <div class="d-flex align-items-center mt-3 level-info text-end">
+                                <i class="fas fa-star me-2 text-warning"></i>
+                                <strong>Level @userProfile.LevelNumber</strong>
+                                <span class="ms-2 text-muted small">@userProfile.CurrentXP / @userProfile.LevelTotalXP XP</span>
+                            </div>
+                            <div class="progress my-2" style="height: 6px; max-width: 300px; width: 100%;">
+                                <div class="progress-bar bg-warning" role="progressbar"
+                                     style="width: @(XPProgress)%;" aria-valuenow="@XPProgress"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+
+                            <!-- Followers / Following -->
+                            <div class="d-flex flex-wrap gap-3 mt-3 mb-md-0 mb-2">
+                                <div class="text-muted">
+                                    <i class="fas fa-users me-1"></i>
+                                    <strong>@userProfile.Followers.Count</strong> Followers
+                                </div>
+                                <div class="text-muted">
+                                    <i class="fas fa-user-plus me-1"></i>
+                                    <strong>@userProfile.Following.Count</strong> Following
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Buttons (Editable section) -->
+                    @if (isEditable)
+                    {
+                        <div class="profile-actions d-flex flex-column text-end ms-auto col-12 col-md-2">
+                            <button class="btn btn-outline-secondary btn-sm mb-2" @onclick="HandleEdit">
+                                <i class="fas fa-edit me-1"></i> Edit Profile
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">
+                                <i class="fas fa-sign-out-alt me-1"></i> Logout
+                            </button>
+                        </div>
+                    }
                 </div>
             }
         </div>
+
+
+
 
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
@@ -153,6 +213,9 @@
     private bool isEditable = false;
     private string userName = "";
     private string activeTab = "activities";
+    private int XPProgress => userProfile.LevelTotalXP == 0
+        ? 0
+        : (int)((double)userProfile.CurrentXP / userProfile.LevelTotalXP * 100);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -252,8 +315,19 @@
             ? "https://via.placeholder.com/100"
             : userProfile.Avatar;
 
+    private string FormatLocation(string? city, string? state, string? country)
+    {
+        var parts = new[] { city, state, country }.Where(x => !string.IsNullOrWhiteSpace(x));
+        return parts.Any() ? string.Join(", ", parts) : "Location not set";
+    }
+
     private void SetTab(string tab)
     {
         activeTab = tab;
+    }
+
+    public void Dispose()
+    {
+        dotNetRef?.Dispose();
     }
 }

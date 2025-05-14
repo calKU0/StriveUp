@@ -33,6 +33,12 @@ namespace StriveUp.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<UserActivity>()
+                .HasOne(ua => ua.User)
+                .WithMany(u => u.UserActivities)
+                .HasForeignKey(ua => ua.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<ActivityComment>()
                 .HasOne(c => c.UserActivity)
                 .WithMany(a => a.ActivityComments)

@@ -1,0 +1,63 @@
+﻿@page "/settings"
+
+<div class="container p-0 p-md-4">
+    <h1 class="mb-4 text-center d-none d-md-block">Settings</h1>
+
+    <div class="list-group">
+        <a href="/change-email" class="list-group-item list-group-item-action border-bottom">
+            Change Email
+        </a>
+
+        <a href="/manage-devices" class="list-group-item list-group-item-action border-bottom">
+            Manage App and Devices
+        </a>
+
+        <div class="list-group-item list-group-item-action border-bottom" @onclick="() => showModal = true">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Appearance</span>
+                <span class="text-muted small">@selectedTheme</span>
+            </div>
+        </div>
+
+        <a href="/privacy-control" class="list-group-item list-group-item-action border-bottom">
+            Privacy Control
+        </a>
+
+        <a href="/default-metrics" class="list-group-item list-group-item-action border-bottom">
+            Default Metrics
+        </a>
+
+        <a href="/legal" class="list-group-item list-group-item-action border-bottom">
+            Legal
+        </a>
+
+        <button class="list-group-item list-group-item-action text-danger border-bottom" @onclick="HandleLogout">
+            Log Out
+        </button>
+    </div>
+</div>
+
+<GenericSelectModal TItem="string"
+                    Show="@showModal"
+                    ShowChanged="@(v => showModal = v)"
+                    Label="Choose Theme"
+                    Options="@themes"
+                    SelectedValue="@selectedTheme"
+                    SelectedValueChanged="OnThemeChanged" />
+
+@code {
+    private bool showModal = false;
+    private string selectedTheme = "System";
+    private List<string> themes = new() { "Light", "Dark", "System" };
+
+    void OnThemeChanged(string theme)
+    {
+        selectedTheme = theme;
+        // Optionally persist or apply the theme
+    }
+
+    void HandleLogout()
+    {
+        // logout logic here
+    }
+}

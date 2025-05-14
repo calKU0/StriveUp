@@ -4,11 +4,10 @@
 @inject INotificationService NotificationService
 @inject NavigationManager Navigation
 
-<div>
+<div class="container-fluid px-0 mx-0">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow border-0">
-                <div class="card-body p-0">
+               <div class="p-0">
                     @if (notifications.Count == 0)
                     {
                         <div class="text-center p-4 text-muted">
@@ -21,7 +20,7 @@
                         <ul class="list-group list-group-flush">
                             @foreach (var notif in notifications)
                             {
-                                <li class="list-group-item d-flex justify-content-between align-items-start notification-item @(!notif.IsRead ? "bg-light" : "")"
+                                <li class="list-group-item d-flex justify-content-between align-items-start notification-item border-bottom @(!notif.IsRead ? "bg-light" : "")"
                                     @onclick="() => OnNotificationClick(notif)">
                                     <div class="d-flex align-items-start">
                                         <img src="@notif.ActorAvatar" alt="Avatar" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
@@ -39,7 +38,7 @@
             </div>
         </div>
     </div>
-</div>
+
 
 @code {
     private List<NotificationDto> notifications = new();

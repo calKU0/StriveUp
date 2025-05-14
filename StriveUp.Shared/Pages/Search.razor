@@ -10,13 +10,13 @@
     <div class="mb-4">
         <input type="text"
                class="form-control"
-               placeholder="🔍 Search users..."
+               placeholder="Search users..."
                @oninput="HandleInput" />
     </div>
 
     @if (isLoading)
     {
-        <div class="text-center"><div class="spinner-border"></div></div>
+        <Spinner></Spinner>
     }
     else if (searchResults?.Any() == true)
     {

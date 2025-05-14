@@ -1,0 +1,55 @@
+﻿@typeparam TItem
+
+@if (Show)
+{
+    <div class="modal-backdrop show opacity-100" @onclick="CloseModal">
+        <div class="modal-container" @onclick:stopPropagation>
+            <div class="modal-card p-4">
+                <h5 class="mb-3">@Label</h5>
+                @foreach (var option in Options)
+                {
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="@GroupName"
+                               id="@GetId(option)"
+                               checked="@IsSelected(option)"
+                               @onchange="() => Select(option)" />
+                        <label class="form-check-label" for="@GetId(option)">
+                            @GetLabel(option)
+                        </label>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
+
+    [Parameter] public string Label { get; set; }
+    [Parameter] public List<TItem> Options { get; set; } = new();
+    [Parameter] public TItem SelectedValue { get; set; }
+    [Parameter] public EventCallback<TItem> SelectedValueChanged { get; set; }
+    [Parameter] public Func<TItem, string> GetLabel { get; set; } = item => item?.ToString();
+    [Parameter] public Func<TItem, string> GetValue { get; set; } = item => item?.ToString();
+
+    private string GroupName { get; } = $"group_{Guid.NewGuid()}";
+
+    private string GetId(TItem item) => $"{GroupName}_{GetValue(item)}";
+
+    private bool IsSelected(TItem item) => EqualityComparer<TItem>.Default.Equals(item, SelectedValue);
+
+    private async Task Select(TItem item)
+    {
+        await SelectedValueChanged.InvokeAsync(item);
+        await CloseModal();
+    }
+
+    private async Task CloseModal()
+    {
+        await ShowChanged.InvokeAsync(false);
+    }
+}
