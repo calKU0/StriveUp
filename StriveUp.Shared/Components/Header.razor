@@ -1,6 +1,5 @@
 ﻿@inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject INotificationService NotificationService
 
 <div class="native-header d-flex justify-content-between align-items-center px-3 py-2">
     <!-- Left side: Back Button -->
@@ -20,19 +19,11 @@
     <div class="right-icons d-flex align-items-center">
         @if (showSearch)
         {
-            <i class="fas fa-search text-dark" @onclick="OnSearchClick"></i>
+            <SearchIcon></SearchIcon>
         }
         @if (showBell)
         {
-            <div class="position-relative">
-                <i class="fas fa-bell text-dark" @onclick="OnBellClick"></i>
-                @if (notificationCount > 0)
-                {
-                    <span class="notification-count badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
-                        @notificationCount
-                    </span>
-                }
-            </div>
+            <BellIcon></BellIcon>
         }
         @if (showSettings)
         {
@@ -42,18 +33,16 @@
 </div>
 
 @code {
-    [Parameter] public string pageTitle { get; set; } = string.Empty;
-
+    private string pageTitle = "";
     private bool showBell = true;
     private bool showSearch = true;
     private bool showBackButton = false;
     private bool showSettings = false;
 
-    private int notificationCount = 0;
-
     protected override async Task OnInitializedAsync()
     {
-        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search")
+        pageTitle = GetPageName();
+        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Settings")
         {
             showBell = false;
             showSearch = false;
@@ -61,15 +50,12 @@
             showSettings = false;
         }
         Navigation.LocationChanged += OnLocationChanged;
-
-        // Start periodic refresh for notifications
-        await PeriodicRefresh();
     }
 
 
     private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Notifications")
+        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Notifications" || pageTitle == "Settings")
         {
             showBell = false;
             showSearch = false;
@@ -84,7 +70,8 @@
             showSettings = false;
         }
 
-        StateHasChanged();  // Ensure the UI updates with the new page name
+        pageTitle = GetPageName();
+        StateHasChanged(); 
     }
 
     private async Task BackButtonClick()
@@ -92,35 +79,28 @@
         await JSRuntime.InvokeVoidAsync("history.back");
     }
 
-    private void OnSearchClick()
+    private string GetPageName()
     {
-        Navigation.NavigateTo("/search");
+        var uri = Navigation.Uri;
+        var segments = new Uri(uri).Segments;
+        var pageName = segments.LastOrDefault()?.TrimEnd('/');
+
+        return CapitalizeFirstLetter(String.IsNullOrEmpty(pageName) ? "home" : pageName);
     }
 
-    private void OnBellClick()
+
+    private string CapitalizeFirstLetter(string input)
     {
-        Navigation.NavigateTo("/notifications");
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        // Capitalize the first letter and keep the rest of the string unchanged
+        return char.ToUpper(input[0]) + input.Substring(1).ToLower();
     }
 
     public void Dispose()
     {
         // Unsubscribe when the component is disposed to avoid memory leaks
         Navigation.LocationChanged -= OnLocationChanged;
-    }
-
-    private async Task PeriodicRefresh()
-    {
-        while (true)
-        {
-            await LoadNotifications();
-            await Task.Delay(30000);
-        }
-    }
-
-    private async Task LoadNotifications()
-    {
-        var notifications = await NotificationService.GetMyNotificationsAsync();
-        notificationCount = notifications.Count(n => !n.IsRead);
-        StateHasChanged();
     }
 }

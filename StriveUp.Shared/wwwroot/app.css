@@ -31,7 +31,7 @@ html, body {
 }
 
 .content {
-    margin-top: 142px;
+    margin-top: 59px;
 }
 
 a, .btn-link {
@@ -61,12 +61,12 @@ a, .btn-link {
 }
 
 .container-full {
-    height: calc(100vh);
+    height: 100vh;
     padding-top: 0;
     overflow: hidden;
     flex-grow: 1;
     position: relative;
-    margin-top: -142px;
+    margin-top: -59px;
 }
 
 .btn-primary {
@@ -326,6 +326,15 @@ textarea.form-control {
 }
 
 
+.icon-header {
+    font-size: 1.4rem;
+    color: #333;
+    cursor: pointer;
+}
+    .icon-header i:hover {
+        color: #555;
+    }
+
 
 /* Styling the progress text */
 .progress-text {
@@ -418,5 +427,9 @@ textarea.form-control {
         height: calc(100vh - 52px);
         margin-top: -52px;
         margin-bottom: -80px;
+    }
+
+    .fa-search {
+        margin-right: 20px
     }
 }

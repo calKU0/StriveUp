@@ -11,17 +11,20 @@ namespace StriveUp.Shared.DTOs
 {
     public class RegisterRequest
     {
-        [Required]
-        public string Username { get; set; }
-        [Required]
-        public string Email { get; set; }
-        [Required]
-        public string Password { get; set; }
-        [Required]
         public string FirstName { get; set; }
-        [Required]
         public string LastName { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string RepeatPassword { get; set; }
         public string? AvatarBase64 { get; set; }
+        public string Gender { get; set; }
+        public DateTime? Birthday { get; set; }
+        public string? Country { get; set; }
+        public string? State { get; set; }
+        public string? City { get; set; }
+        public string? Bio { get; set; }
+
     }
 
 }

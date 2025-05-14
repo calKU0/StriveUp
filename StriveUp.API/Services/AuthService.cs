@@ -40,42 +40,62 @@ public class AuthService : StriveUp.API.Services.IAuthService
 
     public async Task<(IdentityResult Result, string Token)> RegisterAsync(RegisterRequest request)
     {
-        string avatarUrl = null;
-
-        if (!string.IsNullOrEmpty(request.AvatarBase64))
+        try
         {
-            var bytes = Convert.FromBase64String(request.AvatarBase64);
-            var stream = new MemoryStream(bytes);
-            stream.Position = 0;
+            string avatarUrl = null;
 
-            var file = new FormFile(stream, 0, bytes.Length, "avatar", "avatar.png")
+            if (request.Password != request.RepeatPassword)
             {
-                Headers = new HeaderDictionary(),
-                ContentType = "image/png"
+                return (IdentityResult.Failed(new IdentityError { Description = "Passwords do not match." }), null);
+            }
+
+
+            if (!string.IsNullOrEmpty(request.AvatarBase64))
+            {
+                var bytes = Convert.FromBase64String(request.AvatarBase64);
+                var stream = new MemoryStream(bytes);
+                stream.Position = 0;
+
+                var file = new FormFile(stream, 0, bytes.Length, "avatar", "avatar.png")
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = "image/png"
+                };
+                avatarUrl = await _imageService.UploadImageAsync(file);
+            }
+
+            var user = new AppUser
+            {
+                UserName = request.Username,
+                Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Avatar = avatarUrl,
+                Gender = request.Gender,
+                Birthday = request.Birthday,
+                Country = request.Country,
+                State = request.State,
+                City = request.City,
+                Bio = request.Bio
             };
-            avatarUrl = await _imageService.UploadImageAsync(file);
+
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
+                return (result, null);
+
+            var token = GenerateJwtToken(user);
+            return (result, token);
         }
-
-        var user = new AppUser
+        catch (FormatException ex)
         {
-            UserName = request.Username,
-            Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Avatar = avatarUrl,
-        };
-
-        var result = await _userManager.CreateAsync(user, request.Password);
-        foreach (var error in result.Errors)
-        {
-            Console.WriteLine($"Code: {error.Code}, Description: {error.Description}");
+            return (IdentityResult.Failed(new IdentityError { Description = "Invalid avatar image format." }), null);
         }
-        if (!result.Succeeded)
-            return (result, null);
-
-        var token = GenerateJwtToken(user);
-        return (result, token);
+        catch (Exception ex)
+        {
+            return (IdentityResult.Failed(new IdentityError { Description = $"Unexpected error: {ex.Message}" }), null);
+        }
     }
+
 
     public async Task LogoutAsync()
     {

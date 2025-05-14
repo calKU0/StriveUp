@@ -2,27 +2,17 @@
 @using Microsoft.AspNetCore.Authorization
 @using StriveUp.Shared.DTOs
 @using System.Drawing
-@using System.IO
-@using System.Diagnostics
 @attribute [AllowAnonymous]
 @inject NavigationManager Nav
 @inject IAuthService AuthService
 
-<div class="d-flex justify-content-center align-items-center container-full">
-    <div class="container text-center pt-0 pt-md-5">
+<div class="d-flex justify-content-center align-items-center">
+    <div class="container text-center pt-0 pt-md-2">
         <img class="mb-4" src="images/StriveUp-logo-dark.png" alt="Logo" width="144" height="144">
         <h5 class="fw-bold">Register</h5>
         <p>Enter your email and password</p>
         <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
             <div class="row register-form-row justify-content-center g-3 pb-3">
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="username" class="form-control" @bind-Value="registerModel.Username" placeholder="Username" />
-                    <label for="username">Username</label>
-                </div>
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="email" class="form-control" @bind-Value="registerModel.Email" type="email" placeholder="Email" />
-                    <label for="email">Email</label>
-                </div>
                 <div class="form-floating col-12 col-md-6">
                     <InputText id="firstName" class="form-control" @bind-Value="registerModel.FirstName" placeholder="First Name" />
                     <label for="firstName">First Name</label>
@@ -32,22 +22,76 @@
                     <label for="lastName">Last Name</label>
                 </div>
                 <div class="form-floating col-12 col-md-6">
-                    <InputText id="password" class="form-control" @bind-Value="registerModel.Password" type="password" placeholder="Password" />
+                    <InputText id="username" class="form-control" @bind-Value="registerModel.Username" placeholder="Username"/>
+                    <label for="username">Username</label>
+                </div>
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="email" class="form-control" @bind-Value="registerModel.Email" type="email" placeholder="Email"/>
+                    <label for="email">Email</label>
+                </div>
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="password" class="form-control" @bind-Value="registerModel.Password" type="password" placeholder="Password"/>
                     <label for="password">Password</label>
                 </div>
+                <!-- Repeat Password -->
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="repeatPassword" class="form-control" @bind-Value="registerModel.RepeatPassword" type="password" placeholder="Repeat Password" />
+                    <label for="repeatPassword">Repeat Password</label>
+                </div>
+                <!-- Bio -->
+                <div class="form-floating col-12">
+                    <InputTextArea id="bio" class="form-control" @bind-Value="registerModel.Bio" placeholder="Bio" />
+                    <label for="bio">Bio</label>
+                </div>
+
+                <!-- Gender -->
+                <div class="form-floating col-12 col-md-6">
+                    <InputSelect id="gender" class="form-control" @bind-Value="registerModel.Gender">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </InputSelect>
+                    <label for="gender">Gender</label>
+                </div>
+
+                <!-- Birthday -->
+                <div class="form-floating col-12 col-md-6">
+                    <InputDate id="birthday" class="form-control" @bind-Value="registerModel.Birthday" />
+                    <label for="birthday">Birthday</label>
+                </div>
+
+                <!-- Country -->
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="country" class="form-control" @bind-Value="registerModel.Country" placeholder="Country" />
+                    <label for="country">Country</label>
+                </div>
+
+                <!-- State -->
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="state" class="form-control" @bind-Value="registerModel.State" placeholder="State" />
+                    <label for="state">State</label>
+                </div>
+
+                <!-- City -->
+                <div class="form-floating col-12 col-md-6">
+                    <InputText id="city" class="form-control" @bind-Value="registerModel.City" placeholder="City" />
+                    <label for="city">City</label>
+                </div>
+
                 <div class="col-12 col-md-6">
                     <label for="avatarUpload" class="form-label">Upload Avatar (optional)</label>
                     <!-- Custom Circle Button for file selection -->
                     <label for="avatarUpload" class="btn btn-light rounded-circle p-3" style="cursor: pointer;">
                         <span>Select File</span>
-                        <InputFile id="avatarUpload" OnChange="HandleFileChange" class="d-none" />
+                        <InputFile id="avatarUpload" OnChange="HandleFileChange" class="d-none"/>
                     </label>
 
                     <!-- Display Cropped Image -->
                     @if (!string.IsNullOrWhiteSpace(croppedImageUrl))
                     {
                         <div class="avatar-preview mt-2">
-                            <img src="@croppedImageUrl" alt="Avatar preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" />
+                            <img src="@croppedImageUrl" alt="Avatar preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;"/>
                         </div>
                     }
                 </div>
@@ -99,7 +143,6 @@
                 registerModel.AvatarBase64 = croppedImageBase64;
             }
 
-            Debug.WriteLine(registerModel.Email);
             var (success, errors) = await AuthService.RegisterAsync(registerModel);
 
             if (success)
@@ -140,75 +183,105 @@
         imageDataUrl = $"data:{file.ContentType};base64,{base64Data}";
 
         // Call JavaScript to crop the image and update the cropped image preview
-        await CropImageAsync(imageDataUrl);
+        await ResizeAndCropImageAsync(imageDataUrl);
     }
 
-    private async Task CropImageAsync(string imageDataUrl)
+    private async Task ResizeAndCropImageAsync(string imageDataUrl)
     {
-        var base64Data = imageDataUrl.Substring(imageDataUrl.IndexOf(',') + 1);
-        var imageBytes = Convert.FromBase64String(base64Data);
-
-        // Load image into a MemoryStream
-        using var ms = new System.IO.MemoryStream(imageBytes);
-        using var originalImage = Image.FromStream(ms);
-
-        // Define target size (256x256)
-        var cropWidth = 256;
-        var cropHeight = 256;
-
-        // Calculate the aspect ratio of the original image
-        var aspectRatio = (double)originalImage.Width / originalImage.Height;
-
-        int newWidth, newHeight;
-        int xOffset = 0, yOffset = 0;
-
-        if (aspectRatio > 1) // Landscape image
+        try
         {
-            newWidth = (int)(originalImage.Height * aspectRatio);
-            newHeight = originalImage.Height;
+            var base64Data = imageDataUrl.Substring(imageDataUrl.IndexOf(',') + 1);
+            var imageBytes = Convert.FromBase64String(base64Data);
+
+            // Load image into a MemoryStream
+            using var ms = new System.IO.MemoryStream(imageBytes);
+            using var originalImage = Image.FromStream(ms);
+
+            // Define target size (256x256)
+            var targetWidth = 256;
+            var targetHeight = 256;
+
+            // Calculate the aspect ratio of the original image
+            var aspectRatio = (double)originalImage.Width / originalImage.Height;
+
+            int newWidth, newHeight;
+
+            // Resize the image to fit within the target size while maintaining aspect ratio
+            if (originalImage.Width > originalImage.Height)
+            {
+                newWidth = targetWidth;
+                newHeight = (int)(targetWidth / aspectRatio);
+            }
+            else if (originalImage.Width < originalImage.Height)
+            {
+                newHeight = targetHeight;
+                newWidth = (int)(targetHeight * aspectRatio);
+            }
+            else
+            {
+                newWidth = targetWidth;
+                newHeight = targetHeight;
+            }
+
+            // Create a new Bitmap for the resized image
+            var resizedImage = new Bitmap(newWidth, newHeight);
+
+            using (var g = Graphics.FromImage(resizedImage))
+            {
+                // Set high quality rendering options
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+
+                // Draw the resized image
+                g.DrawImage(originalImage, 0, 0, newWidth, newHeight);
+            }
+
+            // Now crop if necessary to the exact target size
+            int xOffset = 0, yOffset = 0;
+            if (newWidth > targetWidth)
+            {
+                xOffset = (newWidth - targetWidth) / 2;
+            }
+            if (newHeight > targetHeight)
+            {
+                yOffset = (newHeight - targetHeight) / 2;
+            }
+
+            // Create a final bitmap to hold the cropped image
+            var finalImage = new Bitmap(targetWidth, targetHeight);
+
+            using (var g = Graphics.FromImage(finalImage))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+
+                // Crop from the center to get the target size
+                g.DrawImage(resizedImage, 0, 0, new Rectangle(xOffset, yOffset, targetWidth, targetHeight), GraphicsUnit.Pixel);
+            }
+
+            // Save the final cropped and resized image into a memory stream in PNG format
+            using var croppedMs = new System.IO.MemoryStream();
+            finalImage.Save(croppedMs, System.Drawing.Imaging.ImageFormat.Png);
+
+            // Convert the final image to a base64 string
+            var croppedBase64 = Convert.ToBase64String(croppedMs.ToArray());
+
+            // Update the croppedImageUrl to show the result in the UI
+            croppedImageUrl = $"data:image/png;base64,{croppedBase64}";
+
+            registerModel.AvatarBase64 = croppedImageUrl;
+
+            // Notify the UI to update
+            StateHasChanged();
+
+            await Task.CompletedTask;
         }
-        else if (aspectRatio < 1) // Portrait image
+        catch (Exception ex)
         {
-            newWidth = originalImage.Width;
-            newHeight = (int)(originalImage.Width / aspectRatio);
+            Console.WriteLine(ex);
         }
-        else // Square image
-        {
-            newWidth = originalImage.Width;
-            newHeight = originalImage.Height;
-        }
-
-        // Adjust the crop to the center
-        xOffset = (newWidth - cropWidth) / 2;
-        yOffset = (newHeight - cropHeight) / 2;
-
-        // Create a new Bitmap to hold the cropped image
-        var croppedImage = new Bitmap(cropWidth, cropHeight);
-
-        // Create a graphics object to draw the cropped image
-        using (var g = Graphics.FromImage(croppedImage))
-        {
-            // Set high quality rendering options
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-            g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-
-            // Crop from the center of the image
-            g.DrawImage(originalImage, 0, 0, new Rectangle(xOffset, yOffset, cropWidth, cropHeight), GraphicsUnit.Pixel);
-        }
-
-        // Save the cropped image into a memory stream in PNG format
-        using var croppedMs = new System.IO.MemoryStream();
-        croppedImage.Save(croppedMs, System.Drawing.Imaging.ImageFormat.Png);
-
-        // Convert the cropped image to a base64 string
-        var croppedBase64 = Convert.ToBase64String(croppedMs.ToArray());
-
-        // Update the croppedImageUrl to show the result in the UI
-        croppedImageUrl = $"data:image/png;base64,{croppedBase64}";
-
-        // Complete the task asynchronously
-        await Task.CompletedTask;
     }
 
 }

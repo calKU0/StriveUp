@@ -14,27 +14,3 @@
         font-weight: bold;
         color: #333;
     }
-
-    .native-header i {
-        font-size: 1.4rem;
-        color: #333;
-        cursor: pointer;
-    }
-    .native-header .fa-search {
-        margin-right:20px
-    }
-
-        .native-header i:hover {
-            color: #555;
-        }
-
-.notification-count {
-    font-size: 0.75rem; 
-    width: 18px;
-    height: 18px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white; 
-    background-color: red;
-}

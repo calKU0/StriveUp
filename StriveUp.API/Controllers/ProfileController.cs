@@ -37,8 +37,9 @@ namespace StriveUp.API.Controllers
                     .AsNoTracking()  // AsNoTracking to improve performance for read-only queries
                     .Where(u => u.UserName == userName)
                     .Include(u => u.Level)
-                    .Include(u => u.MedalsEarned)!
-                        .ThenInclude(me => me.Medal)
+                    .Include(u => u.MedalsEarned)!.ThenInclude(me => me.Medal)
+                    .Include(u => u.Followers)!.ThenInclude(f => f.Follower)
+                    .Include(u => u.Following)!.ThenInclude(f => f.Followed)
                     .FirstOrDefaultAsync();
 
                 if (user == null)

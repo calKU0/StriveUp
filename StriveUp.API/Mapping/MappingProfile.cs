@@ -68,7 +68,9 @@ namespace StriveUp.API.Mapping
             CreateMap<AppUser, UserProfileDto>()
                 .ForMember(dest => dest.Medals, opt => opt.MapFrom(src => src.MedalsEarned))
                 .ForMember(dest => dest.LevelNumber, opt => opt.MapFrom(src => src.Level.LevelNumber))
-                .ForMember(dest => dest.LevelTotalXP, opt => opt.MapFrom(src => src.Level.TotalXP));
+                .ForMember(dest => dest.LevelTotalXP, opt => opt.MapFrom(src => src.Level.TotalXP))
+                .ForMember(dest => dest.Followers, opt => opt.MapFrom(src => src.Followers.Select(f => f.Follower)))
+                .ForMember(dest => dest.Following, opt => opt.MapFrom(src => src.Following.Select(f => f.Followed)));
 
             CreateMap<EditUserProfileDto, AppUser>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
@@ -89,6 +91,8 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.ActorAvatar, opt => opt.Ignore());
 
             CreateMap<CreateNotificationDto, Notification>();
+
+            CreateMap<AppUser, SimpleUserDto>();
         }
     }
 }

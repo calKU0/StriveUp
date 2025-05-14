@@ -127,12 +127,6 @@ function scrollToTrackingSection() {
 }
 
 
-window.triggerFileInputClick = function (element) {
-    if (element) {
-        element.click();
-    }
-};
-
 window.renderLineChartById = (id, labels, data, label, maxtics) => {
     const tryRender = () => {
         const canvas = document.getElementById(id);
@@ -200,3 +194,56 @@ window.renderLineChartById = (id, labels, data, label, maxtics) => {
     tryRender();
 };
 
+window.launchConfetti = () => {
+    if (window.confetti) {
+        // Create a canvas if not already
+        if (!window._confettiCanvas) {
+            const canvas = document.createElement('canvas');
+            canvas.id = 'confetti-canvas';
+            canvas.style.position = 'fixed';
+            canvas.style.top = 0;
+            canvas.style.left = 0;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = 9999; // Very high to overlay modal
+            document.body.appendChild(canvas);
+            window._confettiCanvas = canvas;
+            window.confetti = window.confetti.create(canvas, { resize: true });
+        }
+
+        // Launch confetti
+        window.confetti({
+            particleCount: 160,
+            spread: 90,
+            origin: { y: 0.6 }
+        });
+    }
+};
+
+// lazy loading (infinite scroll)
+window.initIntersectionObserver = (element, dotNetHelper) => {
+    console.log("Observer initialized");
+    if (!element) {
+        console.warn("Sentinel not found");
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            console.log("Observer entry:", entry);
+            if (entry.isIntersecting) {
+                console.log("Loading more activities...");
+                dotNetHelper.invokeMethodAsync('LoadMoreActivities');
+            }
+        });
+    });
+
+    observer.observe(element);
+};
+window.triggerFileInputClick = function () {
+    var fileInput = document.getElementById("fileInput");
+    if (fileInput) {
+        fileInput.click();
+    }
+}

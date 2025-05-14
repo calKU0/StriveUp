@@ -111,4 +111,9 @@ window.initIntersectionObserver = (element, dotNetHelper) => {
 
     observer.observe(element);
 };
-
+window.triggerFileInputClick = function () {
+    var fileInput = document.getElementById("fileInput");
+    if (fileInput) {
+        fileInput.click();
+    }
+}

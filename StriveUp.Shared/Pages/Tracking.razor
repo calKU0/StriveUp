@@ -8,24 +8,18 @@
 
 @using GeolocatorPlugin
 @using GeolocatorPlugin.Abstractions
-@using Microsoft.Maui
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
-@using StriveUp.Shared.Components
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
 @using System.Diagnostics
-@using Plugin.BLE.Abstractions.Contracts;
 
 
 
 <div class="page-wrapper container-full @(mapVisible ? "map-visible" : "")">
     @if (isLoadingLocation)
     {
-        <div class="loading-overlay">
-            <div class="spinner"></div>
-            <p class="loading-text">Acquiring GPS. Please wait...</p>
-        </div>
+        <Spinner text="Acquiring GPS. Please wait..."></Spinner>
     }
     else
     {
@@ -178,7 +172,7 @@ OnResume="@ResumeTracking" />
         };
 
         double distanceMoved = currentLocation != null ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers) : 0;
-        if (distanceMoved > 0.05 || e.Position.Accuracy > 5)
+        if (distanceMoved > 0.1 || e.Position.Accuracy > 5 && currentLocation != null)
         {
             Console.WriteLine("Suspicious jump filtered: " + distanceMoved + " meters");
             return;

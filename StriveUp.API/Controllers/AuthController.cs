@@ -37,8 +37,5 @@ namespace StriveUp.API.Controllers
 
             return Ok(new JwtResponse { Token = token });
         }
-
-
-
     }
 }
