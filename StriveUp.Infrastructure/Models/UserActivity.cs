@@ -42,6 +42,11 @@ namespace StriveUp.Infrastructure.Models
         public DateTime DateStart { get; set; }
         [Required]
         public DateTime DateEnd { get; set; }
+        [Required]
+        public bool isManualAdded { get; set; } = false;
+        [Required]
+        public bool isSynchronized { get; set; } = false;
+        public int? SynchroId { get; set; }
         public List<ActivityLike>? ActivityLikes { get; set; }
         public List<ActivityComment>? ActivityComments { get; set; }
         public List<GeoPoint>? Route { get; set; }

@@ -93,6 +93,24 @@ namespace StriveUp.API.Mapping
             CreateMap<CreateNotificationDto, Notification>();
 
             CreateMap<AppUser, SimpleUserDto>();
+
+            CreateMap<UserSynchro, UserSynchroDto>()
+                .ForMember(dest => dest.SynchroProviderId, opt => opt.MapFrom(src => src.SynchroId))
+                .ForMember(dest => dest.SynchroProviderName, opt => opt.MapFrom(src => src.SynchroProvider.Name))
+                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.SynchroProvider.IconUrl));
+
+            CreateMap<CreateUserSynchroDto, UserSynchro>()
+                .ForMember(dest => dest.SynchroId, opt => opt.MapFrom(src => src.SynchroProviderId))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
+
+            CreateMap<SynchroProvider, UserSynchroDto>()
+                .ForMember(dest => dest.SynchroProviderId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.SynchroProviderName, opt => opt.MapFrom(src => src.Name));
+
+            CreateMap<UpdateUserSynchroDto, UserSynchro>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }

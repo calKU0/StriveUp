@@ -28,6 +28,8 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<UserFollower> UserFollowers { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Level> Levels { get; set; }
+        public DbSet<SynchroProvider> SynchroProviders { get; set; }
+        public DbSet<UserSynchro> UserSynchros { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

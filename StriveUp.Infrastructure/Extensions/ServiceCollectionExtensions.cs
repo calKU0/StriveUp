@@ -28,6 +28,7 @@ namespace StriveUp.Infrastructure.Extensions
             services.AddIdentity<AppUser, IdentityRole>(options =>
             {
                 options.User.RequireUniqueEmail = true;
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_+";
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
@@ -44,6 +45,7 @@ namespace StriveUp.Infrastructure.Extensions
             services.AddScoped<IFollowService, FollowService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IMedalStateService, MedalStateService>();
+            services.AddScoped<ISynchroService, SynchroService>();
             services.AddScoped<CustomAuthStateProvider>();
             services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
             services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());

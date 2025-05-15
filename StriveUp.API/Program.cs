@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Plugin.BLE.Abstractions.Contracts;
 using StriveUp.API.Mapping;
 using StriveUp.API.Services;
 using StriveUp.Infrastructure.Data;
@@ -60,7 +61,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    Seed.SeedData(context);
+    var services = scope.ServiceProvider;
+
+    await Seed.SeedAdminRoleAndUser(services);
+    await Seed.SeedData(context);
 }
 
 // Configure the HTTP request pipeline.

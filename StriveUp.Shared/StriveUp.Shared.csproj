@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
@@ -12,8 +12,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Geolocator.Plugin" Version="1.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.4" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.16" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.16" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
 		<PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.60" />
 		<PackageReference Include="Plugin.BLE" Version="3.1.0" />

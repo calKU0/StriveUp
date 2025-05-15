@@ -1,0 +1,215 @@
+﻿@page "/synchronize"
+@using StriveUp.Shared.DTOs
+@inject ISynchroService SynchroService
+@inject IJSRuntime JS
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Connected Services</h2>
+        <button class="btn btn-primary" @onclick="OpenModal">
+            <i class="bi bi-plus-lg me-1"></i> Add
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <Spinner text="Loading services..."></Spinner>
+    }
+    else if (userSynchros == null || userSynchros.Count == 0)
+    {
+        <div class="text-center py-5 text-muted">
+            <p class="mb-3">You haven't connected any services yet.</p>
+            <button class="btn btn-primary" @onclick="OpenModal">Connect Service</button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var sync in userSynchros)
+            {
+                <div class="col-12 col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="@sync.IconUrl" alt="Icon" class="rounded" style="width: 40px; height: 40px; object-fit: contain;" />
+                                <div>
+                                    <h5 class="card-title mb-0">@sync.SynchroProviderName</h5>
+                                    <small class="text-muted">Status: @(sync.IsActive ? "Active" : "Inactive")</small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           checked="@sync.IsActive"
+                                           @onchange="(e => ToggleIsActive(sync, e.Value))" />
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        title="Delete"
+                                        @onclick="() => DeleteSynchro(sync.Id)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            }
+        </div>
+    }
+</div>
+
+<!-- Bootstrap Modal -->
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Connect a Service</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3 text-muted">Select a service to connect:</p>
+
+                    <div class="row g-3 mb-4">
+                        @foreach (var provider in availableProviders)
+                        {
+                            <div class="col-6 col-md-4">
+                                <div class="card h-100 text-center p-2 border @((newSynchro.SynchroProviderId == provider.SynchroProviderId) ? "border-primary" : "")"
+                                     style="cursor: pointer;"
+                                     @onclick="() => SelectProvider(provider.SynchroProviderId)">
+                                    <img src="@provider.IconUrl" alt="Icon" class="mx-auto" style="width: 40px; height: 40px; object-fit: contain;" />
+                                    <div class="mt-2 small">@provider.SynchroProviderName</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (newSynchro.SynchroProviderId != 0)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input autocomplete="off" class="form-control" @bind="newSynchro.Username" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input autocomplete="off" type="password" class="form-control" @bind="newSynchro.Password" />
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    <button class="btn btn-primary"
+                            @onclick="SubmitNewSynchro"
+                            disabled="@(newSynchro.SynchroProviderId == 0)">
+                        Save
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<UserSynchroDto> userSynchros = new();
+    private List<UserSynchroDto> availableProviders = new();
+    private CreateUserSynchroDto newSynchro = new();
+    private bool showModal = false;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            userSynchros = await SynchroService.GetUserSynchrosAsync();
+            availableProviders = await SynchroService.GetAvailableProvidersAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        isLoading = false;
+    }
+
+    private void OpenModal()
+    {
+        newSynchro = new CreateUserSynchroDto();
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task SubmitNewSynchro()
+    {
+        var response = await SynchroService.AddUserSynchroAsync(newSynchro);
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadData();
+            showModal = false;
+        }
+        else
+        {
+            Console.WriteLine("Failed to add user synchro.");
+        }
+    }
+
+    private async Task ToggleIsActive(UserSynchroDto sync, object? newValue)
+    {
+        if (newValue is not bool newIsActive)
+            return;
+
+        sync.IsActive = newIsActive;
+
+        var updateDto = new UpdateUserSynchroDto
+        {
+            IsActive = sync.IsActive
+        };
+
+        var response = await SynchroService.UpdateUserSynchroAsync(sync.Id, updateDto);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Failed to update IsActive");
+            sync.IsActive = !newIsActive;
+        }
+    }
+
+    private void SelectProvider(int providerId)
+    {
+        newSynchro.SynchroProviderId = providerId;
+        newSynchro.Username = "";
+        newSynchro.Password = "";
+        StateHasChanged();
+    }
+
+    private async Task DeleteSynchro(int id)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this service?");
+        if (!confirmed) return;
+
+        var response = await SynchroService.DeleteUserSynchroAsync(id);
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadData();
+        }
+        else
+        {
+            Console.WriteLine("Failed to delete UserSynchro.");
+        }
+    }
+}
+

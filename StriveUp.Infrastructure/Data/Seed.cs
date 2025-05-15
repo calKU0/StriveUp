@@ -1,14 +1,70 @@
-﻿using StriveUp.Infrastructure.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using StriveUp.Infrastructure.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using StriveUp.Infrastructure.Identity;
 
 namespace StriveUp.Infrastructure.Data
 {
     public static class Seed
     {
-        public static void SeedData(AppDbContext context)
+        public static async Task SeedAdminRoleAndUser(IServiceProvider serviceProvider)
         {
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
+
+            const string adminRole = "Admin";
+            const string adminEmail = "krzysztop51@wp.pl";
+
+            // 1. Create Admin role if it doesn't exist
+            if (!await roleManager.RoleExistsAsync(adminRole))
+            {
+                await roleManager.CreateAsync(new IdentityRole(adminRole));
+            }
+
+            // 2. Find your user
+            var user = await userManager.FindByEmailAsync(adminEmail);
+            if (user == null)
+            {
+                Console.WriteLine("Admin user not found.");
+                return;
+            }
+
+            // 3. Assign user to Admin role
+            if (!await userManager.IsInRoleAsync(user, adminRole))
+            {
+                await userManager.AddToRoleAsync(user, adminRole);
+                Console.WriteLine("Admin role assigned.");
+            }
+            else
+            {
+                Console.WriteLine("User is already an admin.");
+            }
+        }
+
+
+        public static async Task SeedData(AppDbContext context)
+        {
+            if (!context.SynchroProviders.Any())
+            {
+                var providers = new List<SynchroProvider>
+                {
+                    new SynchroProvider
+                    {
+                        Name = "Garmin Connect",
+                    },
+                    new SynchroProvider
+                    {
+                        Name = "Zepp",
+                    }
+                };
+
+                context.SynchroProviders.AddRange(providers);
+                await context.SaveChangesAsync();
+            }
+
             if (!context.Activities.Any())
             {
                 var activities = new List<Activity>
@@ -34,7 +90,7 @@ namespace StriveUp.Infrastructure.Data
                 };
 
                 context.Activities.AddRange(activities);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             var runningActivity = context.Activities.First(a => a.Name == "Run");
@@ -78,7 +134,7 @@ namespace StriveUp.Infrastructure.Data
                 };
 
                 context.ActivityConfig.AddRange(configs);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
 
@@ -412,7 +468,7 @@ namespace StriveUp.Infrastructure.Data
                 };
 
                 context.Medals.AddRange(medals);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             if (!context.Levels.Any())
@@ -525,9 +581,9 @@ namespace StriveUp.Infrastructure.Data
                     // Add the levels to the context
                     context.Levels.AddRange(levels);
 
-                    // Save changes to the database
-                    context.SaveChanges();
-                }
+                // Save changes to the database
+                await context.SaveChangesAsync();
+            }
             }
         }
     }

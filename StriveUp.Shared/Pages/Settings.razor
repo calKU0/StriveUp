@@ -1,39 +1,64 @@
 ﻿@page "/settings"
 
-<div class="container p-0 p-md-4">
-    <h1 class="mb-4 text-center d-none d-md-block">Settings</h1>
+<div class="container py-4">
+    <h1 class="mb-4 text-center">Settings</h1>
 
-    <div class="list-group">
-        <a href="/change-email" class="list-group-item list-group-item-action border-bottom">
-            Change Email
-        </a>
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <a href="/change-email" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+                <span>Change Email</span>
+                <i class="bi bi-chevron-right text-muted"></i>
+            </a>
+        </div>
 
-        <a href="/manage-devices" class="list-group-item list-group-item-action border-bottom">
-            Manage App and Devices
-        </a>
+        <div class="col-12 col-md-6">
+            <a href="/synchronize" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+                <span>Synchronize Activities</span>
+                <i class="bi bi-arrow-repeat text-muted"></i>
+            </a>
+        </div>
 
-        <div class="list-group-item list-group-item-action border-bottom" @onclick="() => showModal = true">
-            <div class="d-flex justify-content-between align-items-center">
+        <div class="col-12 col-md-6">
+            <a href="/manage-devices" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+                <span>Manage Devices</span>
+                <i class="bi bi-phone text-muted"></i>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center" @onclick="() => showModal = true" style="cursor: pointer;">
                 <span>Appearance</span>
                 <span class="text-muted small">@selectedTheme</span>
             </div>
         </div>
 
-        <a href="/privacy-control" class="list-group-item list-group-item-action border-bottom">
-            Privacy Control
-        </a>
+        <div class="col-12 col-md-6">
+            <a href="/privacy-control" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+                <span>Privacy Control</span>
+                <i class="bi bi-shield-lock text-muted"></i>
+            </a>
+        </div>
 
-        <a href="/default-metrics" class="list-group-item list-group-item-action border-bottom">
-            Default Metrics
-        </a>
+        <div class="col-12 col-md-6">
+            <a href="/default-metrics" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+                <span>Default Metrics</span>
+                <i class="bi bi-sliders text-muted"></i>
+            </a>
+        </div>
 
-        <a href="/legal" class="list-group-item list-group-item-action border-bottom">
-            Legal
-        </a>
+        <div class="col-12 col-md-6">
+            <a href="/legal" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+                <span>Legal</span>
+                <i class="bi bi-file-earmark-text text-muted"></i>
+            </a>
+        </div>
 
-        <button class="list-group-item list-group-item-action text-danger border-bottom" @onclick="HandleLogout">
-            Log Out
-        </button>
+        <div class="col-12 col-md-6">
+            <button class="list-group-item list-group-item-action text-danger shadow-sm rounded d-flex justify-content-between align-items-center" @onclick="HandleLogout">
+                <span>Log Out</span>
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
     </div>
 </div>
 

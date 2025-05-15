@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250515151621_Synchro")]
+    partial class Synchro
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -631,9 +634,6 @@ namespace StriveUp.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("IconUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -685,9 +685,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<double?>("MaxSpeed")
                         .HasColumnType("float");
 
-                    b.Property<int?>("SynchroId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -695,12 +692,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("isManualAdded")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("isSynchronized")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -743,10 +734,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("SynchroId")
                         .HasColumnType("int");
 
@@ -756,10 +743,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -1017,7 +1000,7 @@ namespace StriveUp.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("StriveUp.Infrastructure.Identity.AppUser", "User")
-                        .WithMany("UserSynchros")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1038,8 +1021,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("UserActivities");
-
-                    b.Navigation("UserSynchros");
                 });
 
             modelBuilder.Entity("StriveUp.Infrastructure.Models.Activity", b =>
