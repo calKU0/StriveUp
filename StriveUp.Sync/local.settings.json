@@ -3,7 +3,12 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "ApiUsername": "calku1",
-    "ApiPassword": "Kk48&Kur"
+
+    "ApiUsername": "",
+    "ApiPassword": "",
+
+    "GoogleClientId": "",
+    "GoogleClientSecret": "",
+    "GoogleRedirectUri": ""
   }
 }

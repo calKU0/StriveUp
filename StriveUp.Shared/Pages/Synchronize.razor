@@ -1,5 +1,6 @@
 ﻿@page "/synchronize"
 @using StriveUp.Shared.DTOs
+@inject NavigationManager Navigation
 @inject ISynchroService SynchroService
 @inject IJSRuntime JS
 
@@ -78,36 +79,18 @@
                         @foreach (var provider in availableProviders)
                         {
                             <div class="col-6 col-md-4">
-                                <div class="card h-100 text-center p-2 border @((newSynchro.SynchroProviderId == provider.SynchroProviderId) ? "border-primary" : "")"
+                                <div class="card h-100 text-center p-2 border @((selectedProvider.SynchroProviderId == provider.SynchroProviderId) ? "border-primary" : "")"
                                      style="cursor: pointer;"
-                                     @onclick="() => SelectProvider(provider.SynchroProviderId)">
+                                     @onclick="() => SelectProvider(provider)">
                                     <img src="@provider.IconUrl" alt="Icon" class="mx-auto" style="width: 40px; height: 40px; object-fit: contain;" />
                                     <div class="mt-2 small">@provider.SynchroProviderName</div>
                                 </div>
                             </div>
                         }
                     </div>
-
-                    @if (newSynchro.SynchroProviderId != 0)
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input autocomplete="off" class="form-control" @bind="newSynchro.Username" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input autocomplete="off" type="password" class="form-control" @bind="newSynchro.Password" />
-                        </div>
-                    }
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                    <button class="btn btn-primary"
-                            @onclick="SubmitNewSynchro"
-                            disabled="@(newSynchro.SynchroProviderId == 0)">
-                        Save
-                    </button>
 
                 </div>
             </div>
@@ -119,18 +102,50 @@
 @code {
     private List<UserSynchroDto> userSynchros = new();
     private List<UserSynchroDto> availableProviders = new();
-    private CreateUserSynchroDto newSynchro = new();
+    private UserSynchroDto selectedProvider = new();
     private bool showModal = false;
     private bool isLoading = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool first)
     {
-        await LoadData();
+        if (first)
+        {
+            var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var code = query["code"];
+
+            if (!string.IsNullOrWhiteSpace(code))
+            {
+                isLoading = true;
+                StateHasChanged();
+
+                var response = await SynchroService.ExchangeGoogleFitCodeAsync(code);
+
+                // Optionally remove the query parameter from the URL
+                Navigation.NavigateTo("/synchronize", true);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine("Google Fit token exchange failed: " + error);
+                }
+
+                await LoadData();
+                isLoading = false;
+                StateHasChanged();
+            }
+            else
+            {
+                await LoadData();
+                isLoading = false;
+                StateHasChanged();
+            }
+        }
     }
+
 
     private async Task LoadData()
     {
-        isLoading = true;
         try
         {
             userSynchros = await SynchroService.GetUserSynchrosAsync();
@@ -140,12 +155,10 @@
         {
             Console.WriteLine(ex);
         }
-        isLoading = false;
     }
 
     private void OpenModal()
     {
-        newSynchro = new CreateUserSynchroDto();
         showModal = true;
     }
 
@@ -154,19 +167,6 @@
         showModal = false;
     }
 
-    private async Task SubmitNewSynchro()
-    {
-        var response = await SynchroService.AddUserSynchroAsync(newSynchro);
-        if (response.IsSuccessStatusCode)
-        {
-            await LoadData();
-            showModal = false;
-        }
-        else
-        {
-            Console.WriteLine("Failed to add user synchro.");
-        }
-    }
 
     private async Task ToggleIsActive(UserSynchroDto sync, object? newValue)
     {
@@ -188,12 +188,15 @@
         }
     }
 
-    private void SelectProvider(int providerId)
+    private async Task SelectProvider(UserSynchroDto provider)
     {
-        newSynchro.SynchroProviderId = providerId;
-        newSynchro.Username = "";
-        newSynchro.Password = "";
-        StateHasChanged();
+        selectedProvider = provider;
+        if (provider.SynchroProviderName == "Google Fit")
+        {
+            var authUrl = SynchroService.GetGoogleFitOAuthUrl();
+            await JS.InvokeVoidAsync("open", authUrl, "_self");
+            return;
+        }
     }
 
     private async Task DeleteSynchro(int id)

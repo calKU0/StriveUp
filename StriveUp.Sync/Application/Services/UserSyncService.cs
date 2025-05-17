@@ -5,6 +5,8 @@ using StriveUp.Sync.Application.Interfaces;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace StriveUp.Sync.Application.Services
 {
@@ -12,13 +14,15 @@ namespace StriveUp.Sync.Application.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<UserSyncService> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private readonly string _username;
         private readonly string _password;
 
-        public UserSyncService(HttpClient httpClient, ILogger<UserSyncService> logger, IConfiguration config)
+        public UserSyncService(HttpClient httpClient, ILogger<UserSyncService> logger, IConfiguration config, IServiceProvider serviceProvider)
         {
             _httpClient = httpClient;
             _logger = logger;
+            _serviceProvider = serviceProvider;
             _username = config["ApiUsername"];
             _password = config["ApiPassword"];
         }
@@ -52,34 +56,52 @@ namespace StriveUp.Sync.Application.Services
             // 3. Logic
             foreach (var user in userSynchros)
             {
-                // perform some logic here
-                var activity = new CreateUserActivityDto
+                try
                 {
-                    UserId = user.UserId,
-                    Title = "Synchro Activity",
-                    Description = "This is a synchronized activity.",
-                    DateStart = DateTime.Now,
-                    DateEnd = DateTime.Now + TimeSpan.FromHours(1),
-                    DurationSeconds = 3600,
-                    Distance = 10.0,
-                    ActivityId = 4,
-                    isSynchronized = true,
-                    SynchronizedId = 1+DateTime.Now.Minute,
-                };
+                    IHealthDataProvider provider = user.SynchroProviderName switch
+                    {
+                        "Google Fit" => _serviceProvider.GetRequiredService<GoogleFitProvider>(),
+                        _ => throw new NotSupportedException("Unsupported provider")
+                    };
 
-                // 4. Save activity
-                var activityJson = new StringContent(JsonSerializer.Serialize(activity), Encoding.UTF8, "application/json");
-                var result = await _httpClient.PostAsync("activity/addActivity", activityJson);
+                    var activities = await provider.GetUserActivitiesAsync(user);
+                    if (activities == null || activities.Count == 0)
+                    {
+                        _logger.LogInformation($"No activities found for user {user.UserId}");
+                        continue;
+                    }
 
-                if (!result.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning($"Failed to add activity for user {user.UserId}: {result.StatusCode}");
-                    var errorContent = await result.Content.ReadAsStringAsync();
-                    _logger.LogWarning($"Error response: {errorContent}");
+                    foreach (var activity in activities)
+                    {
+                        try
+                        {
+                            var jsonActivity = JsonSerializer.Serialize(activity);
+                            var request = new HttpRequestMessage(HttpMethod.Post, "activity/addActivity")
+                            {
+                                Content = new StringContent(jsonActivity, Encoding.UTF8, "application/json")
+                            };
+
+                            var responseActivity = await _httpClient.SendAsync(request);
+
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                var error = await responseActivity.Content.ReadAsStringAsync();
+                                _logger.LogWarning($"Failed to send activity for user {activity.UserId}. Status: {responseActivity.StatusCode}. Response: {error}");
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"Activity sent successfully for user {activity.UserId}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, $"Exception sending activity for user {user.UserId}");
+                        }
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.LogInformation($"Activity added for user {user.UserId}");
+                    _logger.LogError(ex, $"Failed syncing for user {user.UserId}");
                 }
             }
 

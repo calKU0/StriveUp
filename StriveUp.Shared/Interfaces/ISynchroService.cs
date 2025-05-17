@@ -11,8 +11,9 @@ namespace StriveUp.Shared.Interfaces
     {
         Task<List<UserSynchroDto>> GetAvailableProvidersAsync();
         Task<List<UserSynchroDto>> GetUserSynchrosAsync();
-        Task<HttpResponseMessage> AddUserSynchroAsync(CreateUserSynchroDto dto);
         Task<HttpResponseMessage> UpdateUserSynchroAsync(int id, UpdateUserSynchroDto dto);
         Task<HttpResponseMessage> DeleteUserSynchroAsync(int id);
+        string GetGoogleFitOAuthUrl();
+        Task<HttpResponseMessage> ExchangeGoogleFitCodeAsync(string code);
     }
 }

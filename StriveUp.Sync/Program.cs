@@ -8,6 +8,13 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(services => {
         services.AddApplicationInsightsTelemetryWorkerService();
+        services.AddSingleton<ITokenService, TokenService>();
+        services.AddSingleton<IHealthDataProvider, GoogleFitProvider>();
+        services.AddHttpClient<GoogleFitProvider>(client =>
+        {
+            client.BaseAddress = new Uri("https://www.googleapis.com/fitness/v1/");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
         services.AddHttpClient<IUserSyncService, UserSyncService>(client =>
         {
             client.BaseAddress = new Uri("https://localhost:7116" + "/api/");

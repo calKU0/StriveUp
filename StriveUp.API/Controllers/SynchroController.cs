@@ -117,31 +117,31 @@ namespace StriveUp.API.Controllers
             }
         }
 
-        [HttpPost("addUserSynchro")]
-        public async Task<ActionResult<UserSynchroDto>> AddUserSynchro([FromBody] CreateUserSynchroDto dto)
-        {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null)
-                    return Unauthorized();
+        //[HttpPost("addUserSynchro")]
+        //public async Task<ActionResult<UserSynchroDto>> AddUserSynchro([FromBody] CreateUserSynchroDto dto)
+        //{
+        //    try
+        //    {
+        //        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //        if (userId == null)
+        //            return Unauthorized();
 
-                var userSynchro = _mapper.Map<UserSynchro>(dto);
-                userSynchro.UserId = userId;
+        //        var userSynchro = _mapper.Map<UserSynchro>(dto);
+        //        userSynchro.UserId = userId;
 
-                _context.UserSynchros.Add(userSynchro);
-                await _context.SaveChangesAsync();
+        //        _context.UserSynchros.Add(userSynchro);
+        //        await _context.SaveChangesAsync();
 
-                var resultDto = _mapper.Map<UserSynchroDto>(userSynchro);
+        //        var resultDto = _mapper.Map<UserSynchroDto>(userSynchro);
 
-                return CreatedAtAction(nameof(GetUserSynchros), new { id = userSynchro.Id }, resultDto);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return StatusCode(500, "Internal server error");
-            }
-        }
+        //        return CreatedAtAction(nameof(GetUserSynchros), new { id = userSynchro.Id }, resultDto);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex);
+        //        return StatusCode(500, "Internal server error");
+        //    }
+        //}
 
         [HttpPut("updateUserSynchro/{id}")]
         public async Task<IActionResult> UpdateUserSynchro(int id, [FromBody] UpdateUserSynchroDto dto)
