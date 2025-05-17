@@ -31,7 +31,7 @@ namespace StriveUp.Infrastructure.Models
         [Required]
         [Range(1, 1440)]
         public double DurationSeconds { get; set; }
-        public double Distance { get; set; }
+        public int Distance { get; set; }
         [Required]
         public int CaloriesBurned { get; set; }
         public double? AvarageSpeed { get; set; }
@@ -46,7 +46,7 @@ namespace StriveUp.Infrastructure.Models
         public bool isManualAdded { get; set; } = false;
         [Required]
         public bool isSynchronized { get; set; } = false;
-        public int? SynchroId { get; set; }
+        public string? SynchroId { get; set; }
         public List<ActivityLike>? ActivityLikes { get; set; }
         public List<ActivityComment>? ActivityComments { get; set; }
         public List<GeoPoint>? Route { get; set; }

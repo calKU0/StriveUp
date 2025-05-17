@@ -23,8 +23,9 @@ namespace StriveUp.Infrastructure.Models
         [Required]
         [ForeignKey("SynchroId")]
         public SynchroProvider SynchroProvider { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public string? AccessToken { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime? TokenExpiresAt { get; set; }
         public bool IsActive { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

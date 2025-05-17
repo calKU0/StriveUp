@@ -36,6 +36,10 @@ namespace StriveUp.Infrastructure.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<UserActivity>()
+                .HasIndex(ua => ua.SynchroId)
+                .IsUnique();
+
+            modelBuilder.Entity<UserActivity>()
                 .HasOne(ua => ua.User)
                 .WithMany(u => u.UserActivities)
                 .HasForeignKey(ua => ua.UserId)

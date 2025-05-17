@@ -14,8 +14,8 @@ namespace StriveUp.Shared.DTOs
         public string? ImageUrl { get; set; }
         public int Level { get; set; }
         public int Points { get; set; }
-        public double TargetValue { get; set; }
-        public double DistanceToEarn { get; set; }
+        public int TargetValue { get; set; }
+        public int DistanceToEarn { get; set; }
         public int ProgressPercent { get; set; }
         public string Frequency { get; set; }
         public DateTime? DateEarned { get; set; }

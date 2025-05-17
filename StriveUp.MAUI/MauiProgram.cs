@@ -1,10 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-using StriveUp.Shared.Interfaces;
-using StriveUp.MAUI.Services;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using StriveUp.Infrastructure.Extensions;
+using StriveUp.MAUI.Services;
+using StriveUp.Shared.Interfaces;
+using System.Reflection;
 
 
 namespace StriveUp.MAUI;
@@ -14,6 +17,23 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
+        var assembly = Assembly.GetExecutingAssembly();
+        var stream = assembly.GetManifestResourceStream("StriveUp.MAUI.appsettings.json");
+
+        var configBuilder = new ConfigurationBuilder();
+
+        if (stream != null)
+        {
+            configBuilder.AddJsonStream(stream);
+        }
+        else
+        {
+            Debug.WriteLine("appsettings.json nie został znaleziony jako zasób");
+        }
+
+        var configuration = configBuilder.Build();
+
         builder
             .UseMauiApp<App>()
             .ConfigureFonts(fonts =>
@@ -28,8 +48,7 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<IBleHeartRateService, BleHeartRateService>();
 
-
-        builder.Services.AddClientInfrastructure();
+        builder.Services.AddClientInfrastructure(builder.Configuration);
         builder.Services.AddAuthorizationCore();
 
         builder.Services.AddHttpClient("ApiClient", (sp, client) =>

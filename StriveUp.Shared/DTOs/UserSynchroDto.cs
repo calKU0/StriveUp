@@ -14,5 +14,8 @@ namespace StriveUp.Shared.DTOs
         public string SynchroProviderName { get; set; }
         public string IconUrl { get; set; }
         public bool IsActive { get; set; }
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
+        public DateTime TokenExpiresAt { get; set; }
     }
 }

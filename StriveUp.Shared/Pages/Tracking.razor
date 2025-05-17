@@ -47,7 +47,7 @@
                 <div class="tiles-wrapper p-2">
                     <!-- Info Tiles -->
                     <div class="row g-3">
-                        <InfoTile Label="Distance" Value="@($"{Math.Round(Distance, 2):F2} km")" IconClass="fas fa-route" />
+                        <InfoTile Label="Distance" Value="@($"{Distance * 1000:F2} km")" IconClass="fas fa-route" />
                         <!-- Conditional display of Speed or Pace -->
                         <InfoTile Label="@GetSpeedOrPaceLabel()"
                                   Value="@GetSpeedOrPace()"
@@ -87,7 +87,7 @@ OnResume="@ResumeTracking" />
     private bool mapVisible = false;
     private bool mapInitialized = false;
     private Location currentLocation;
-    private double Distance = 0;
+    private int Distance = 0;
     private double Speed = 0;
     private int HeartRate = 0;
     private TimeSpan Duration = TimeSpan.Zero;
@@ -201,16 +201,16 @@ OnResume="@ResumeTracking" />
     {
         if (lastLocation != null)
         {
-            var distanceDelta = Location.CalculateDistance(lastLocation, location, DistanceUnits.Kilometers);
+            var distanceDelta = Location.CalculateDistance(lastLocation, location, DistanceUnits.Kilometers) * 1000;
             var timeDelta = (location.Timestamp - lastLocation.Timestamp).TotalHours;
 
             if (timeDelta > 0)
             {
-                var deltaSpeed = distanceDelta / timeDelta; // km/h
+                var deltaSpeed = (distanceDelta) / (timeDelta * 3600); // m/s
                 Speed = ApplyLowPassFilter(deltaSpeed);
             }
 
-            Distance += distanceDelta;
+            Distance += Convert.ToInt32(Math.Round(distanceDelta));
         }
 
         lastLocation = location;
@@ -233,6 +233,12 @@ OnResume="@ResumeTracking" />
         }
     }
 
+    private double ApplyLowPassFilter(double newSpeed)
+    {
+        smoothedSpeed = smoothingAlpha * newSpeed + (1 - smoothingAlpha) * smoothedSpeed;
+        return smoothedSpeed;
+    }
+
     private async Task ConnectHrDevice(BluetoothDeviceDto device)
     {
         selectedDeviceId = device.Id;
@@ -245,10 +251,10 @@ OnResume="@ResumeTracking" />
                 {
                     HeartRate = hr;
                     HrData.Add(new ActivityHrDto
-                        {
-                            HearthRateValue = hr,
-                            TimeStamp = DateTime.UtcNow
-                        });
+                    {
+                        HearthRateValue = hr,
+                        TimeStamp = DateTime.UtcNow
+                    });
                     Debug.WriteLine($"Heart Rate: {hr} bpm");
                 }
 
@@ -257,10 +263,6 @@ OnResume="@ResumeTracking" />
         }
     }
 
-    private void ToggleSheet()
-    {
-        isSheetExpanded = !isSheetExpanded;
-    }
 
     private void ToggleTracking()
     {
@@ -350,7 +352,6 @@ OnResume="@ResumeTracking" />
                 ActivityId = selectedActivity.Id,
                 DateStart = startTime,
                 DateEnd = DateTime.UtcNow,
-                DurationSeconds = Duration.TotalSeconds,
                 Route = route.Select(loc => new GeoPointDto
                 {
                     Latitude = loc.Latitude,
@@ -412,29 +413,34 @@ OnResume="@ResumeTracking" />
         locator.PositionChanged -= OnPositionChanged;
         locator.StopListeningAsync();
     }
+
     private string GetSpeedOrPace()
     {
+        const double minMovementThreshold = 0.5; // m/s below which we consider "not moving"
+
+        if (Speed < minMovementThreshold)
+        {
+            return selectedActivity.MeasurementType == "pace" ? "0 min/km" : "0 km/h";
+        }
+
         if (selectedActivity.MeasurementType == "pace")
         {
-            // If it's pace, return "min/km"
-            return $"{Math.Round(Speed, 2):F2} min/km";
+            // Convert m/s to pace (min/km)
+            double paceInMinPerKm = 1000.0 / Speed / 60.0;
+            return $"{paceInMinPerKm:F2} min/km";
         }
         else
         {
-            // If it's speed, return "km/h"
-            return $"{Math.Round(Speed, 2):F2} km/h";
+            // Convert m/s to km/h
+            double speedInKmH = Speed * 3.6;
+            return $"{speedInKmH:F2} km/h";
         }
     }
+
 
     private string GetSpeedOrPaceLabel()
     {
         return selectedActivity.MeasurementType == "pace" ? "Pace" : "Speed";
-    }
-
-    private double ApplyLowPassFilter(double newSpeed)
-    {
-        smoothedSpeed = smoothingAlpha * newSpeed + (1 - smoothingAlpha) * smoothedSpeed;
-        return smoothedSpeed;
     }
 }
 

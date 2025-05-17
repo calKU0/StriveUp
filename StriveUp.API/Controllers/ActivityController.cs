@@ -63,9 +63,13 @@ namespace StriveUp.API.Controllers
                 if (activity == null)
                     return BadRequest("Invalid activity ID.");
 
+                double durationSeconds = (dto.DateEnd - dto.DateStart).TotalSeconds;
+
                 var userActivity = _mapper.Map<UserActivity>(dto);
                 userActivity.UserId = userId;
-                userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((double)(activity.AverageCaloriesPerHour / 3600) * dto.DurationSeconds));
+                userActivity.DurationSeconds = durationSeconds;
+                userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
+
                 userActivity.MaxSpeed = userActivity.SpeedData?.Any() == true 
                     ? userActivity.SpeedData.Max(s => s.SpeedValue) 
                     : null;

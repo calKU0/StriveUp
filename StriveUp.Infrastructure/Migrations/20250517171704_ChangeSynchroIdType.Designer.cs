@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250517171704_ChangeSynchroIdType")]
+    partial class ChangeSynchroIdType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -533,8 +536,8 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
-                    b.Property<int>("TargetValue")
-                        .HasColumnType("int");
+                    b.Property<double>("TargetValue")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -673,8 +676,8 @@ namespace StriveUp.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("Distance")
-                        .HasColumnType("int");
+                    b.Property<double>("Distance")
+                        .HasColumnType("float");
 
                     b.Property<double>("DurationSeconds")
                         .HasColumnType("float");
@@ -686,7 +689,7 @@ namespace StriveUp.Infrastructure.Migrations
                         .HasColumnType("float");
 
                     b.Property<string>("SynchroId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -705,10 +708,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ActivityId");
-
-                    b.HasIndex("SynchroId")
-                        .IsUnique()
-                        .HasFilter("[SynchroId] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
