@@ -533,8 +533,8 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
-                    b.Property<double>("TargetValue")
-                        .HasColumnType("float");
+                    b.Property<int>("TargetValue")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -623,6 +623,26 @@ namespace StriveUp.Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("StriveUp.Infrastructure.Models.SynchroProvider", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("IconUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SynchroProviders");
+                });
+
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserActivity", b =>
                 {
                     b.Property<int>("Id")
@@ -653,8 +673,8 @@ namespace StriveUp.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<double>("Distance")
-                        .HasColumnType("float");
+                    b.Property<int>("Distance")
+                        .HasColumnType("int");
 
                     b.Property<double>("DurationSeconds")
                         .HasColumnType("float");
@@ -665,6 +685,9 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<double?>("MaxSpeed")
                         .HasColumnType("float");
 
+                    b.Property<string>("SynchroId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -673,9 +696,19 @@ namespace StriveUp.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("isManualAdded")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("isSynchronized")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ActivityId");
+
+                    b.HasIndex("SynchroId")
+                        .IsUnique()
+                        .HasFilter("[SynchroId] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -698,6 +731,48 @@ namespace StriveUp.Infrastructure.Migrations
                     b.HasIndex("FollowedId");
 
                     b.ToTable("UserFollowers");
+                });
+
+            modelBuilder.Entity("StriveUp.Infrastructure.Models.UserSynchro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SynchroId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("TokenExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SynchroId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserSynchros");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -938,6 +1013,25 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("Follower");
                 });
 
+            modelBuilder.Entity("StriveUp.Infrastructure.Models.UserSynchro", b =>
+                {
+                    b.HasOne("StriveUp.Infrastructure.Models.SynchroProvider", "SynchroProvider")
+                        .WithMany()
+                        .HasForeignKey("SynchroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StriveUp.Infrastructure.Identity.AppUser", "User")
+                        .WithMany("UserSynchros")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SynchroProvider");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("StriveUp.Infrastructure.Identity.AppUser", b =>
                 {
                     b.Navigation("Followers");
@@ -949,6 +1043,8 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("UserActivities");
+
+                    b.Navigation("UserSynchros");
                 });
 
             modelBuilder.Entity("StriveUp.Infrastructure.Models.Activity", b =>

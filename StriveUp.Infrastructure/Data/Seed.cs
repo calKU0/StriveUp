@@ -1,14 +1,77 @@
-﻿using StriveUp.Infrastructure.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using StriveUp.Infrastructure.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using StriveUp.Infrastructure.Identity;
 
 namespace StriveUp.Infrastructure.Data
 {
     public static class Seed
     {
-        public static void SeedData(AppDbContext context)
+        public static async Task SeedAdminRoleAndUser(IServiceProvider serviceProvider)
         {
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
+
+            const string adminRole = "Admin";
+            const string adminEmail = "krzysztop51@wp.pl";
+
+            // 1. Create Admin role if it doesn't exist
+            if (!await roleManager.RoleExistsAsync(adminRole))
+            {
+                await roleManager.CreateAsync(new IdentityRole(adminRole));
+            }
+
+            // 2. Find your user
+            var user = await userManager.FindByEmailAsync(adminEmail);
+            if (user == null)
+            {
+                Console.WriteLine("Admin user not found.");
+                return;
+            }
+
+            // 3. Assign user to Admin role
+            if (!await userManager.IsInRoleAsync(user, adminRole))
+            {
+                await userManager.AddToRoleAsync(user, adminRole);
+                Console.WriteLine("Admin role assigned.");
+            }
+            else
+            {
+                Console.WriteLine("User is already an admin.");
+            }
+        }
+
+
+        public static async Task SeedData(AppDbContext context)
+        {
+            if (!context.SynchroProviders.Any())
+            {
+                var providers = new List<SynchroProvider>
+                {
+                    new SynchroProvider
+                    {
+                        Name = "Google Fit",
+                        IconUrl = "/images/icons/google-fit-icon.png"
+                    },
+                    new SynchroProvider
+                    {
+                        Name = "Fitbit",
+                        IconUrl = "/images/icons/fitbit-icon.png"
+                    },
+                    new SynchroProvider
+                    {
+                        Name = "Garmin Connect",
+                        IconUrl = "/images/icons/garmin-icon.png"
+                    }
+                };
+
+                context.SynchroProviders.AddRange(providers);
+                await context.SaveChangesAsync();
+            }
+
             if (!context.Activities.Any())
             {
                 var activities = new List<Activity>
@@ -34,7 +97,7 @@ namespace StriveUp.Infrastructure.Data
                 };
 
                 context.Activities.AddRange(activities);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             var runningActivity = context.Activities.First(a => a.Name == "Run");
@@ -78,7 +141,7 @@ namespace StriveUp.Infrastructure.Data
                 };
 
                 context.ActivityConfig.AddRange(configs);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
 
@@ -91,7 +154,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "1 km Run",
                         Description = "Complete 1 kilometer of running.",
-                        TargetValue = 1,
+                        TargetValue = 1000,
                         Level = 1,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -103,7 +166,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "5 km Run",
                         Description = "Complete 5 kilometers of running.",
-                        TargetValue = 5,
+                        TargetValue = 5000,
                         Level = 1,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -115,7 +178,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "10 km Run",
                         Description = "Complete 10 kilometers of running.",
-                        TargetValue = 10,
+                        TargetValue = 10000,
                         Level = 2,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -127,7 +190,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "25 km Run",
                         Description = "Complete 25 kilometers of running.",
-                        TargetValue = 25,
+                        TargetValue = 25000,
                         Level = 3,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -139,7 +202,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "50 km Run",
                         Description = "Complete 50 kilometers of running.",
-                        TargetValue = 50,
+                        TargetValue = 50000,
                         Level = 4,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -151,7 +214,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "100 km Run",
                         Description = "Complete 100 kilometers of running.",
-                        TargetValue = 100,
+                        TargetValue = 100000,
                         Level = 5,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -165,7 +228,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 10 km Run",
                         Description = "Complete 10 kilometers of running in a week.",
-                        TargetValue = 10,
+                        TargetValue = 10000,
                         Level = 1,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -177,7 +240,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 25 km Run",
                         Description = "Complete 25 kilometers of running in a week.",
-                        TargetValue = 25,
+                        TargetValue = 25000,
                         Level = 2,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -189,7 +252,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 50 km Run",
                         Description = "Complete 50 kilometers of running in a week.",
-                        TargetValue = 50,
+                        TargetValue = 50000,
                         Level = 3,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -201,7 +264,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 100 km Run",
                         Description = "Complete 100 kilometers of running in a week.",
-                        TargetValue = 100,
+                        TargetValue = 100000,
                         Level = 4,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -215,7 +278,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "25 km Bike Ride",
                         Description = "Complete 25 kilometers of biking.",
-                        TargetValue = 25,
+                        TargetValue = 25000,
                         Level = 1,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -227,7 +290,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "50 km Bike Ride",
                         Description = "Complete 50 kilometers of biking.",
-                        TargetValue = 50,
+                        TargetValue = 50000,
                         Level = 2,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -239,7 +302,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "100 km Bike Ride",
                         Description = "Complete 100 kilometers of biking.",
-                        TargetValue = 100,
+                        TargetValue = 100000,
                         Level = 3,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -251,7 +314,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "200 km Bike Ride",
                         Description = "Complete 200 kilometers of biking.",
-                        TargetValue = 200,
+                        TargetValue = 200000,
                         Level = 4,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -265,7 +328,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 50 km Bike Ride",
                         Description = "Complete 50 kilometers of biking in a week.",
-                        TargetValue = 50,
+                        TargetValue = 50000,
                         Level = 1,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -277,7 +340,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 100 km Bike Ride",
                         Description = "Complete 100 kilometers of biking in a week.",
-                        TargetValue = 100,
+                        TargetValue = 100000,
                         Level = 2,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -289,7 +352,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 200 km Bike Ride",
                         Description = "Complete 200 kilometers of biking in a week.",
-                        TargetValue = 200,
+                        TargetValue = 200000,
                         Level = 3,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -303,7 +366,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "500 m Swim",
                         Description = "Complete 500 meters of swimming.",
-                        TargetValue = 0.5,
+                        TargetValue = 500,
                         Level = 1,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -315,7 +378,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "1 km Swim",
                         Description = "Complete 1 kilometer of swimming.",
-                        TargetValue = 1,
+                        TargetValue = 1000,
                         Level = 2,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -327,7 +390,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "5 km Swim",
                         Description = "Complete 5 kilometers of swimming.",
-                        TargetValue = 5,
+                        TargetValue = 5000,
                         Level = 3,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -339,7 +402,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "10 km Swim",
                         Description = "Complete 10 kilometers of swimming.",
-                        TargetValue = 10,
+                        TargetValue = 10000,
                         Level = 4,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -351,7 +414,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "20 km Swim",
                         Description = "Complete 20 kilometers of swimming.",
-                        TargetValue = 20,
+                        TargetValue = 20000,
                         Level = 5,
                         Frequency = "Once",
                         IsOneTime = true,
@@ -365,7 +428,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 1 km Swim",
                         Description = "Complete 1 kilometer of swimming in a week.",
-                        TargetValue = 1,
+                        TargetValue = 1000,
                         Level = 1,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -377,7 +440,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 2 km Swim",
                         Description = "Complete 2 kilometers of swimming in a week.",
-                        TargetValue = 2,
+                        TargetValue = 2000,
                         Level = 2,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -389,7 +452,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 5 km Swim",
                         Description = "Complete 5 kilometers of swimming in a week.",
-                        TargetValue = 5,
+                        TargetValue = 5000,
                         Level = 3,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -401,7 +464,7 @@ namespace StriveUp.Infrastructure.Data
                     {
                         Name = "Weekly 10 km Swim",
                         Description = "Complete 10 kilometers of swimming in a week.",
-                        TargetValue = 10,
+                        TargetValue = 10000,
                         Level = 4,
                         Frequency = "Weekly",
                         IsOneTime = false,
@@ -412,7 +475,7 @@ namespace StriveUp.Infrastructure.Data
                 };
 
                 context.Medals.AddRange(medals);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             if (!context.Levels.Any())
@@ -525,9 +588,9 @@ namespace StriveUp.Infrastructure.Data
                     // Add the levels to the context
                     context.Levels.AddRange(levels);
 
-                    // Save changes to the database
-                    context.SaveChanges();
-                }
+                // Save changes to the database
+                await context.SaveChangesAsync();
+            }
             }
         }
     }

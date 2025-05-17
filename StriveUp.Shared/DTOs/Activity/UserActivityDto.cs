@@ -17,7 +17,7 @@ namespace StriveUp.Shared.DTOs
         public string? Description { get; set; }
         //public List<string>? ImageUrls { get; set; }
         public double DurationSeconds { get; set; }
-        public double Distance { get; set; }
+        public int Distance { get; set; }
         public DateTime DateStart { get; set; }
         public DateTime DateEnd { get; set; }
         public int CaloriesBurned { get; set; }

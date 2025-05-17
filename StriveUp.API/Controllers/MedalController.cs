@@ -198,12 +198,12 @@ namespace StriveUp.API.Controllers
         }
 
 
-        private (int ProgressPercent, double DistanceToEarn) CalculateMedalProgressAndDistance(MedalDto medal, List<UserActivity> activities)
+        private (int ProgressPercent, int DistanceToEarn) CalculateMedalProgressAndDistance(MedalDto medal, List<UserActivity> activities)
         {
             if (medal.ActivityId == 0 || medal.TargetValue <= 0)
                 return (0, medal.TargetValue);
 
-            double totalDistance = 0;
+            int totalDistance = 0;
 
             switch (medal.Frequency)
             {
@@ -233,8 +233,8 @@ namespace StriveUp.API.Controllers
                     return (0, medal.TargetValue);
             }
 
-            double remaining = Math.Max(0, medal.TargetValue - totalDistance);
-            int progress = (int)Math.Round((totalDistance / medal.TargetValue) * 100);
+            int remaining = Math.Max(0, medal.TargetValue - totalDistance);
+            int progress = (int)Math.Round((decimal)totalDistance / medal.TargetValue * 100);
             progress = Math.Min(progress, 100);
 
             return (progress, remaining);

@@ -21,7 +21,7 @@ namespace StriveUp.Infrastructure.Models
         public string? Description { get; set; }
 
         [Required]
-        public double TargetValue { get; set; } 
+        public int TargetValue { get; set; } 
 
         [Required]
         public int Level { get; set; }

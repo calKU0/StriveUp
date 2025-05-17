@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StriveUp.Infrastructure.Data;
+using StriveUp.Infrastructure.Data.Settings;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Services;
 using StriveUp.Shared.Interfaces;
@@ -24,10 +25,14 @@ namespace StriveUp.Infrastructure.Extensions
 
 
             services.AddScoped<IImageService, ImageService>();
+            services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
+            services.Configure<MapboxSettings>(config.GetSection("MapboxSettings"));
+            services.Configure<GoogleSettings>(config.GetSection("GoogleSettings"));
 
             services.AddIdentity<AppUser, IdentityRole>(options =>
             {
                 options.User.RequireUniqueEmail = true;
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_+";
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
@@ -35,8 +40,9 @@ namespace StriveUp.Infrastructure.Extensions
             return services;
         }
 
-        public static IServiceCollection AddClientInfrastructure(this IServiceCollection services)
+        public static IServiceCollection AddClientInfrastructure(this IServiceCollection services, IConfiguration config)
         {
+            services.Configure<GoogleSettings>(config.GetSection("GoogleSettings"));
             services.AddScoped<IActivityService, ActivityService>();
             services.AddScoped<IMedalService, MedalService>();
             services.AddScoped<IProfileService, ProfileService>();
@@ -44,6 +50,7 @@ namespace StriveUp.Infrastructure.Extensions
             services.AddScoped<IFollowService, FollowService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IMedalStateService, MedalStateService>();
+            services.AddScoped<ISynchroService, SynchroService>();
             services.AddScoped<CustomAuthStateProvider>();
             services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
             services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());

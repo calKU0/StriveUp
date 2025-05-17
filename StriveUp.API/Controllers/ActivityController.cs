@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StriveUp.API.Services;
@@ -8,6 +9,7 @@ using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Activity;
 using System.Security.Claims;
+using StriveUp.Infrastructure.Identity;
 
 namespace StriveUp.API.Controllers
 {
@@ -16,15 +18,17 @@ namespace StriveUp.API.Controllers
     [Authorize(AuthenticationSchemes = "Bearer")]
     public class ActivityController : ControllerBase
     {
+        private readonly UserManager<AppUser> _userManager;
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILevelService _levelService;
 
-        public ActivityController(AppDbContext context, IMapper mapper, ILevelService levelService)
+        public ActivityController(AppDbContext context, IMapper mapper, ILevelService levelService, UserManager<AppUser> userManager)
         {
             _context = context;
             _mapper = mapper;
             _levelService = levelService;
+            _userManager = userManager;
         }
 
         private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -41,13 +45,31 @@ namespace StriveUp.API.Controllers
 
             try
             {
+                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+
+                if (!string.IsNullOrEmpty(dto.UserId))
+                {
+                    if (!isAdmin)
+                    {
+                        return Forbid();
+                    }
+                }
+                else
+                {
+                    dto.UserId = userId;
+                }
+
                 var activity = await _context.Activities.FindAsync(dto.ActivityId);
                 if (activity == null)
                     return BadRequest("Invalid activity ID.");
 
+                double durationSeconds = (dto.DateEnd - dto.DateStart).TotalSeconds;
+
                 var userActivity = _mapper.Map<UserActivity>(dto);
                 userActivity.UserId = userId;
-                userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((double)(activity.AverageCaloriesPerHour / 3600) * dto.DurationSeconds));
+                userActivity.DurationSeconds = durationSeconds;
+                userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
+
                 userActivity.MaxSpeed = userActivity.SpeedData?.Any() == true 
                     ? userActivity.SpeedData.Max(s => s.SpeedValue) 
                     : null;

@@ -22,7 +22,7 @@
                             <div class="card-body">
                                 <span class="stat-icon"><i class="fas fa-route"></i></span>
                                 <p><strong>Target Distance</strong></p>
-                                <p>@Medal.TargetValue km</p>
+                                <p>@(Math.Round(Medal.TargetValue / 1000.0, 2)) km</p>
                             </div>
                         </div>
                     </div>
@@ -32,7 +32,7 @@
                             <div class="card-body">
                                 <span class="stat-icon"><i class="fas fa-trophy"></i></span>
                                 <p><strong>To Earn Medal</strong></p>
-                                <p>@(Math.Round(Medal.DistanceToEarn,2)) km</p>
+                                <p>@(Math.Round(Medal.DistanceToEarn / 1000.0, 2)) km</p>
                             </div>
                         </div>
                     </div>

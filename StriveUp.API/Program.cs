@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Plugin.BLE.Abstractions.Contracts;
 using StriveUp.API.Mapping;
 using StriveUp.API.Services;
 using StriveUp.Infrastructure.Data;
@@ -50,8 +51,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISecurableService, SecurableService>();
 builder.Services.AddScoped<ILevelService, LevelService>();
-builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
-builder.Services.Configure<MapboxSettings>(builder.Configuration.GetSection("MapboxSettings"));
+builder.Services.AddHttpClient();
+
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 
@@ -60,7 +61,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    Seed.SeedData(context);
+    var services = scope.ServiceProvider;
+
+    await Seed.SeedAdminRoleAndUser(services);
+    await Seed.SeedData(context);
 }
 
 // Configure the HTTP request pipeline.
