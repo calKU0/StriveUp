@@ -19,6 +19,11 @@ namespace StriveUp.Shared.DTOs
         public bool isSynchronized { get; set; } = false;
         public string? SynchroId { get; set; }
         public bool IsManuallyAdded { get; set; } = false;
+        public double? AvarageSpeed { get; set; }
+        public double? MaxSpeed { get; set; }
+        public int? AvarageHr { get; set; }
+        public int? MaxHr { get; set; }
+        public int? ElevationGain { get; set; }
         public List<GeoPointDto>? Route { get; set; }
         public List<ActivityHrDto>? HrData { get; set; }
         public List<ActivitySpeedDto>? SpeedData { get; set; }

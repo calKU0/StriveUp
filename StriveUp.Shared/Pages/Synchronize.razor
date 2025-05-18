@@ -1,5 +1,4 @@
 ﻿@page "/synchronize"
-@using Microsoft.AspNetCore.Authorization
 @using StriveUp.Shared.DTOs
 @inject NavigationManager Navigation
 @inject ISynchroService SynchroService
@@ -133,15 +132,15 @@
             var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             var code = query["code"];
+            var state = query["state"];
 
             if (!string.IsNullOrWhiteSpace(code))
             {
                 isLoading = true;
                 StateHasChanged();
 
-                var response = await SynchroService.ExchangeGoogleFitCodeAsync(code);
+                HttpResponseMessage response = await SynchroService.ExchangeCodeAsync(code, state);
 
-                // Optionally remove the query parameter from the URL
                 Navigation.NavigateTo("/synchronize", true);
 
                 if (!response.IsSuccessStatusCode)
@@ -211,12 +210,9 @@
     private async Task SelectProvider(UserSynchroDto provider)
     {
         selectedProvider = provider;
-        if (provider.SynchroProviderName == "Google Fit")
-        {
-            var authUrl = SynchroService.GetGoogleFitOAuthUrl();
-            await JS.InvokeVoidAsync("open", authUrl, "_self");
-            return;
-        }
+        var authUrl = SynchroService.GetOAuthUrl(provider.SynchroProviderName.ToLower().Replace(" ", ""));
+        await JS.InvokeVoidAsync("open", authUrl, "_self");
+        
     }
 
     private async Task DeleteSynchro(int id)

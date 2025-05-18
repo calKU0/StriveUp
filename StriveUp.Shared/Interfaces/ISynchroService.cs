@@ -13,7 +13,7 @@ namespace StriveUp.Shared.Interfaces
         Task<List<UserSynchroDto>> GetUserSynchrosAsync();
         Task<HttpResponseMessage> UpdateUserSynchroAsync(int id, UpdateUserSynchroDto dto);
         Task<HttpResponseMessage> DeleteUserSynchroAsync(int id);
-        string GetGoogleFitOAuthUrl();
-        Task<HttpResponseMessage> ExchangeGoogleFitCodeAsync(string code);
+        string GetOAuthUrl(string provider);
+        Task<HttpResponseMessage> ExchangeCodeAsync(string code, string state);
     }
 }

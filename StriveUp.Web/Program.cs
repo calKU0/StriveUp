@@ -21,7 +21,7 @@ builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IPlatformService, WebPlatformService>();
 builder.Services.AddClientInfrastructure(builder.Configuration);
-builder.Services.AddHttpClient("ApiClient", (sp, client) =>
+builder.Services.AddHttpClient("ApiClient", (client) =>
 {
     client.BaseAddress = new Uri("https://localhost:7116/api/");
 });

@@ -31,9 +31,9 @@ namespace StriveUp.Sync.Application.Services
             "com.google.distance.delta"
         };
 
-        public GoogleFitProvider(HttpClient httpClient, ILogger<GoogleFitProvider> logger, ITokenService tokenService)
+        public GoogleFitProvider(IHttpClientFactory httpClient, ILogger<GoogleFitProvider> logger, ITokenService tokenService)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient.CreateClient("GoogleFitClient");
             _logger = logger;
             _tokenService = tokenService;
         }
@@ -91,7 +91,7 @@ namespace StriveUp.Sync.Application.Services
                 var activityDto = new CreateUserActivityDto
                 {
                     UserId = userSynchro.UserId,
-                    ActivityId = ActivityHelpers.MapActivityType(session.GetProperty("activityType").GetInt32()),
+                    ActivityId = ActivityHelpers.MapGoogleActivityType(session.GetProperty("activityType").GetInt32()),
                     DateStart = startTime,
                     DateEnd = endTime,
                     Title = sessionName,

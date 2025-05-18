@@ -3,12 +3,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using StriveUp.Infrastructure.Data;
+using StriveUp.Infrastructure.Data.Settings;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using StriveUp.API.Models;
 
 namespace StriveUp.API.Controllers
 {
@@ -20,12 +26,18 @@ namespace StriveUp.API.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IOptions<GoogleSettings> _googleSettings;
+        private readonly IOptions<FitbitSettings> _fitbitSettings;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public SynchroController(AppDbContext context, IMapper mapper, UserManager<AppUser> userManager)
+        public SynchroController(AppDbContext context, IMapper mapper, UserManager<AppUser> userManager, IOptions<GoogleSettings> googleSettings, IHttpClientFactory httpClientFactory, IOptions<FitbitSettings> fitbitSettings)
         {
             _context = context;
             _mapper = mapper;
             _userManager = userManager;
+            _googleSettings = googleSettings;
+            _httpClientFactory = httpClientFactory;
+            _fitbitSettings = fitbitSettings;
         }
 
         [HttpGet("availableProviders")]
@@ -197,6 +209,106 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpPost("exchange-code")]
+        public async Task<IActionResult> ExchangeCode([FromBody] CodeExchangeDto dto)
+        {
+            try
+            {
+                if (dto == null || string.IsNullOrEmpty(dto.Code))
+                {
+                    return BadRequest("Invalid request data");
+                }
 
+                HttpRequestMessage tokenRequest = new();
+
+                if (dto.State.Contains("googlefit"))
+                {
+                    tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token")
+                    {
+                        Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                        {
+                            { "code", dto.Code },
+                            { "client_id", _googleSettings.Value.ClientId },
+                            { "client_secret", _googleSettings.Value.ClientSecret },
+                            { "redirect_uri", _googleSettings.Value.RedirectUri },
+                            { "grant_type", "authorization_code" }
+                        })
+                    };
+                }
+                else if (dto.State.Contains("fitbit"))
+                {
+                    tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://api.fitbit.com/oauth2/token")
+                    {
+                        Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                        {
+                            { "code", dto.Code },
+                            { "client_id", _fitbitSettings.Value.ClientId },
+                            { "client_secret", _fitbitSettings.Value.ClientSecret },
+                            { "redirect_uri", _fitbitSettings.Value.RedirectUri },
+                            { "grant_type", "authorization_code" }
+                        })
+                    };
+
+                    var credentials = $"{_fitbitSettings.Value.ClientId}:{_fitbitSettings.Value.ClientSecret}";
+                    var base64Credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(credentials));
+                    tokenRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", base64Credentials);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid provider");
+                    return BadRequest("Invalid provider");
+                }
+
+                var client = _httpClientFactory.CreateClient();
+                var response = await client.SendAsync(tokenRequest);
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return BadRequest("Failed to get tokens: " + content);
+                }
+
+                var tokenData = JsonSerializer.Deserialize<GoogleTokenResponse>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (userId == null)
+                    return Unauthorized();
+
+                int synchroId = 0;
+
+                if (dto.State.Contains("googlefit"))
+                {
+                    synchroId = _context.SynchroProviders.First(p => p.Name == "Google Fit").Id;
+                }
+                else if (dto.State.Contains("fitbit"))
+                {
+                    synchroId = _context.SynchroProviders.First(p => p.Name == "Fitbit").Id;
+                }
+
+                var userSynchro = new UserSynchro
+                {
+                    UserId = userId,
+                    SynchroId = synchroId,
+                    IsActive = true,
+                    AccessToken = tokenData.AccessToken,
+                    RefreshToken = tokenData.RefreshToken,
+                    TokenExpiresAt = DateTime.UtcNow.AddSeconds(tokenData.ExpiresIn)
+                };
+
+                _context.UserSynchros.Add(userSynchro);
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

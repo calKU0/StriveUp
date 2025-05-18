@@ -30,15 +30,36 @@ namespace StriveUp.Sync.Application.Services
                 return new TokenResult { AccessToken = user.AccessToken };
             }
 
-            var payload = new Dictionary<string, string>
-            {
-                { "client_id", _config["GoogleClientId"] },
-                { "client_secret", _config["GoogleClientSecret"] },
-                { "refresh_token", user.RefreshToken },
-                { "grant_type", "refresh_token" }
-            };
+            Dictionary<string, string> payload = new();
+            string endpointUri = string.Empty;
 
-            var response = await _httpClient.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(payload));
+            if (user.SynchroProviderName == "Google Fit")
+            {
+                endpointUri = "https://oauth2.googleapis.com/token";
+                payload = new Dictionary<string, string>
+                {
+                    { "client_id", _config["GoogleClientId"] },
+                    { "client_secret", _config["GoogleClientSecret"] },
+                    { "refresh_token", user.RefreshToken },
+                    { "grant_type", "refresh_token" }
+                };
+            }
+            else if (user.SynchroProviderName == "Fitbit")
+            {
+                endpointUri = "https://api.fitbit.com/oauth2/token";
+                payload = new Dictionary<string, string>
+                {
+                    { "refresh_token", user.RefreshToken },
+                    { "grant_type", "refresh_token" }
+                };
+
+                var credentials = $"{_config["FitbitClientId"]}:{_config["FitbitClientSecret"]}";
+                var base64Credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(credentials));
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", base64Credentials);
+            }
+
+            var response = await _httpClient.PostAsync(endpointUri, new FormUrlEncodedContent(payload));
+
             _logger.LogInformation(await response.Content.ReadAsStringAsync());
             if (!response.IsSuccessStatusCode)
                 return null;

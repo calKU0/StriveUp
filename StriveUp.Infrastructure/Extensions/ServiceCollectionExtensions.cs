@@ -28,6 +28,7 @@ namespace StriveUp.Infrastructure.Extensions
             services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
             services.Configure<MapboxSettings>(config.GetSection("MapboxSettings"));
             services.Configure<GoogleSettings>(config.GetSection("GoogleSettings"));
+            services.Configure<FitbitSettings>(config.GetSection("FitbitSettings"));
 
             services.AddIdentity<AppUser, IdentityRole>(options =>
             {
@@ -43,6 +44,7 @@ namespace StriveUp.Infrastructure.Extensions
         public static IServiceCollection AddClientInfrastructure(this IServiceCollection services, IConfiguration config)
         {
             services.Configure<GoogleSettings>(config.GetSection("GoogleSettings"));
+            services.Configure<FitbitSettings>(config.GetSection("FitbitSettings"));
             services.AddScoped<IActivityService, ActivityService>();
             services.AddScoped<IMedalService, MedalService>();
             services.AddScoped<IProfileService, ProfileService>();

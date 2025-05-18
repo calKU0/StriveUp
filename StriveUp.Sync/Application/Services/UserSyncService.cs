@@ -18,9 +18,9 @@ namespace StriveUp.Sync.Application.Services
         private readonly string _username;
         private readonly string _password;
 
-        public UserSyncService(HttpClient httpClient, ILogger<UserSyncService> logger, IConfiguration config, IServiceProvider serviceProvider)
+        public UserSyncService(IHttpClientFactory httpClient, ILogger<UserSyncService> logger, IConfiguration config, IServiceProvider serviceProvider)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient.CreateClient("StriveUpClient");
             _logger = logger;
             _serviceProvider = serviceProvider;
             _username = config["ApiUsername"];
@@ -61,6 +61,7 @@ namespace StriveUp.Sync.Application.Services
                     IHealthDataProvider provider = user.SynchroProviderName switch
                     {
                         "Google Fit" => _serviceProvider.GetRequiredService<GoogleFitProvider>(),
+                        "Fitbit" => _serviceProvider.GetRequiredService<FitbitProvider>(),
                         _ => throw new NotSupportedException("Unsupported provider")
                     };
 
