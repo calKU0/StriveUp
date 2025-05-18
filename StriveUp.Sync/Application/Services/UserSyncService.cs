@@ -75,6 +75,7 @@ namespace StriveUp.Sync.Application.Services
                     {
                         try
                         {
+                            activity.UserId = user.UserId;
                             var jsonActivity = JsonSerializer.Serialize(activity);
                             var request = new HttpRequestMessage(HttpMethod.Post, "activity/addActivity")
                             {
