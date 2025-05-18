@@ -66,7 +66,6 @@ namespace StriveUp.API.Controllers
                 double durationSeconds = (dto.DateEnd - dto.DateStart).TotalSeconds;
 
                 var userActivity = _mapper.Map<UserActivity>(dto);
-                userActivity.UserId = userId;
                 userActivity.DurationSeconds = durationSeconds;
                 userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
 
