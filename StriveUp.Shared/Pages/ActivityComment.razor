@@ -1,16 +1,8 @@
 ﻿@page "/activity/{ActivityId:int}/comments"
 @using StriveUp.Shared.DTOs.Activity
 @inject IActivityService ActivityService
-
-@code {
-    [Parameter] public int ActivityId { get; set; }
-    private List<ActivityCommentDto>? comments;
-
-    protected override async Task OnInitializedAsync()
-    {
-        comments = await ActivityService.GetActivityComments(ActivityId);
-    }
-}
+@inject ICustomAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 
 @if (comments == null)
 {
@@ -44,7 +36,30 @@ else
     </div>
 }
 
+
 @code {
+    [Parameter] public int ActivityId { get; set; }
+    private List<ActivityCommentDto>? comments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
+            comments = await ActivityService.GetActivityComments(ActivityId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
     private string newComment;
 
     private async Task PostComment()
@@ -54,11 +69,11 @@ else
             await ActivityService.AddCommentAsync(ActivityId, newComment);
             newComment = string.Empty;
             comments?.Add(new ActivityCommentDto
-                {
-                    Content = newComment,
-                    CreatedAt = DateTime.UtcNow,
-                    UserName = "You"
-                });
+            {
+                Content = newComment,
+                CreatedAt = DateTime.UtcNow,
+                UserName = "You"
+            });
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿@page "/synchronize"
+@using Microsoft.AspNetCore.Authorization
 @using StriveUp.Shared.DTOs
 @inject NavigationManager Navigation
 @inject ISynchroService SynchroService
 @inject IJSRuntime JS
+@inject ICustomAuthStateProvider AuthStateProvider
 
 <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -105,6 +107,24 @@
     private UserSynchroDto selectedProvider = new();
     private bool showModal = false;
     private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool first)
     {

@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - StriveUp.Web
+name: Build and deploy .NET 9 Web app to Azure Web App - StriveUp.Web
 
 on:
   push:

@@ -4,6 +4,7 @@
 @inject ISecurableService SecurableService
 @inject IBleHeartRateService HeartRateService
 @inject NavigationManager Navigation
+@inject ICustomAuthStateProvider AuthStateProvider
 @implements IDisposable
 
 @using GeolocatorPlugin
@@ -106,9 +107,25 @@ OnResume="@ResumeTracking" />
     private string activityTitle = "My Activity";
     private string activityDescription = "Tracked via GPS";
 
+
     // This will be triggered when the page first loads
     protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
         StartCompass();
 
         var status = await Permissions.RequestAsync<Permissions.Bluetooth>();
