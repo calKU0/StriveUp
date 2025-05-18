@@ -6,53 +6,55 @@ let userMarker = null;
 let mapboxMap;
 let route = [];
 let routeLine = null;
-function initializeMap(lat, lng, accessToken) {
-    mapboxgl.accessToken = accessToken;
+window.initializeMap = function initializeMap(lat, lng, accessToken) {
+    try {
+        mapboxgl.accessToken = accessToken;
 
-    mapboxMap = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [lng, lat],
-        zoom: 17,
-        pitch: 60,
-        bearing: 0,
-        antialias: true
-    });
+        mapboxMap = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [lng, lat],
+            zoom: 17,
+            pitch: 60,
+            bearing: 0,
+            antialias: true
+        });
+        mapboxMap.on('load', () => {
+            userMarker = new mapboxgl.Marker({
+                element: createArrowMarker(), 
+                anchor: 'center',
+            })
+                .setLngLat([lng, lat])
+                .addTo(mapboxMap);
 
-    mapboxMap.on('load', () => {
-        userMarker = new mapboxgl.Marker({
-            element: createArrowMarker(), 
-            anchor: 'center',
-        })
-            .setLngLat([lng, lat])
-            .addTo(mapboxMap);
-
-        // Add empty route line source/layer
-        mapboxMap.addSource('route', {
-            type: 'geojson',
-            data: {
-                type: 'Feature',
-                geometry: {
-                    type: 'LineString',
-                    coordinates: []
+            // Add empty route line source/layer
+            mapboxMap.addSource('route', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: []
+                    }
                 }
-            }
+            });
+            mapboxMap.addLayer({
+                id: 'routeLine',
+                type: 'line',
+                source: 'route',
+                layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                paint: {
+                    'line-color': '#1E90FF',
+                    'line-width': 4
+                }
+            });
         });
-
-        mapboxMap.addLayer({
-            id: 'routeLine',
-            type: 'line',
-            source: 'route',
-            layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-            },
-            paint: {
-                'line-color': '#1E90FF',
-                'line-width': 4
-            }
-        });
-    });
+    } catch (error) {
+        console.error("Error initializing map:", error);
+    }
 }
 
 function createArrowMarker() {

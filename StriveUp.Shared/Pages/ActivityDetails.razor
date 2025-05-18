@@ -91,7 +91,7 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded-3">
-                            <i class="bi bi-tachometer fs-3 text-info"></i>
+                            <i class="bi bi-speedometer2 fs-3 text-info"></i>
                             <h6 class="mt-2">Avg Speed: @(Math.Round(0.0, 2)) km/h</h6>
                             <small class="text-muted">Avg Speed</small>
                         </div>
@@ -154,6 +154,7 @@
             userId = user.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             Activity = await ActivityService.GetActivityByIdAsync(activityId) ?? new();
+            await RenderChartsAsync();
         }
         catch (Exception ex)
         {
@@ -166,50 +167,52 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task RenderChartsAsync()
     {
-        if (firstRender)
+        try
         {
-            try
+            if (Activity.HrData?.Any() == true)
             {
-                if (Activity.HrData?.Any() == true)
-                {
-                    var hrLabels = Activity.HrData
-                        .Select(d =>
-                            // Calculate the time elapsed from the start of the activity
-                            TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(Activity.DateStart).TotalMilliseconds)
-                                .ToString(@"hh\:mm\:ss")
-                        ).ToArray();
+                var hrLabels = Activity.HrData
+                    .Select(d =>
+                        TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(Activity.DateStart).TotalMilliseconds)
+                            .ToString(@"hh\:mm\:ss"))
+                    .ToArray();
 
-                    var hrValues = Activity.HrData.Select(d => d.HearthRateValue).ToArray();
+                var hrValues = Activity.HrData.Select(d => d.HearthRateValue).ToArray();
 
-                    await JS.InvokeVoidAsync("renderLineChartById", "hrChart", hrLabels, hrValues, "Heart Rate (bpm)");
-                }
-
-                if (Activity.SpeedData?.Any() == true)
-                {
-                    var speedLabels = Activity.SpeedData
-                        .Select(d =>
-                            // Calculate the time elapsed from the start of the activity
-                            TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(Activity.DateStart).TotalMilliseconds)
-                                .ToString(@"hh\:mm\:ss")
-                        ).ToArray();
-
-                    var speedValues = Activity.SpeedData.Select(d => d.SpeedValue).ToArray();
-
-                    await JS.InvokeVoidAsync("renderLineChartById", "speedChart", speedLabels, speedValues, "Speed (km/h)");
-                } 
+                await JS.InvokeVoidAsync("renderLineChartById", "hrChart", hrLabels, hrValues, "Heart Rate (bpm)");
             }
-            catch (Exception ex)
+
+            if (Activity.SpeedData?.Any() == true)
             {
-                Console.WriteLine(ex);
+                var speedLabels = Activity.SpeedData
+                    .Select(d =>
+                        TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(Activity.DateStart).TotalMilliseconds)
+                            .ToString(@"hh\:mm\:ss"))
+                    .ToArray();
+
+                // Convert speed (m/s) to pace (min/km) in seconds as double
+                var paceValues = Activity.SpeedData
+                    .Select(d =>
+                    {
+                        if (d.SpeedValue <= 0)
+                            return double.NaN; // Chart.js can handle NaN as a gap
+
+                        return 1000.0 / d.SpeedValue; // seconds per km
+                    })
+                    .ToArray();
+
+                await JS.InvokeVoidAsync("renderLineChartById", "speedChart", speedLabels, paceValues, "Pace (min/km)");
             }
-            finally
-            {
-                await InvokeAsync(() => StateHasChanged());
-            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error rendering charts: {ex}");
         }
     }
+
 
     private async Task ToggleLike()
     {

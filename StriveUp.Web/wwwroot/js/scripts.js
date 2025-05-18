@@ -1,19 +1,17 @@
-﻿window.renderLineChartById = (id, labels, data, label, maxtics) => {
+﻿window.renderLineChartById = (id, labels, data, label) => {
     const tryRender = () => {
         const canvas = document.getElementById(id);
         if (!canvas) {
-            console.warn(`Canvas with id '${id}' not found. Retrying...`);
-            setTimeout(tryRender, 100); // wait and retry
+            setTimeout(tryRender, 100);
             return;
         }
 
         const ctx = canvas.getContext("2d");
-        if (!ctx) {
-            console.error("Failed to get canvas context.");
-            return;
-        }
+        const maxPace = Math.max(...data.filter(v => !isNaN(v)));
+        const invertedData = data.map(v => isNaN(v) ? NaN : maxPace - v);
+        const paceRange = Math.max(...data) - Math.min(...data);
+        const stepSize = paceRange > 300 ? 60 : 30;
 
-        // Determine the number of ticks based on screen size
         let ticksLimit;
         if (window.innerWidth >= 1200) {
             ticksLimit = 15; // PC
@@ -29,13 +27,12 @@
                 labels: labels,
                 datasets: [{
                     label: label,
-                    data: data,
+                    data: invertedData,
                     borderColor: 'rgba(255, 167, 192, 38)',
                     backgroundColor: 'rgba(255, 167, 38, 0.3)',
-                    tension: 0.4,
-                    fill: 'origin', // This makes the area under the line filled
-                    tension: 0, // Straight line (no curvature)
-                    pointRadius: 0 // Remove the dots
+                    fill: 'origin',
+                    tension: 0,
+                    pointRadius: 0
                 }]
             },
             options: {
@@ -43,26 +40,51 @@
                 maintainAspectRatio: false,
                 scales: {
                     x: {
-                        display: true,
                         ticks: {
-                            autoSkip: true, // Automatically skip labels
-                            maxTicksLimit: ticksLimit, // Limit the number of ticks
-                            callback: function (value, index, values) {
-                                return labels[index];
+                            autoSkip: true,
+                            maxTicksLimit: ticksLimit,
+                            callback: (value, index) => labels[index]
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            stepSize: stepSize,
+                            autoSkip: true,
+                            maxTicksLimit: 9,
+                            callback: (value) => {
+                                const originalPace = maxPace - value;
+                                if (isNaN(originalPace)) return '';
+                                const roundedPace = Math.round(originalPace / 30) * 30;
+                                const minutes = Math.floor(roundedPace / 60);
+                                const seconds = roundedPace % 60;
+                                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
                             }
-                        } },
-                    y: { display: true }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const originalPace = maxPace - context.parsed.y;
+                                const roundedPace = Math.round(originalPace / 30) * 30;
+                                const minutes = Math.floor(roundedPace / 60);
+                                const seconds = roundedPace % 60;
+                                return `Pace: ${minutes}:${seconds.toString().padStart(2, '0')} min/km`;
+                            }
+                        }
+                    }
                 },
                 interaction: {
-                    mode: 'index', // It helps to show labels when hovering anywhere on the chart
-                    intersect: false, // It shows tooltips when hovering anywhere, not just on the line
+                    mode: 'index',
+                    intersect: false
                 }
             }
         });
     };
-
     tryRender();
 };
+
 
 window.launchConfetti = () => {
     if (window.confetti) {
