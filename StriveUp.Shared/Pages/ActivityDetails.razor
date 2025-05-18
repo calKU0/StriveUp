@@ -7,6 +7,7 @@
 @inject IActivityService ActivityService
 @inject INotificationService NotificationService
 @inject ICustomAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 
 
 <div class="container-fluid container-md px-0 px-md-4 my-4">
@@ -145,6 +146,11 @@
         try
         {
             var user = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = user.User;
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
             userId = user.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             Activity = await ActivityService.GetActivityByIdAsync(activityId) ?? new();

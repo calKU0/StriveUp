@@ -1,4 +1,6 @@
 ﻿@page "/settings"
+@inject ICustomAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 
 <div class="container py-4">
     <h1 class="mb-4 text-center">Settings</h1>
@@ -81,6 +83,24 @@
     private bool showModal = false;
     private string selectedTheme = "System";
     private List<string> themes = new() { "Light", "Dark", "System" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
 
     void OnThemeChanged(string theme)
     {

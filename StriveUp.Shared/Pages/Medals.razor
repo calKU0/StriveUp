@@ -1,8 +1,7 @@
 ﻿@page "/medals"
-@using StriveUp.Shared.Components
 @using StriveUp.Shared.DTOs
 @inject IMedalService MedalService
-@inject IActivityService ActivityService
+@inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
 <div class="container my-4">
@@ -111,6 +110,14 @@
     {
         try
         {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
+
             allMedals = await MedalService.GetAllMedalsAsync() ?? new();
             claimedMedals = await MedalService.GetUserMedalsAsync() ?? new();
             notClaimedMedals = allMedals.Where(medal => !claimedMedals.Contains(medal)).ToList();

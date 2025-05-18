@@ -3,22 +3,175 @@
 
 <PageTitle>Home</PageTitle>
 
-<div class="container-full">
-    <div class="image-overlay">
-        <img class="img-fluid w-100 d-block home-image" src="images/running-woman.jpg" alt="Running woman" />
-        <div class="hero-text top-0 p-4">
-            <h2>Track Your Progress. Smash Your Goals</h2>
-            <h5>Stay motivated and crush your fitness journey with StriveUp – your all-in-one sports tracking companion.</h5>
+<div class="home-page">
+
+    <!-- Hero Section -->
+    <section class="section hero-section d-flex align-items-center justify-content-center text-center text-white">
+        <div class="overlay"></div>
+        <div class="container">
+            <h2 class="display-4 fw-bold">Track Your Progress. Smash Your Goals.</h2>
+            <p class="lead">Stay motivated and crush your fitness journey with StriveUp – your all-in-one sports tracking companion.</p>
             <a href="https://play.google.com/store" target="_blank">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                      alt="Get it on Google Play"
-                     class="google-play-badge">
+                     class="google-play-badge mt-3">
             </a>
+            <div class="mt-4">
+                <a href="#features" class="btn btn-outline-light">Explore More</a>
+            </div>
         </div>
-        <div class="explore-under-hero">
-            <a href="#more" class="text-white">Explore More</a>
+    </section>
+
+    <!-- Feature Sections - each in own white section -->
+    <section class="section feature-section bg-white text-dark" id="features">
+        <div class="container feature-container d-flex align-items-center justify-content-between">
+            <!-- Left: Text -->
+            <div class="feature-text d-flex align-items-center align-items-md-start gap-3 col-md-4">
+                <i class="bi bi-activity fs-1 text-primary"></i>
+                <div>
+                    <h5>Track Every Move</h5>
+                    <p>From runs and rides to swims and hikes, log your workouts with real-time GPS and stats.</p>
+                </div>
+            </div>
+
+            <!-- Center: Mobile placeholder -->
+            <div class="device-placeholder mobile-placeholder col-md-3">
+                <img src="/images/icons/test-placeholder.png" alt="PC View"/>
+            </div>
+
+            <!-- Right: PC placeholder -->
+            <div class="device-placeholder pc-placeholder col-md-4 d-md-block d-none">
+                <img src="/images/icons/test-pc-placeholder.png" alt="PC View"/>
+            </div>
         </div>
-    </div>
+    </section>
+
+    <section class="section feature-section bg-white text-dark">
+        <div class="container feature-container d-flex align-items-center justify-content-between">
+            <div class="feature-text d-flex align-items-center align-items-md-start gap-3 col-md-4">
+                <i class="bi bi-award fs-1 text-warning"></i>
+                <div>
+                    <h5>Earn Medals</h5>
+                    <p>Stay motivated with milestone badges and weekly challenges that push you forward.</p>
+                </div>
+            </div>
+            <!-- Center: Mobile placeholder -->
+            <div class="device-placeholder mobile-placeholder col-md-3">
+                <img src="/images/icons/test-placeholder.png" alt="PC View"/>
+            </div>
+
+            <!-- Right: PC placeholder -->
+            <div class="device-placeholder pc-placeholder col-md-4 d-md-block d-none">
+                <img src="/images/icons/test-pc-placeholder.png" alt="PC View" />
+            </div>
+        </div>
+    </section>
+
+    <section class="section feature-section bg-white text-dark">
+        <div class="container feature-container d-flex align-items-center justify-content-between">
+            <div class="feature-text d-flex align-items-center align-items-md-start gap-3 col-md-4">
+                <i class="bi bi-people fs-1 text-success"></i>
+                <div>
+                    <h5>Social Fitness</h5>
+                    <p>Like, comment, and challenge friends. StriveUp builds community around every step.</p>
+                </div>
+            </div>
+            <!-- Center: Mobile placeholder -->
+            <div class="device-placeholder mobile-placeholder col-md-3">
+                <img src="/images/icons/test-placeholder.png" alt="PC View"/>
+            </div>
+
+            <!-- Right: PC placeholder -->
+            <div class="device-placeholder pc-placeholder col-md-4 d-md-block d-none">
+                <img src="/images/icons/test-pc-placeholder.png" alt="PC View"/>
+            </div>
+        </div>
+    </section>
+
+    <section class="section feature-section bg-white text-dark">
+        <div class="container feature-container d-flex align-items-center justify-content-between">
+            <div class="feature-text d-flex align-items-center align-items-md-start gap-3 col-md-4">
+                <i class="bi bi-graph-up-arrow fs-1 text-danger"></i>
+                <div>
+                    <h5>Detailed Insights</h5>
+                    <p>Analyze your heart rate, speed, elevation and more with beautiful, interactive charts.</p>
+                </div>
+            </div>
+            <!-- Center: Mobile placeholder -->
+            <div class="device-placeholder mobile-placeholder col-md-3">
+                <img src="/images/icons/test-placeholder.png" alt="PC View" height="500px" />
+            </div>
+
+            <!-- Right: PC placeholder -->
+            <div class="device-placeholder pc-placeholder col-md-4 d-md-block d-none">
+                <img src="/images/icons/test-pc-placeholder.png" alt="PC View" height="500px" />
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Platform Section -->
+    <section class="section text-white bg-dark">
+        <div class="container py-5 text-center">
+            <h2 class="mb-4">One App, Every Platform</h2>
+            <p class="mb-4">StriveUp runs natively on Android, iOS, and Windows with a consistent experience via web too.</p>
+            <div class="d-flex justify-content-center gap-4 flex-wrap">
+                <i class="bi bi-android fs-1"></i>
+                <i class="bi bi-apple fs-1"></i>
+                <i class="bi bi-windows fs-1"></i>
+                <i class="bi bi-globe fs-1"></i>
+            </div>
+            <div class="mt-4">
+                <img src="/images/devices-mockup.png" alt="StriveUp app on multiple devices" class="img-fluid" style="max-height: 400px;">
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Sync Section -->
+    <section class="section bg-primary text-white">
+        <div class="container py-5 text-center">
+            <h2 class="mb-4">Sync With Your Favorite Platforms</h2>
+            <p class="mb-4">StriveUp connects seamlessly to Google Fit, Fitbit, and other services using secure Azure integration.</p>
+            <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap">
+                <img src="/images/icons/fitbit-icon.png" alt="Fitbit" style="height: 50px;">
+                <img src="/images/icons/google-fit-icon.png" alt="Google Fit" style="height: 50px;">
+            </div>
+            <div class="mt-5">
+                <a href="/synchronize" class="btn btn-outline-light btn-lg">Connect Your Devices</a>
+            </div>
+        </div>
+        <footer class="footer bg-dark text-white py-4">
+            <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <!-- Left: Name & Privacy -->
+                <div class="mb-3 mb-md-0">
+                    <span>&copy; @DateTime.Now.Year Krzysztof Kurowski</span>
+                    &nbsp;|&nbsp;
+                    <a href="/privacy-policy" class="text-white text-decoration-underline">Privacy Policy</a>
+                    &nbsp;|&nbsp;
+                    <a href="/terms-of-service" class="text-white text-decoration-underline">Terms of Service</a>
+                </div>
+
+                <!-- Center: Social Links -->
+                <div class="mb-3 mb-md-0">
+                    <a href="https://instagram.com/calKU0" target="_blank" class="text-white me-3">
+                        <i class="bi bi-instagram fs-5"></i>
+                    </a>
+                    <a href="https://portfolio.kkurowski.com" target="_blank" class="text-white me-3">
+                        <i class="bi bi-person-circle fs-5"></i>
+                    </a>
+                    <a href="https://facebook.com/krzysztof.m.kurowski" target="_blank" class="text-white">
+                        <i class="bi bi-facebook fs-5"></i>
+                    </a>
+                </div>
+
+                <!-- Right: Contact Info -->
+                <div>
+                    <span>Email: <a href="mailto:krzysztofkurowski.main@gmail.com" class="text-white text-decoration-underline">krzysztofkurowski.main@gmail.com</a></span>
+                </div>
+            </div>
+        </footer>
+    </section>
 </div>
 
 @code {

@@ -1,21 +1,126 @@
-﻿
+﻿.home-page {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    height: 100vh;
+    margin-top: -65px;
+}
+
+.section {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    scroll-snap-stop: always;
+
+}
+    .section:last-child {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* push footer to bottom */
+        height: 100vh;
+        width: 100%;
+    }
+
+        .section:last-child > .container {
+            /* allow content to size naturally */
+            margin-top: auto;
+            margin-bottom: auto;
+            text-align: center;
+        }
+
+        .section:last-child > footer {
+            width: 100%;
+        }
+
+.feature-section {
+    background-color: white;
+}
+
+.feature-container {
+
+    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.feature-text i {
+    font-size: 3rem !important;
+}
+
+.device-placeholder img {
+    max-height: 450px;
+}
+
+.pc-placeholder {
+    position: relative;
+    margin-left: -70px;
+}
+
+.mobile-placeholder {
+    position: relative;
+    z-index: 10;
+}
+
+
+
+.hero-section {
+    background: url('/images/running-woman.jpg') center/cover no-repeat;
+    position: relative;
+}
+
+    .hero-section .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1;
+    }
+
+    .hero-section .container {
+        z-index: 2;
+        position: relative;
+    }
+
 .google-play-badge {
-    margin-top: 20px;
     height: 60px;
-    object-fit: contain;
-    transition: transform 0.2s ease-in-out;
 }
 
-.google-play-badge:hover {
-    transform: scale(1.03);
-}
+@media (max-width: 992px) {
+    .feature-container {
+        flex-direction: column;
+        height: auto;
+        gap: 1.5rem;
+    }
+    .feature-text {
+        flex-direction: column;
+        align-items: center; /* horizontally center icon and text */
+        text-align: center;
+    }
 
-.explore-under-hero {
-    position: absolute;
-    top: calc(36% + 300px);
-    left: calc(12% + 150px);
-}
+    .feature-text i {
+        margin-bottom: 0.25rem; /* spacing below icon */
+        font-size: 2.5rem !important;
+    }
 
-.explore-under-hero a {
-    text-decoration: none;
+    .mobile-placeholder {
+        margin-right: 0;
+    }
+    .pc-frame {
+        position: relative;
+        top: 0;
+        left: 0;
+        transform: none;
+        opacity: 1;
+        margin-top: 1rem;
+    }
+    .device-placeholder.mobile-placeholder img,
+    .device-placeholder.pc-placeholder img {
+        height: 300px; 
+    }
 }

@@ -1,10 +1,9 @@
 ﻿@page "/search"
 @inject IFollowService FollowService
 @inject NavigationManager Navigation
+@inject ICustomAuthStateProvider AuthStateProvider
 
-@using System.Security.Claims
 @using StriveUp.Shared.DTOs
-@using StriveUp.Shared.DTOs.Profile
 
 <div class="container py-5">
     <div class="mb-4">
@@ -50,6 +49,24 @@
     private List<FollowDto> searchResults = new();
     private bool isLoading = false;
     private string currentUserId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
 
     private async Task HandleInput(ChangeEventArgs e)
     {

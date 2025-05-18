@@ -5,7 +5,14 @@
 <CascadingAuthenticationState>
     <Router AppAssembly="typeof(Layout.MainLayout).Assembly">
         <Found Context="routeData">
-            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    <LayoutView Layout="typeof(Layout.MainLayout)">
+                        <h3>You are not authorized to access this page.</h3>
+                        <p>Please <a href="authentication/login">log in</a> to continue.</p>
+                    </LayoutView>
+                </NotAuthorized>
+            </AuthorizeRouteView>
             <FocusOnNavigate RouteData="routeData" Selector="h1" />
         </Found>
         <NotFound>
@@ -15,6 +22,8 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+
 
 @code {
     protected override async Task OnInitializedAsync()

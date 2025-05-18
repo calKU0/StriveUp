@@ -1,7 +1,6 @@
 ﻿@page "/profile/edit"
 @using System.Drawing
 @using StriveUp.Shared.DTOs.Profile
-@using System.Security.Claims
 @inject IProfileService ProfileService
 @inject NavigationManager Navigation
 @inject ICustomAuthStateProvider AuthStateProvider
@@ -101,6 +100,24 @@
     private EditUserProfileDto editModel = new();
     private string? successMessage;
     private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
