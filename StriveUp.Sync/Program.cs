@@ -17,7 +17,7 @@ var host = new HostBuilder()
         });
         services.AddHttpClient<IUserSyncService, UserSyncService>(client =>
         {
-            client.BaseAddress = new Uri("https://localhost:7116" + "/api/");
+            client.BaseAddress = new Uri("https://striveupapi-emaee9awang6g4ht.polandcentral-01.azurewebsites.net" + "/api/");
             client.DefaultRequestHeaders.Add("Accept", "application/json");
         });
         services.ConfigureFunctionsApplicationInsights();

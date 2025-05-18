@@ -1,0 +1,22 @@
+﻿@page "/google-callback"
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var code = query["code"];
+
+        if (!string.IsNullOrEmpty(code))
+        {
+            // Przekierowanie do /synchronize z kodem
+            Navigation.NavigateTo($"/synchronize?code={code}", true);
+        }
+        else
+        {
+            // Bez kodu – może błąd
+            Navigation.NavigateTo("/synchronize");
+        }
+    }
+}
