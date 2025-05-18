@@ -199,6 +199,7 @@ OnResume="@ResumeTracking" />
 
         if (!mapInitialized)
         {
+            StateHasChanged();
             mapInitialized = true;
             mapVisible = true;
             _ = JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);

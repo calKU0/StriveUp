@@ -51,7 +51,7 @@ namespace StriveUp.Sync.Application.Services
 
             // 1. Fetch sessions for last 5 minutes
             var now = DateTime.UtcNow;
-            var fiveMinutesAgo = now.AddMinutes(-5).AddDays(-6);
+            var fiveMinutesAgo = now.AddMinutes(-5).AddDays(-1);
 
             var sessionsUrl = $"users/me/sessions?startTime={fiveMinutesAgo:O}&endTime={now:O}";
             var sessionsRequest = new HttpRequestMessage(HttpMethod.Get, sessionsUrl);
@@ -146,11 +146,8 @@ namespace StriveUp.Sync.Application.Services
                     var dataTypeName = dataTypeNameElement.GetString();
                     if (AllowedDataTypes.Contains(dataTypeName))
                     {
-                        if (dataSource.TryGetProperty("dataStreamId", out var dataSourceIdElement))
-                        {
-                            var dataSourceId = dataSourceIdElement.GetString();
-                            aggregateBy.Add(new { dataSourceId });
-                        }
+                        // Use dataTypeName instead of dataSourceId
+                        aggregateBy.Add(new { dataTypeName });
                     }
                 }
             }
@@ -180,6 +177,12 @@ namespace StriveUp.Sync.Application.Services
             }
 
             var content = await response.Content.ReadAsStringAsync();
+            var parsedJson = JsonDocument.Parse(content);
+            var formattedJson = JsonSerializer.Serialize(parsedJson, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            await File.WriteAllTextAsync("aggregate-response.json", formattedJson);
             var aggregatedData = JsonSerializer.Deserialize<AggregateResponse>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true

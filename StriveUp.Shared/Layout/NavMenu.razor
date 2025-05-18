@@ -5,10 +5,10 @@
 
 
 <div class="d-block d-md-none">
-    <Header></Header>
+    <Header PageTitle="@pageTitle"></Header>
 </div>
 
-@if (!ShouldHideNavbar())
+@if (!shouldHide)
 {
     <!-- Desktop Navbar (fixed top) -->
     <nav class="navbar fixed-top d-none d-md-flex">
@@ -102,13 +102,17 @@
 }
 @code {
     private int medalsToClaim = 0;
+    bool shouldHide = false;
+    string pageTitle;
 
     protected override async Task OnInitializedAsync()
     {
         MedalState.OnChange += StateHasChanged;
         var count = await MedalService.GetMedalsToClaimCountAsync();
         MedalState.SetMedalsCount(count);
+        Navigation.LocationChanged += OnLocationChanged;
 
+        pageTitle = GetPageName();
         await LoadMedalsCount();
     }
 
@@ -135,13 +139,36 @@
 
     private bool ShouldHideNavbar()
     {
-        var currentPage = Navigation.Uri;
+        pageTitle = GetPageName();
 
-        if (PlatformService.IsNativeApp() && (currentPage.Contains("login") || currentPage.Contains("register") || currentPage.Contains("tracking") || currentPage.Contains("comments") || currentPage.Contains("search")))
+        if (PlatformService.IsNativeApp() && (pageTitle == "Login " || pageTitle == "Register" || pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Settings"))
         {
             return true;
         }
-
         return false;  // Show navbar on all other pages
+    }
+
+    private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        shouldHide = ShouldHideNavbar();
+        StateHasChanged();
+    }
+
+    private string GetPageName()
+    {
+        var uri = Navigation.Uri;
+        var segments = new Uri(uri).Segments;
+        var pageName = segments.LastOrDefault()?.TrimEnd('/');
+
+        return CapitalizeFirstLetter(String.IsNullOrEmpty(pageName) ? "home" : pageName);
+    }
+
+    private string CapitalizeFirstLetter(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        // Capitalize the first letter and keep the rest of the string unchanged
+        return char.ToUpper(input[0]) + input.Substring(1).ToLower();
     }
 }

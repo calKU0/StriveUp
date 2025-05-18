@@ -1,5 +1,4 @@
-﻿@inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
+﻿@inject IJSRuntime JSRuntime
 
 <div class="native-header d-flex justify-content-between align-items-center px-3 py-2">
     <!-- Left side: Back Button -->
@@ -12,7 +11,7 @@
 
     <!-- Page Title -->
     <div class="page-title text-dark @(!showBackButton ? "" : "text-center")">
-        @pageTitle
+        @PageTitle
     </div>
 
     <!-- Right side: Search, Bell, Settings -->
@@ -33,29 +32,16 @@
 </div>
 
 @code {
-    private string pageTitle = "";
+    [Parameter] 
+    public string PageTitle { get; set; } = "";
     private bool showBell = true;
     private bool showSearch = true;
     private bool showBackButton = false;
     private bool showSettings = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        pageTitle = GetPageName();
-        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Settings")
-        {
-            showBell = false;
-            showSearch = false;
-            showBackButton = true;
-            showSettings = false;
-        }
-        Navigation.LocationChanged += OnLocationChanged;
-    }
-
-
-    private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
-    {
-        if (pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Notifications" || pageTitle == "Settings")
+        if (PageTitle == "Tracking" || PageTitle == "Comments" || PageTitle == "Search" || PageTitle == "Notifications" || PageTitle == "Settings")
         {
             showBell = false;
             showSearch = false;
@@ -70,37 +56,12 @@
             showSettings = false;
         }
 
-        pageTitle = GetPageName();
-        StateHasChanged(); 
+        await base.OnParametersSetAsync();
     }
+
 
     private async Task BackButtonClick()
     {
         await JSRuntime.InvokeVoidAsync("history.back");
-    }
-
-    private string GetPageName()
-    {
-        var uri = Navigation.Uri;
-        var segments = new Uri(uri).Segments;
-        var pageName = segments.LastOrDefault()?.TrimEnd('/');
-
-        return CapitalizeFirstLetter(String.IsNullOrEmpty(pageName) ? "home" : pageName);
-    }
-
-
-    private string CapitalizeFirstLetter(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return input;
-
-        // Capitalize the first letter and keep the rest of the string unchanged
-        return char.ToUpper(input[0]) + input.Substring(1).ToLower();
-    }
-
-    public void Dispose()
-    {
-        // Unsubscribe when the component is disposed to avoid memory leaks
-        Navigation.LocationChanged -= OnLocationChanged;
     }
 }
