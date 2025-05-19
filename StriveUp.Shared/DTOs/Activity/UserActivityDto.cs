@@ -12,7 +12,7 @@ namespace StriveUp.Shared.DTOs
     {
         public int Id { get; set; }
         public int ActivityId { get; set; }
-        public string? ActivityName { get; set; }
+        public string ActivityName { get; set; }
         public string Title { get; set; }
         public string? Description { get; set; }
         //public List<string>? ImageUrls { get; set; }

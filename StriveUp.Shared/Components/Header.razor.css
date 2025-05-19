@@ -1,4 +1,5 @@
 .native-header {
+    transition: top 0.5s ease;
     background-color: #FFA726;
     position: fixed;
     height: 52px;
@@ -13,4 +14,8 @@
         font-size: 1.5rem;
         font-weight: bold;
         color: #333;
+    }
+
+    .native-header.hidden-header {
+        top: -70px; /* Adjust based on header height */
     }

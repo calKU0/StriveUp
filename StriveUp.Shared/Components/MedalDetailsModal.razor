@@ -21,7 +21,7 @@
                         <div class="card info-card border border-secondary">
                             <div class="card-body">
                                 <span class="stat-icon"><i class="fas fa-route"></i></span>
-                                <p><strong>Target Distance</strong></p>
+                                <p><strong>Target</strong></p>
                                 <p>@(Math.Round(Medal.TargetValue / 1000.0, 2)) km</p>
                             </div>
                         </div>
@@ -31,7 +31,7 @@
                         <div class="card info-card border border-secondary">
                             <div class="card-body">
                                 <span class="stat-icon"><i class="fas fa-trophy"></i></span>
-                                <p><strong>To Earn Medal</strong></p>
+                                <p><strong>To Earn</strong></p>
                                 <p>@(Math.Round(Medal.DistanceToEarn / 1000.0, 2)) km</p>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
                 <span>@AnimatedPercent% Completed</span>
             </div>
 
-            <div class="custom-modal-footer d-flex justify-content-end gap-2">
+            <div class="custom-modal-footer d-flex justify-content-md-end gap-3 justify-content-around">
                 @if (isClaimable && Medal.DateEarned == null)
                 {
                     <button class="btn btn-primary claim-animate" @onclick="ClaimMedal">🎉 Claim Medal</button>

@@ -1,4 +1,5 @@
-﻿@typeparam TItem
+﻿@using StriveUp.Shared.DTOs.Activity
+@typeparam TItem
 
 @if (Show)
 {
@@ -15,7 +16,11 @@
                                id="@GetId(option)"
                                checked="@IsSelected(option)"
                                @onchange="() => Select(option)" />
-                        <label class="form-check-label" for="@GetId(option)">
+                        <label class="form-check-label d-flex align-items-center" for="@GetId(option)">
+                            @if (GetIconUrl != null)
+                            {
+                                <img src="@GetIconUrl(option)" class="me-2" style="width: 24px; height: 24px;" />
+                            }
                             @GetLabel(option)
                         </label>
                     </div>
@@ -35,6 +40,7 @@
     [Parameter] public EventCallback<TItem> SelectedValueChanged { get; set; }
     [Parameter] public Func<TItem, string> GetLabel { get; set; } = item => item?.ToString();
     [Parameter] public Func<TItem, string> GetValue { get; set; } = item => item?.ToString();
+    [Parameter] public Func<TItem, string>? GetIconUrl { get; set; }
 
     private string GroupName { get; } = $"group_{Guid.NewGuid()}";
 

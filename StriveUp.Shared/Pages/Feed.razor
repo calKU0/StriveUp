@@ -10,7 +10,7 @@
 
 
 <PageTitle>Activity Feed</PageTitle>
-<div class="container d-flex flex-column justify-content-center">
+<div class="container d-flex flex-column justify-content-center pt-3">
     @if (isLoading && currentPage == 1)
     {
         <Spinner text="Loading feed. Please wait..."></Spinner>
@@ -92,12 +92,23 @@
     private async Task LoadInitialActivities()
     {
         var initial = await ActivityService.GetFeedAsync(currentPage, PageSize);
-        activities.AddRange(initial);
-        currentPage++;
-        hasMore = initial.Count == PageSize;
+
+        if (initial != null)
+        {
+            activities.AddRange(initial);
+            currentPage++;
+            hasMore = initial.Count == PageSize;
+        }
+        else
+        {
+            Console.WriteLine("ActivityService.GetFeedAsync() returned null.");
+            errorMessage = "Failed to load activities.";
+        }
+
         isLoading = false;
         StateHasChanged();
     }
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

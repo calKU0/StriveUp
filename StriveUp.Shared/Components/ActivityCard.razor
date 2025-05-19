@@ -1,5 +1,6 @@
 ﻿@using StriveUp.Shared.DTOs
 @using System.Security.Claims
+@using StriveUp.Shared.DTOs.Activity
 @using StriveUp.Shared.Helpers
 
 @inject IActivityService ActivityService
@@ -37,10 +38,20 @@
                     <span class="fw-semibold">@TimeSpan.FromSeconds(Activity.DurationSeconds).ToString(@"hh\:mm\:ss")</span><br />
                     <small class="text-muted">Duration</small>
                 </div>
-                <div>
-                    <span class="fw-semibold">@Activity.CaloriesBurned</span><br />
-                    <small class="text-muted">kcal</small>
-                </div>
+                @if (Activity.AvarageSpeed > 0)
+                {
+                    <div>
+                        <span class="fw-semibold">@ActivityUtils.GetSpeedOrPace(Activity.AvarageSpeed, activityConfig)</span><br />
+                        <small class="text-muted">@ActivityUtils.GetSpeedOrPaceLabel(activityConfig)</small>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        <span class="fw-semibold">@Activity.CaloriesBurned</span><br />
+                        <small class="text-muted">kcal</small>
+                    </div>
+                }
                 @if (Activity.Distance > 0)
                 {
                     <div>
@@ -80,6 +91,7 @@
 
 @code {
     [Parameter] public UserActivityDto Activity { get; set; }
+    private ActivityDto activityConfig = new();
     private Dictionary<int, string> commentInputs = new();
     private CreateNotificationDto notificationDto = new();
     private string userId = "";
@@ -90,6 +102,7 @@
         {
             var user = await AuthStateProvider.GetAuthenticationStateAsync();
             userId = user.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            activityConfig = await ActivityService.GetActivityConfig(Activity.ActivityId);
         }
         catch (Exception ex)
         {
