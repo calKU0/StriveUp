@@ -45,7 +45,9 @@ namespace StriveUp.API.Mapping
             CreateMap<Activity, ActivityDto>()
                 .ForMember(dest => dest.MeasurementType, opt => opt.MapFrom(src => src.Config.MeasurementType))
                 .ForMember(dest => dest.ElevationRelevant, opt => opt.MapFrom(src => src.Config.ElevationRelevant))
-                .ForMember(dest => dest.IndoorCapable, opt => opt.MapFrom(src => src.Config.IndoorCapable));
+                .ForMember(dest => dest.Indoor, opt => opt.MapFrom(src => src.Config.Indoor))
+                .ForMember(dest => dest.UseHeartRate, opt => opt.MapFrom(src => src.Config.UseHeartRate))
+                .ForMember(dest => dest.SpeedRelevant, opt => opt.MapFrom(src => src.Config.SpeedRelevant));
 
 
             // Medal <-> DTO
