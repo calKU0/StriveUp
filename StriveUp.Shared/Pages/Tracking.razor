@@ -25,21 +25,25 @@
     else
     {
         <div class="slides">
-            <div class="map-section">
-                <div id="map"></div>
-            </div>
-
+            @if (!selectedActivity.Indoor)
+            {
+                <div class="map-section">
+                    <div id="map"></div>
+                </div>
+            }
+            <!-- TO DO -->
+            <!-- Add generic modal select on ActivityType/Sensor click -->
             <div class="controls">
                 <ActivityControls AvailableActivities="availableActivities"
-                                  SelectedActivity="@selectedActivity"
-                                  IsTracking="@isTracking"
-                                  IsPaused="@isPaused"
-                                  OnSelectedSensorChanged="@(sensor => ConnectHrDevice(sensor))"
-                                  SelectedActivityChanged="@((ActivityDto a) => selectedActivity = a)"
-                                  OnStartClick="@ToggleTracking"
-                                  OnStopClick="@ToggleTracking"
-                                  OnResumeClick="@ResumeTracking"
-                                  OnFinishClick="@ShowFinishModal" />
+                SelectedActivity="@selectedActivity"
+                IsTracking="@isTracking"
+                IsPaused="@isPaused"
+                OnSelectedSensorChanged="@(sensor => ConnectHrDevice(sensor))"
+                SelectedActivityChanged="@((ActivityDto a) => OnSelectedActivityChanged(a))"
+                OnStartClick="@ToggleTracking"
+                OnStopClick="@ToggleTracking"
+                OnResumeClick="@ResumeTracking"
+                OnFinishClick="@ShowFinishModal" />
             </div>
         </div>
         @if (isTracking || isPaused)
@@ -48,21 +52,32 @@
                 <div class="tiles-wrapper p-2">
                     <!-- Info Tiles -->
                     <div class="row g-3">
-                        <InfoTile Label="Distance" Value="@($"{Distance * 1000:F2} km")" IconClass="fas fa-route" />
-                        <!-- Conditional display of Speed or Pace -->
-                        <InfoTile Label="@GetSpeedOrPaceLabel()"
-                                  Value="@GetSpeedOrPace()"
-                                  IconClass="fas fa-tachometer-alt" />
+                        @if(!selectedActivity.DistanceRelevant)
+                        {
+                            <InfoTile Label="Distance" Value="@($"{Distance * 1000:F2} km")" IconClass="fas fa-route" />
+                            <!-- Conditional display of Speed or Pace -->
+                            @if (selectedActivity.SpeedRelevant)
+                            {
+                                <InfoTile Label="@GetSpeedOrPaceLabel()" Value="@GetSpeedOrPace()" IconClass="fas fa-tachometer-alt" />
+                            }
+                        }
                         <InfoTile Label="Heart Rate" Value="@($"{HeartRate} bpm")" IconClass="fas fa-heartbeat" />
                         <InfoTile Label="Duration" Value="@Duration.ToString(@"hh\:mm\:ss")" IconClass="fas fa-stopwatch" />
-                        <InfoTile Label="Tile 5" Value="--" />
-                        <InfoTile Label="Tile 6" Value="--" />
+                        @if (selectedActivity.ElevationRelevant)
+                        {
+                            <!-- TO DO -->
+                            <!-- Elevation tracking -->
+                            <InfoTile Label="Elevation" Value="--" />
+                        }
+                        <!-- TO DO -->
+                        <!-- Add dynamic kcal -->
+                        <InfoTile Label="Kcal" Value="--" />
                     </div>
                 </div>
             </div>
         }
     }
-    
+
 
 </div>
 
@@ -102,13 +117,21 @@ OnResume="@ResumeTracking" />
     private double smoothedSpeed = 0;
     private const double smoothingAlpha = 0.2;
     private Location lastLocation;
+    private DateTime resumeTime;
+    private IGeolocator locator = CrossGeolocator.Current;
+    private ListenerSettings listenerSettings = new ListenerSettings
+    {
+        AllowBackgroundUpdates = true,
+        ActivityType = ActivityType.Fitness,
+        DeferLocationUpdates = false,
+        ListenForSignificantChanges = false,
+        PauseLocationUpdatesAutomatically = false
+    };
 
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = "Tracked via GPS";
 
-
-    // This will be triggered when the page first loads
     protected override async Task OnInitializedAsync()
     {
         try
@@ -126,22 +149,20 @@ OnResume="@ResumeTracking" />
             Console.WriteLine(ex);
         }
 
-        StartCompass();
-
-        var status = await Permissions.RequestAsync<Permissions.Bluetooth>();
-        if (status != PermissionStatus.Granted)
-        {
-            btPermission = false;
-            return;
-        }
-        btPermission = true;
         var activities = await ActivityService.GetAvailableActivitiesAsync();
         if (activities != null)
             availableActivities = activities;
 
         selectedActivity = availableActivities.FirstOrDefault();
+
+        locator.DesiredAccuracy = 5;
         mapToken = await SecurableService.GetMapboxTokenAsync();
-        _ = StartLocationTracking(); // Start tracking immediately
+
+        if (!selectedActivity.Indoor)
+        {
+            StartCompass();
+            _ = StartLocationTracking();
+        }
     }  
 
     private async Task StartLocationTracking()
@@ -155,22 +176,10 @@ OnResume="@ResumeTracking" />
                 return;
             }
 
-            var locator = CrossGeolocator.Current;
-            locator.DesiredAccuracy = 5;
             locator.PositionChanged += OnPositionChanged;
-
-            var listenerSettings = new ListenerSettings
-            {
-                AllowBackgroundUpdates = true,
-                ActivityType = ActivityType.Fitness,
-                DeferLocationUpdates = false,
-                ListenForSignificantChanges = false,
-                PauseLocationUpdatesAutomatically = false
-            };
-
             if (!locator.IsListening)
             {
-                await locator.StartListeningAsync(TimeSpan.FromSeconds(3), 10, false, listenerSettings);
+                await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 5, false, listenerSettings);
             }  
         }
         catch (Exception ex)
@@ -182,6 +191,13 @@ OnResume="@ResumeTracking" />
 
     private void OnPositionChanged(object sender, PositionEventArgs e)
     {
+        // Skip location updates briefly after resume because it causes noisy updates
+        if ((DateTime.UtcNow - resumeTime).TotalSeconds < 5)
+        {
+            Console.WriteLine("Ignoring location update during resume cooldown.");
+            return;
+        }
+
         isLoadingLocation = false;
         var location = new Location(e.Position.Latitude, e.Position.Longitude)
         {
@@ -257,6 +273,36 @@ OnResume="@ResumeTracking" />
         return smoothedSpeed;
     }
 
+    private void OnResume()
+    {
+        resumeTime = DateTime.UtcNow;
+    }
+
+    private async Task OnSelectedActivityChanged(ActivityDto activity)
+    {
+        if (selectedActivity == activity)
+        {
+            return;
+        }
+
+        selectedActivity = activity;
+        if (selectedActivity.Indoor)
+        {
+            if (locator.IsListening)
+            {
+                locator.PositionChanged -= OnPositionChanged;
+                await locator.StopListeningAsync();
+            }
+            StopCompass();
+        }
+        else
+        {
+            StartCompass();
+            _ = StartLocationTracking();
+        }
+        await InvokeAsync(() => StateHasChanged());
+    }
+
     private async Task ConnectHrDevice(BluetoothDeviceDto device)
     {
         selectedDeviceId = device.Id;
@@ -324,7 +370,6 @@ OnResume="@ResumeTracking" />
         isTracking = false;
         isPaused = true;
         durationCts?.Cancel();
-        var locator = CrossGeolocator.Current;
         if (locator.IsListening)
         {
             locator.PositionChanged -= OnPositionChanged;
@@ -339,6 +384,11 @@ OnResume="@ResumeTracking" />
         showFinishModal = false;
         isTracking = true;
         durationCts = new CancellationTokenSource();
+        if (!locator.IsListening)
+        {
+            locator.PositionChanged += OnPositionChanged;
+            await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 5, false, listenerSettings);
+        }
 
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
     }
@@ -411,6 +461,19 @@ OnResume="@ResumeTracking" />
         }
     }
 
+    private void StopCompass()
+    {
+        if (!Compass.Default.IsSupported)
+        {
+            return;
+        }
+        if (Compass.IsMonitoring)
+        {
+            Compass.Default.Stop();
+            Compass.Default.ReadingChanged -= OnCompassReadingChanged;
+        }
+    }
+
     private void OnCompassReadingChanged(object sender, CompassChangedEventArgs e)
     {
         if (currentLocation == null)
@@ -425,9 +488,7 @@ OnResume="@ResumeTracking" />
     public void Dispose()
     {
         // Unsubscribe when the component is disposed to avoid memory leaks
-        Compass.Default.Stop();
-        Compass.Default.ReadingChanged -= OnCompassReadingChanged;
-        var locator = CrossGeolocator.Current;
+        StopCompass();
         locator.PositionChanged -= OnPositionChanged;
         locator.StopListeningAsync();
     }
@@ -438,14 +499,27 @@ OnResume="@ResumeTracking" />
 
         if (Speed < minMovementThreshold)
         {
-            return selectedActivity.MeasurementType == "pace" ? "0 min/km" : "0 km/h";
+            return selectedActivity.MeasurementType == "pace" ? "0:00 min/km" : "0.00 km/h";
         }
 
         if (selectedActivity.MeasurementType == "pace")
         {
             // Convert m/s to pace (min/km)
             double paceInMinPerKm = 1000.0 / Speed / 60.0;
-            return $"{paceInMinPerKm:F2} min/km";
+
+            // Round to nearest 0.05 minutes (i.e., 3 seconds)
+            double roundedPace = Math.Round(paceInMinPerKm * 20.0) / 20.0;
+
+            int minutes = (int)roundedPace;
+            int seconds = (int)Math.Round((roundedPace - minutes) * 60);
+
+            if (seconds == 60)
+            {
+                minutes++;
+                seconds = 0;
+            }
+
+            return $"{minutes}:{seconds:D2} min/km";
         }
         else
         {
@@ -454,7 +528,6 @@ OnResume="@ResumeTracking" />
             return $"{speedInKmH:F2} km/h";
         }
     }
-
 
     private string GetSpeedOrPaceLabel()
     {

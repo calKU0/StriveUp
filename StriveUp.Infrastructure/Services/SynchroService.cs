@@ -1,15 +1,7 @@
-﻿using CloudinaryDotNet;
-using Microsoft.Extensions.Configuration;
-using Microsoft.JSInterop;
-using StriveUp.Infrastructure.Extensions;
+﻿using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using StriveUp.Infrastructure.Data.Settings;
 
@@ -20,12 +12,14 @@ namespace StriveUp.Infrastructure.Services
         private readonly HttpClient _httpClient;
         private readonly ITokenStorageService _tokenStorage;
         private readonly IOptions<GoogleSettings> _googleSettings;
+        private readonly IOptions<FitbitSettings> _fitbitSettings;
 
-        public SynchroService(IHttpClientFactory httpClientFactory, ITokenStorageService tokenStorage, IOptions<GoogleSettings> googleSettings)
+        public SynchroService(IHttpClientFactory httpClientFactory, ITokenStorageService tokenStorage, IOptions<GoogleSettings> googleSettings, IOptions<FitbitSettings> fitbitSettings)
         {
             _httpClient = httpClientFactory.CreateClient("ApiClient");
             _tokenStorage = tokenStorage;
             _googleSettings = googleSettings;
+            _fitbitSettings = fitbitSettings;
         }
 
         public async Task<List<UserSynchroDto>> GetAvailableProvidersAsync()
@@ -51,32 +45,54 @@ namespace StriveUp.Infrastructure.Services
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
             return await _httpClient.DeleteAsync($"synchro/deleteUserSynchro/{id}");
         }
-        public string GetGoogleFitOAuthUrl()
+        public string GetOAuthUrl(string provider)
         {
-            var scopes = new[]
-            {
-                "https://www.googleapis.com/auth/fitness.activity.read",
-                "https://www.googleapis.com/auth/fitness.location.read",
-                "https://www.googleapis.com/auth/fitness.heart_rate.read"
-            };
+            string authUrl = string.Empty;
 
-            var authUrl = $"https://accounts.google.com/o/oauth2/v2/auth" +
-                          $"?client_id={Uri.EscapeDataString(_googleSettings.Value.ClientId)}" +
-                          $"&redirect_uri={Uri.EscapeDataString(_googleSettings.Value.RedirectUri)}" +
+            if (provider == "googlefit")
+            {
+                var scopes = new[]
+                {
+                    "https://www.googleapis.com/auth/fitness.activity.read",
+                    "https://www.googleapis.com/auth/fitness.location.read",
+                    "https://www.googleapis.com/auth/fitness.heart_rate.read"
+                };
+
+                authUrl = $"https://accounts.google.com/o/oauth2/v2/auth" +
+                           $"?client_id={Uri.EscapeDataString(_googleSettings.Value.ClientId)}" +
+                           $"&redirect_uri={Uri.EscapeDataString(_googleSettings.Value.RedirectUri)}" +
+                           $"&response_type=code" +
+                           $"&state=googlefit" +
+                           $"&scope={Uri.EscapeDataString(string.Join(" ", scopes))}" +
+                           $"&access_type=offline" +
+                           $"&prompt=consent";
+            }
+            else if (provider == "fitbit")
+            {
+                var scopes = new[]
+                {
+                    "activity",
+                    "heartrate",
+                    "location"
+                };
+
+                authUrl = $"https://www.fitbit.com/oauth2/authorize" +
+                          $"?client_id={Uri.EscapeDataString(_fitbitSettings.Value.ClientId)}" +
+                          $"&redirect_uri={Uri.EscapeDataString(_fitbitSettings.Value.RedirectUri)}" +
                           $"&response_type=code" +
+                          $"&state=fitbit" +
                           $"&scope={Uri.EscapeDataString(string.Join(" ", scopes))}" +
-                          $"&access_type=offline" +
                           $"&prompt=consent";
+            }
 
             return authUrl;
         }
 
-        public async Task<HttpResponseMessage> ExchangeGoogleFitCodeAsync(string code)
+        public async Task<HttpResponseMessage> ExchangeCodeAsync(string code, string state)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            var payload = new { Code = code };
-            return await _httpClient.PostAsJsonAsync("googlefit/exchange-code", payload);
+            var payload = new { Code = code, State = state };
+            return await _httpClient.PostAsJsonAsync("synchro/exchange-code", payload);
         }
-
     }
 }

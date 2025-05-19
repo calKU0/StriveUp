@@ -1,4 +1,5 @@
-﻿@using StriveUp.Shared.DTOs
+﻿@using Microsoft.Maui.ApplicationModel
+@using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
 
 @inject IJSRuntime JSRuntime
@@ -100,6 +101,15 @@
 
     protected async override Task OnInitializedAsync()
     {
+        // TO DO
+        // Check for permissions only on list click
+
+        var status = await Permissions.RequestAsync<Permissions.Bluetooth>();
+        if (status != PermissionStatus.Granted)
+        {
+            return;
+        }
+
         AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
 
         await JSRuntime.InvokeVoidAsync("eval", @"

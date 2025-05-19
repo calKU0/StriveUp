@@ -45,7 +45,10 @@ namespace StriveUp.API.Mapping
             CreateMap<Activity, ActivityDto>()
                 .ForMember(dest => dest.MeasurementType, opt => opt.MapFrom(src => src.Config.MeasurementType))
                 .ForMember(dest => dest.ElevationRelevant, opt => opt.MapFrom(src => src.Config.ElevationRelevant))
-                .ForMember(dest => dest.IndoorCapable, opt => opt.MapFrom(src => src.Config.IndoorCapable));
+                .ForMember(dest => dest.Indoor, opt => opt.MapFrom(src => src.Config.Indoor))
+                .ForMember(dest => dest.UseHeartRate, opt => opt.MapFrom(src => src.Config.UseHeartRate))
+                .ForMember(dest => dest.SpeedRelevant, opt => opt.MapFrom(src => src.Config.SpeedRelevant))
+                .ForMember(dest => dest.DistanceRelevant, opt => opt.MapFrom(src => src.Config.DistanceRelevant));
 
 
             // Medal <-> DTO
@@ -111,6 +114,10 @@ namespace StriveUp.API.Mapping
 
             CreateMap<UpdateUserSynchroDto, UserSynchro>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<UpdateTokenDto, UserSynchro>()
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.RefreshToken, opt => opt.Condition(src => src.RefreshToken != null));
         }
     }
 }

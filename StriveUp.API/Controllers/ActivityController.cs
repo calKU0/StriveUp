@@ -36,16 +36,14 @@ namespace StriveUp.API.Controllers
         [HttpPost("addActivity")]
         public async Task<IActionResult> AddActivity(CreateUserActivityDto dto)
         {
-            var userId = GetUserId();
-            var user = await _context.Users
-                .Include(u => u.Level)
-                .FirstOrDefaultAsync(u => u.Id == userId);
+            var callingUserId = GetUserId();
+            var callingUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == callingUserId);
 
-            if (userId == null) return Unauthorized();
+            if (callingUserId == null) return Unauthorized();
 
             try
             {
-                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                var isAdmin = await _userManager.IsInRoleAsync(callingUser, "Admin");
 
                 if (!string.IsNullOrEmpty(dto.UserId))
                 {
@@ -56,8 +54,12 @@ namespace StriveUp.API.Controllers
                 }
                 else
                 {
-                    dto.UserId = userId;
+                    dto.UserId = callingUserId;
                 }
+
+                var user = await _context.Users
+                    .Include(u => u.Level)
+                    .FirstOrDefaultAsync(u => u.Id == dto.UserId);
 
                 var activity = await _context.Activities.FindAsync(dto.ActivityId);
                 if (activity == null)
@@ -69,18 +71,21 @@ namespace StriveUp.API.Controllers
                 userActivity.DurationSeconds = durationSeconds;
                 userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
 
-                userActivity.MaxSpeed = userActivity.SpeedData?.Any() == true 
+                userActivity.MaxSpeed = userActivity.SpeedData.Count > 0 && userActivity.MaxSpeed == null 
                     ? userActivity.SpeedData.Max(s => s.SpeedValue) 
-                    : null;
-                userActivity.AvarageSpeed = userActivity.SpeedData?.Any() == true
+                    : userActivity.MaxSpeed;
+
+                userActivity.AvarageSpeed = userActivity.SpeedData.Count > 0 && userActivity.AvarageSpeed == null
                     ? userActivity.SpeedData.Average(s => s.SpeedValue)
-                    : null;
-                userActivity.AvarageHr = userActivity.HrData?.Any() == true
+                    : userActivity.AvarageSpeed;
+
+                userActivity.AvarageHr = userActivity.HrData.Count > 0 && userActivity.AvarageHr == null
                     ? Convert.ToInt32(userActivity.HrData.Average(s => s.HearthRateValue))
-                    : null;
-                userActivity.MaxHr = userActivity.HrData?.Any() == true
+                    : userActivity.AvarageHr;
+
+                userActivity.MaxHr = userActivity.HrData.Count > 0 && userActivity.MaxHr == null
                     ? userActivity.HrData.Max(s => s.HearthRateValue)
-                    : null;
+                    : userActivity.MaxHr;
 
                 var activityConfig = await _context.ActivityConfig
                     .FirstOrDefaultAsync(ac => ac.ActivityId == dto.ActivityId);
@@ -95,9 +100,10 @@ namespace StriveUp.API.Controllers
                 }
 
                 _context.UserActivities.Add(userActivity);
-                await _levelService.UpdateUserLevelAsync(user);
 
+                await _levelService.UpdateUserLevelAsync(user);
                 await _context.SaveChangesAsync();
+
                 return Ok(userActivity.Id);
             }
             catch (Exception ex)

@@ -114,8 +114,10 @@ namespace StriveUp.Infrastructure.Data
                         MeasurementType = "pace",
                         DefaultDistanceUnit = "km",
                         UseHeartRate = true,
-                        ElevationRelevant = false,
-                        IndoorCapable = true,
+                        ElevationRelevant = true,
+                        DistanceRelevant = true,
+                        SpeedRelevant = true,
+                        Indoor = false,
                         PointsPerMinute = 2
                     },
                     new ActivityConfig
@@ -125,17 +127,21 @@ namespace StriveUp.Infrastructure.Data
                         DefaultDistanceUnit = "km",
                         UseHeartRate = true,
                         ElevationRelevant = true,
-                        IndoorCapable = false,
+                        DistanceRelevant = true,
+                        SpeedRelevant = true,
+                        Indoor = false,
                         PointsPerMinute = 1.5
                     },
                     new ActivityConfig
                     {
                         ActivityId = swimmingActivity.Id,
                         MeasurementType = "pace",
-                        DefaultDistanceUnit = "m",
-                        UseHeartRate = false,
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
                         ElevationRelevant = false,
-                        IndoorCapable = true,
+                        DistanceRelevant = true,
+                        SpeedRelevant = true,
+                        Indoor = true,
                         PointsPerMinute = 3
                     }
                 };
@@ -479,9 +485,9 @@ namespace StriveUp.Infrastructure.Data
             }
 
             if (!context.Levels.Any())
-                {
-                    // List of levels with the XP and total XP values
-                    var levels = new List<Level>
+            {
+                // List of levels with the XP and total XP values
+                var levels = new List<Level>
                     {
                         new Level { LevelNumber = 1, XP = 100, TotalXP = 100 },
                         new Level { LevelNumber = 2, XP = 300, TotalXP = 400 },
@@ -585,12 +591,12 @@ namespace StriveUp.Infrastructure.Data
                         new Level { LevelNumber = 100, XP = 505000, TotalXP = 17029000 }
                     };
 
-                    // Add the levels to the context
-                    context.Levels.AddRange(levels);
+                // Add the levels to the context
+                context.Levels.AddRange(levels);
 
                 // Save changes to the database
                 await context.SaveChangesAsync();
             }
-            }
         }
     }
+}

@@ -38,12 +38,13 @@ namespace StriveUp.Infrastructure.Models
         public double? MaxSpeed { get; set; }
         public int? AvarageHr { get; set; }
         public int? MaxHr { get; set; }
+        public int? ElevationGain { get; set; }
         [Required]
         public DateTime DateStart { get; set; }
         [Required]
         public DateTime DateEnd { get; set; }
         [Required]
-        public bool isManualAdded { get; set; } = false;
+        public bool IsManuallyAdded { get; set; } = false;
         [Required]
         public bool isSynchronized { get; set; } = false;
         public string? SynchroId { get; set; }

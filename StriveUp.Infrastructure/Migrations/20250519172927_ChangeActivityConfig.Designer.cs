@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250519172927_ChangeActivityConfig")]
+    partial class ChangeActivityConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -688,9 +691,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<int?>("ElevationGain")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsManuallyAdded")
-                        .HasColumnType("bit");
-
                     b.Property<int?>("MaxHr")
                         .HasColumnType("int");
 
@@ -707,6 +707,9 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("isManualAdded")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("isSynchronized")
                         .HasColumnType("bit");

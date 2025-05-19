@@ -1,4 +1,5 @@
 ﻿using StriveUp.Shared.DTOs;
+using StriveUp.Sync.Application.Models;
 using StriveUp.Sync.Application.Services;
 
 namespace StriveUp.Sync.Application.Interfaces;

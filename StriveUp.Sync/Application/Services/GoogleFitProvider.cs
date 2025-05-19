@@ -19,7 +19,6 @@ namespace StriveUp.Sync.Application.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<GoogleFitProvider> _logger;
-        private readonly ITokenService _tokenService;
 
         private static readonly HashSet<string> AllowedDataTypes = new()
         {
@@ -31,23 +30,15 @@ namespace StriveUp.Sync.Application.Services
             "com.google.distance.delta"
         };
 
-        public GoogleFitProvider(HttpClient httpClient, ILogger<GoogleFitProvider> logger, ITokenService tokenService)
+        public GoogleFitProvider(IHttpClientFactory httpClient, ILogger<GoogleFitProvider> logger)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient.CreateClient("GoogleFitClient");
             _logger = logger;
-            _tokenService = tokenService;
         }
 
-        public async Task<List<CreateUserActivityDto>> GetUserActivitiesAsync(UserSynchroDto userSynchro)
+        public async Task<List<CreateUserActivityDto>> GetUserActivitiesAsync(UserSynchroDto userSynchro , string token)
         {
             var result = new List<CreateUserActivityDto>();
-
-            var tokenResult = await _tokenService.GetAccessTokenAsync(userSynchro);
-            if (string.IsNullOrEmpty(tokenResult?.AccessToken))
-            {
-                _logger.LogWarning($"Failed to get access token for user {userSynchro.UserId}");
-                return result;
-            }
 
             // 1. Fetch sessions for last 5 minutes
             var now = DateTime.UtcNow;
@@ -55,7 +46,7 @@ namespace StriveUp.Sync.Application.Services
 
             var sessionsUrl = $"users/me/sessions?startTime={fiveMinutesAgo:O}&endTime={now:O}";
             var sessionsRequest = new HttpRequestMessage(HttpMethod.Get, sessionsUrl);
-            sessionsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.AccessToken);
+            sessionsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var sessionsResponse = await _httpClient.SendAsync(sessionsRequest);
             if (!sessionsResponse.IsSuccessStatusCode)
@@ -91,7 +82,7 @@ namespace StriveUp.Sync.Application.Services
                 var activityDto = new CreateUserActivityDto
                 {
                     UserId = userSynchro.UserId,
-                    ActivityId = ActivityHelpers.MapActivityType(session.GetProperty("activityType").GetInt32()),
+                    ActivityId = ActivityHelpers.MapGoogleActivityType(session.GetProperty("activityType").GetInt32()),
                     DateStart = startTime,
                     DateEnd = endTime,
                     Title = sessionName,
@@ -105,7 +96,7 @@ namespace StriveUp.Sync.Application.Services
                 };
 
                 // 3. Fetch aggregated detailed data for this session time range
-                var aggregatedData = await FetchAggregatedDataAsync(tokenResult.AccessToken, startTimeMillis, endTimeMillis);
+                var aggregatedData = await FetchAggregatedDataAsync(token, startTimeMillis, endTimeMillis);
 
                 // 4. Enrich activityDto with the aggregated data
                 EnrichActivityWithAggregatedData(activityDto, aggregatedData);

@@ -12,17 +12,21 @@ namespace StriveUp.Infrastructure.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
         public required string MeasurementType { get; set; }
 
         [Required]
-        public required string DefaultDistanceUnit { get; set; }
+        public required string DefaultDistanceUnit { get; set; } = "km";
 
-        public bool UseHeartRate { get; set; }
+        public bool UseHeartRate { get; set; } = true;
 
-        public bool ElevationRelevant { get; set; }
+        public bool ElevationRelevant { get; set; } = true;
 
-        public bool IndoorCapable { get; set; }
+        public bool SpeedRelevant { get; set; } = true;
+
+        public bool DistanceRelevant { get; set; } = true;
+
+        public bool Indoor { get; set; } = false;
+
         [Required]
         public double PointsPerMinute { get; set; }
 
