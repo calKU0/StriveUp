@@ -9,37 +9,12 @@
     @if (!IsTracking && !IsPaused)
     {
         <div class="mb-3 d-flex align-items-center justify-content-center gap-3">
-            <!-- Clickable Activity Icon -->
             <img src="@GetActivityImageUrl(SelectedActivity?.Id ?? 4, "dark")"
                  alt="Activity Icon"
                  class="activity-image"
                  @onclick="() => ShowActivitySelect = true" />
 
-            <i class="fas fa-heartbeat activity-icon" @onclick="ToggleSensorSelect"></i>
-            <div class="dropdown-menu @(ShowSensorSelect ? "show" : "")">
-                @if (AvailableSensors.Any())
-                {
-                    @foreach (var sensor in AvailableSensors)
-                    {
-                        <a class="dropdown-item d-flex align-items-center"
-                           @onclick="@(() => OnSensorSelected(sensor))">
-                            <span class="activity-name me-2">@sensor.Name</span>
-                            @if (sensor.Id == SelectedSensorId)
-                            {
-                                <i class="fas fa-dot-circle text-success ms-auto"></i>
-                            }
-                            else
-                            {
-                                <i class="far fa-circle text-muted ms-auto"></i>
-                            }
-                        </a>
-                    }
-                }
-                else
-                {
-                    <div class="dropdown-item disabled">No sensors available</div>
-                }
-            </div>
+            <i class="fas fa-heartbeat activity-icon" @onclick="() => ShowSensorSelect = true"></i>
         </div>
 
         <button class="btn btn-warning btn-lg" @onclick="OnStartClick">Start Activity</button>
@@ -67,6 +42,17 @@
                     GetIconUrl="GetActivityIconUrl">
 </GenericSelectModal>
 
+<GenericSelectModal TItem="BluetoothDeviceDto"
+                    Show="@ShowSensorSelect"
+                    ShowChanged="@((bool val) => ShowSensorSelect = val)"
+                    Label="Select a Sensor"
+                    Options="AvailableSensors"
+                    SelectedValue="SelectedSensor"
+                    SelectedValueChanged="OnSensorSelected"
+                    GetLabel="GetSensorLabel"
+                    GetValue="GetSensorValue">
+</GenericSelectModal>
+
 
 @code {
     [Parameter] public List<ActivityDto> AvailableActivities { get; set; } = new();
@@ -82,6 +68,7 @@
     [Parameter] public EventCallback<ActivityDto> SelectedActivityChanged { get; set; }
 
     private string SelectedSensorId { get; set; } = "";
+    private BluetoothDeviceDto? SelectedSensor { get; set; }
     private List<BluetoothDeviceDto> AvailableSensors { get; set; } = new();
     private bool ShowActivitySelect { get; set; } = false;
     private bool ShowSensorSelect { get; set; } = false;
@@ -99,32 +86,6 @@
 
         AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
 
-        await JSRuntime.InvokeVoidAsync("eval", @"
-                document.addEventListener('click', function(event) {
-                    var activityDropdown = document.querySelector('.dropdown-menu.show');
-                    var sensorDropdown = document.querySelector('.dropdown-menu.show');
-                    var activitySelect = document.querySelector('.activity-image');
-                    var sensorSelect = document.querySelector('.fas.fa-heartbeat');
-
-                    // Close activity dropdown if clicked outside
-                    if (activityDropdown && !activitySelect.contains(event.target) && !activityDropdown.contains(event.target)) {
-                        activityDropdown.classList.remove('show');
-                    }
-
-                    // Close sensor dropdown if clicked outside
-                    if (sensorDropdown && !sensorSelect.contains(event.target) && !sensorDropdown.contains(event.target)) {
-                        sensorDropdown.classList.remove('show');
-                    }
-                });
-            ");
-
-    }
-
-    private async void OnSensorSelected(BluetoothDeviceDto sensor)
-    {
-        SelectedSensorId = sensor.Id;
-        await OnSelectedSensorChanged.InvokeAsync(sensor);
-        ShowSensorSelect = false;
     }
 
 
@@ -141,33 +102,12 @@
         };
     }
 
-    private async Task OnSensorChanged(ChangeEventArgs e)
-    {
-        var selectedId = e.Value?.ToString();
-        var selectedSensor = AvailableSensors.FirstOrDefault(s => s.Id == selectedId);
-
-        if (selectedSensor != null)
-        {
-            await OnSelectedSensorChanged.InvokeAsync(selectedSensor);
-        }
-    }
-
-    private void ToggleActivitySelect()
-    {
-        ShowActivitySelect = !ShowActivitySelect;
-    }
 
     private void ToggleSensorSelect()
     {
         ShowSensorSelect = !ShowSensorSelect;
     }
 
-    private async void SelectActivity(ActivityDto activity)
-    {
-        SelectedActivity = activity;
-        ShowActivitySelect = false;
-        await SelectedActivityChanged.InvokeAsync(activity);
-    }
 
     private string GetActivityLabel(ActivityDto activity)
     {
@@ -187,6 +127,24 @@
 
     private string GetActivityIconUrl(ActivityDto activity)
     {
-        return GetActivityImageUrl(activity.Id, "light");
+        return GetActivityImageUrl(activity.Id, "dark");
+    }
+
+    private string GetSensorLabel(BluetoothDeviceDto sensor)
+    {
+        return sensor.Name;
+    }
+
+    private string GetSensorValue(BluetoothDeviceDto sensor)
+    {
+        return sensor.Id;
+    }
+
+    private async Task OnSensorSelected(BluetoothDeviceDto sensor)
+    {
+        SelectedSensor = sensor;
+        SelectedSensorId = sensor.Id;
+        await OnSelectedSensorChanged.InvokeAsync(sensor);
+        ShowSensorSelect = false;
     }
 }

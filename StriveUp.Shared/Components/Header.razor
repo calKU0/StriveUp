@@ -26,7 +26,9 @@
         }
         @if (showSettings)
         {
-            <i class="fas fa-cog text-dark"></i>
+            <a href="/settings">
+                <i class="icon-header nav-link d-flex align-items-center justify-content-center fas fa-cog text-dark"></i>
+            </a>
         }
     </div>
 </div>
@@ -57,7 +59,7 @@
             showBell = true;
             showSearch = true;
             showBackButton = false;
-            showSettings = false;
+            showSettings = true;
         }
         await base.OnParametersSetAsync();
     }

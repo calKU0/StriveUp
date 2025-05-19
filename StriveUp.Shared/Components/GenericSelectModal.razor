@@ -1,10 +1,11 @@
-﻿@using StriveUp.Shared.DTOs.Activity
+﻿@using System.Diagnostics
+@using StriveUp.Shared.DTOs.Activity
 @typeparam TItem
 
 @if (Show)
 {
     <div class="modal-backdrop show opacity-100" @onclick="CloseModal">
-        <div class="modal-container" @onclick:stopPropagation>
+        <div class="modal-container w-75" @onclick:stopPropagation>
             <div class="modal-card p-4">
                 <h5 class="mb-3">@Label</h5>
                 @foreach (var option in Options)
@@ -19,7 +20,7 @@
                         <label class="form-check-label d-flex align-items-center" for="@GetId(option)">
                             @if (GetIconUrl != null)
                             {
-                                <img src="@GetIconUrl(option)" class="me-2" style="width: 24px; height: 24px;" />
+                                <img src="@GetIconUrl(option)" class="me-2" style="width: 30px; height: 30px;" />
                             }
                             @GetLabel(option)
                         </label>

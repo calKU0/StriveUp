@@ -243,9 +243,34 @@ window.initIntersectionObserver = (element, dotNetHelper) => {
 
     observer.observe(element);
 };
+
 window.triggerFileInputClick = function () {
     var fileInput = document.getElementById("fileInput");
     if (fileInput) {
         fileInput.click();
     }
 }
+
+window.headerScrollHelper = {
+    lastScrollTop: 0,
+    threshold: 10, // Minimum scroll difference to detect direction
+    init: function (dotNetHelper) {
+        window.addEventListener('scroll', function () {
+            let st = window.pageYOffset || document.documentElement.scrollTop;
+            if (Math.abs(st - this.lastScrollTop) <= this.threshold) {
+                // Ignore small scrolls
+                return;
+            }
+
+            if (st > this.lastScrollTop) {
+                // Scrolling down -> hide header
+                dotNetHelper.invokeMethodAsync('SetHeaderVisibility', false);
+            } else {
+                // Scrolling up -> show header
+                dotNetHelper.invokeMethodAsync('SetHeaderVisibility', true);
+            }
+            this.lastScrollTop = st <= 0 ? 0 : st; // For Mobile or negative scrolling
+        }.bind(this), { passive: true });
+    }
+};
+
