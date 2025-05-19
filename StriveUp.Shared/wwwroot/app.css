@@ -44,6 +44,23 @@ a, .btn-link {
         color: inherit;
     }
 
+.login-btn {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    color: #000;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease-in-out;
+}
+
+    .login-btn:hover {
+        background-color: #e9ecef;
+    }
+
+    .login-btn .icon {
+        width: 30px;
+        height: 30px;
+    }
 
 .navbar {
     width: 100%;

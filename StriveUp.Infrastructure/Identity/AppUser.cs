@@ -51,7 +51,9 @@ namespace StriveUp.Infrastructure.Identity
 
         [Required]
         [MaxLength(20)]
-        public string Gender { get; set; }
+        public string Gender { get; set; } = "Not Specified";
+        public string? RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiryTime { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime? Birthday { get; set; }

@@ -37,7 +37,7 @@ namespace StriveUp.Web.Services
 
                 return (true, null);
             }
-            catch (Exception ex)
+            catch (Exception  ex)
             {
                 Debug.WriteLine(ex);
                 return (false, $"Unexpected error: {ex.Message}");
@@ -76,6 +76,23 @@ namespace StriveUp.Web.Services
             {
                 Debug.WriteLine(ex);
                 return (false, new List<string> { $"Unexpected error: {ex.Message}" });
+            }
+        }
+
+        public async Task<(bool Success, string? ErrorMessage)> ExternalLoginAsync(string token)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(token))
+                    return (false, "No token provided.");
+
+                await _authStateProvider.NotifyUserAuthentication(token);
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return (false, $"Unexpected error: {ex.Message}");
             }
         }
         private class ErrorResponse

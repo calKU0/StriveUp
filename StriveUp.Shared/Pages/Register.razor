@@ -118,8 +118,17 @@
             <a href="" @onclick="LoginClick">Login here!</a>
         </div>
 
-        <button class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Continue with Google</button>
-        <button class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Continue with apple</button>
+        <!-- Google Button -->
+        <button class="btn login-btn btn-google rounded-3 col-12 col-md-6 mb-3" @onclick="TriggerGoogleLogin">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" class="icon">
+            Continue with Google
+        </button>
+
+        <!-- Apple Button -->
+@*         <button class="btn login-btn btn-apple rounded-3 col-12 col-md-6 mb-3">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="icon">
+            Continue with Apple
+        </button> *@
     </div>
 </div>
 
@@ -129,6 +138,40 @@
     private string? croppedImageUrl;
     private List<string> errorMessages = new();
     private string? successMessage;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (!first) return;
+
+        try
+        {
+            var uri = Nav.ToAbsoluteUri(Nav.Uri);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var token = query["token"];
+
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                var (success, error) = await AuthService.ExternalLoginAsync(token);
+                if (success)
+                {
+                    Nav.NavigateTo("/");
+                }
+                else
+                {
+                    errorMessages.Add(error ?? "External login failed.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            errorMessages.Add("Unexpected error during external login.");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
 
     private async Task HandleRegister()
     {
@@ -164,6 +207,11 @@
     private void LoginClick()
     {
         Nav.NavigateTo("/login");
+    }
+
+    private void TriggerGoogleLogin()
+    {
+        Nav.NavigateTo("https://localhost:7116/api/auth/google-login", forceLoad: true);
     }
 
 

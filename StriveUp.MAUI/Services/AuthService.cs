@@ -77,6 +77,23 @@ namespace StriveUp.MAUI.Services
             }
         }
 
+        public async Task<(bool Success, string? ErrorMessage)> ExternalLoginAsync(string token)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(token))
+                    return (false, "No token provided.");
+
+                await _authStateProvider.NotifyUserAuthentication(token);
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return (false, $"Unexpected error: {ex.Message}");
+            }
+        }
+
         private class ErrorResponse
         {
             public string? Message { get; set; }

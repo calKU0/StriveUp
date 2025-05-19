@@ -1,4 +1,6 @@
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -14,50 +16,53 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
-// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddAuthentication()
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidateLifetime = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
         {
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            ValidateLifetime = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-        };
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                Console.WriteLine("Token validation failed: " + context.Exception.Message);
-                return Task.CompletedTask;
-            }
-        };
-    });
+            Console.WriteLine("Token validation failed: " + context.Exception.Message);
+            return Task.CompletedTask;
+        }
+    };
+})
+.AddGoogle("Google", options =>
+{
+    options.ClientId = builder.Configuration["GoogleSettings:ClientId"];
+    options.ClientSecret = builder.Configuration["GoogleSettings:ClientSecret"];
+    options.Scope.Add("email");        // Add this
+    options.Scope.Add("profile");
+});
 
 builder.Services.AddAuthorization();
 
-// Infrastructure
-builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISecurableService, SecurableService>();
 builder.Services.AddScoped<ILevelService, LevelService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-
 var app = builder.Build();
 
+// Seed data
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -67,16 +72,13 @@ using (var scope = app.Services.CreateScope())
     await Seed.SeedData(context);
 }
 
-// Configure the HTTP request pipeline.
-
-    app.UseSwagger(); 
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        c.RoutePrefix = string.Empty;
-    });
-
-
+// Middlewares
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    c.RoutePrefix = string.Empty;
+});
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -85,4 +87,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
