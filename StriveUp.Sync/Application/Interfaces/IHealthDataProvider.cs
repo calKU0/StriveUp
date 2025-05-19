@@ -4,5 +4,5 @@ namespace StriveUp.Sync.Application.Interfaces;
 
 public interface IHealthDataProvider
 {
-    Task<List<CreateUserActivityDto>> GetUserActivitiesAsync(UserSynchroDto userSynchro);
+    Task<List<CreateUserActivityDto>> GetUserActivitiesAsync(UserSynchroDto userSynchro, string token);
 }

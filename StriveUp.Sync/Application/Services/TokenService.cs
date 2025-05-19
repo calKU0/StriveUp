@@ -1,13 +1,15 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StriveUp.Shared.DTOs;
+using StriveUp.Sync.Application.Interfaces;
+using StriveUp.Sync.Application.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using StriveUp.Sync.Application.Interfaces;
 
 namespace StriveUp.Sync.Application.Services
 {
@@ -16,6 +18,7 @@ namespace StriveUp.Sync.Application.Services
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
         private readonly ILogger<TokenService> _logger;
+
         public TokenService(HttpClient httpClient, IConfiguration config, ILogger<TokenService> logger)
         {
             _httpClient = httpClient;
@@ -27,7 +30,16 @@ namespace StriveUp.Sync.Application.Services
         {
             if (user.TokenExpiresAt > DateTime.UtcNow)
             {
-                return new TokenResult { AccessToken = user.AccessToken };
+                return new TokenResult
+                {
+                    Token = new UpdateTokenDto
+                    {
+                        AccessToken = user.AccessToken,
+                        RefreshToken = user.RefreshToken,
+                        ExpiresIn = (int)(user.TokenExpiresAt - DateTime.UtcNow).TotalSeconds
+                    },
+                    IsNewToken = false
+                };
             }
 
             Dictionary<string, string> payload = new();
@@ -55,33 +67,30 @@ namespace StriveUp.Sync.Application.Services
 
                 var credentials = $"{_config["FitbitClientId"]}:{_config["FitbitClientSecret"]}";
                 var base64Credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(credentials));
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", base64Credentials);
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", base64Credentials);
             }
 
-            var response = await _httpClient.PostAsync(endpointUri, new FormUrlEncodedContent(payload));
+            var requestContent = new FormUrlEncodedContent(payload);
+            var response = await _httpClient.PostAsync(endpointUri, requestContent);
 
             _logger.LogInformation(await response.Content.ReadAsStringAsync());
+
             if (!response.IsSuccessStatusCode)
                 return null;
 
-            var json = await response.Content.ReadAsStringAsync();
-            var data = JsonDocument.Parse(json).RootElement;
-
-            var accessToken = data.GetProperty("access_token").GetString();
-            var expiresIn = data.GetProperty("expires_in").GetInt32();
+            var responseStream = await response.Content.ReadAsStreamAsync();
+            var tokenData = await JsonSerializer.DeserializeAsync<UpdateTokenDto>(responseStream, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
             return new TokenResult
             {
-                AccessToken = accessToken,
-                ExpiresAt = DateTime.UtcNow.AddSeconds(expiresIn)
+                Token = tokenData,
+                IsNewToken = true
             };
         }
-    }
 
-    public class TokenResult
-    {
-        public string AccessToken { get; set; }
-        public DateTime ExpiresAt { get; set; }
     }
-
 }

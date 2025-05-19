@@ -1,15 +1,7 @@
-﻿using CloudinaryDotNet;
-using Microsoft.Extensions.Configuration;
-using Microsoft.JSInterop;
-using StriveUp.Infrastructure.Extensions;
+﻿using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using StriveUp.Infrastructure.Data.Settings;
 

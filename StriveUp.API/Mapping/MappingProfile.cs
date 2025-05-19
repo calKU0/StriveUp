@@ -114,6 +114,10 @@ namespace StriveUp.API.Mapping
 
             CreateMap<UpdateUserSynchroDto, UserSynchro>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<UpdateTokenDto, UserSynchro>()
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.RefreshToken, opt => opt.Condition(src => src.RefreshToken != null));
         }
     }
 }

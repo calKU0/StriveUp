@@ -1,11 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Azure.Core;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using StriveUp.Shared.DTOs; 
 using StriveUp.Sync.Application.Interfaces;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace StriveUp.Sync.Application.Services
@@ -15,14 +17,16 @@ namespace StriveUp.Sync.Application.Services
         private readonly HttpClient _httpClient;
         private readonly ILogger<UserSyncService> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ITokenService _tokenService;
         private readonly string _username;
         private readonly string _password;
 
-        public UserSyncService(IHttpClientFactory httpClient, ILogger<UserSyncService> logger, IConfiguration config, IServiceProvider serviceProvider)
+        public UserSyncService(IHttpClientFactory httpClient, ILogger<UserSyncService> logger, IConfiguration config, IServiceProvider serviceProvider, ITokenService tokenService)
         {
             _httpClient = httpClient.CreateClient("StriveUpClient");
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _tokenService = tokenService;
             _username = config["ApiUsername"];
             _password = config["ApiPassword"];
         }
@@ -58,6 +62,26 @@ namespace StriveUp.Sync.Application.Services
             {
                 try
                 {
+                    var tokenResult = await _tokenService.GetAccessTokenAsync(user);
+
+                    if (tokenResult == null)
+                    {
+                        _logger.LogWarning($"Failed to refresh token for user {user.UserId}");
+                        continue;
+                    }
+
+                    if (tokenResult.IsNewToken)
+                    {
+                        var updateResponse = await _httpClient.PutAsJsonAsync($"synchro/updateTokens/{user.Id}/{user.UserId}", tokenResult.Token);
+
+                        if (!updateResponse.IsSuccessStatusCode)
+                        {
+                            _logger.LogWarning($"Failed to update tokens for user {user.UserId}");
+                            continue;
+                        }
+                    }
+
+
                     IHealthDataProvider provider = user.SynchroProviderName switch
                     {
                         "Google Fit" => _serviceProvider.GetRequiredService<GoogleFitProvider>(),
@@ -65,7 +89,7 @@ namespace StriveUp.Sync.Application.Services
                         _ => throw new NotSupportedException("Unsupported provider")
                     };
 
-                    var activities = await provider.GetUserActivitiesAsync(user);
+                    var activities = await provider.GetUserActivitiesAsync(user, tokenResult.Token.AccessToken);
                     if (activities == null || activities.Count == 0)
                     {
                         _logger.LogInformation($"No activities found for user {user.UserId}");

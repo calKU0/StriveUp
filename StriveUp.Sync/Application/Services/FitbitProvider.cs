@@ -6,6 +6,7 @@ using StriveUp.Sync.Application.Interfaces;
 using StriveUp.Sync.Application.Models.Fitbit;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -21,25 +22,16 @@ namespace StriveUp.Sync.Application.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<FitbitProvider> _logger;
-        private readonly ITokenService _tokenService;
 
-        public FitbitProvider(IHttpClientFactory httpClient, ILogger<FitbitProvider> logger, ITokenService tokenService)
+        public FitbitProvider(IHttpClientFactory httpClient, ILogger<FitbitProvider> logger)
         {
             _httpClient = httpClient.CreateClient("FitbitClient");
             _logger = logger;
-            _tokenService = tokenService;
         }
 
-        public async Task<List<CreateUserActivityDto>> GetUserActivitiesAsync(UserSynchroDto userSynchro)
+        public async Task<List<CreateUserActivityDto>> GetUserActivitiesAsync(UserSynchroDto userSynchro, string token)
         {
             var result = new List<CreateUserActivityDto>();
-
-            var tokenResult = await _tokenService.GetAccessTokenAsync(userSynchro);
-            if (string.IsNullOrEmpty(tokenResult?.AccessToken))
-            {
-                _logger.LogWarning($"Failed to get access token for user {userSynchro.UserId}");
-                return result;
-            }
 
             // 0. Activity types => Fetch once and store in a file/database/cache
 
@@ -63,16 +55,17 @@ namespace StriveUp.Sync.Application.Services
             //1.Fetch activities for last 5 minutes
 
             var now = DateTime.UtcNow;
-            var fiveMinutesAgo = now.AddMinutes(-5);
+            var fiveMinutesAgo = now.AddMinutes(-5000);
+            var afterDate = Uri.EscapeDataString(fiveMinutesAgo.ToString("yyyy-MM-ddTHH:mm:ss"));
 
-            var activitiesUrl = $"/1/user/-/activities/list.json?afterDate={fiveMinutesAgo}&sort=asc&offset=0&limit=10";
+            var activitiesUrl = $"/1/user/-/activities/list.json?afterDate={afterDate}&sort=asc&offset=0&limit=10";
             if (_httpClient.DefaultRequestHeaders.Contains("Authorization"))
             {
                 _httpClient.DefaultRequestHeaders.Remove("Authorization");
                 _httpClient.DefaultRequestHeaders.Remove("accept-language");
             }
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.AccessToken);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             _httpClient.DefaultRequestHeaders.Add("accept-language", "en_GB");
 
             var activities = await _httpClient.GetFromJsonAsync<FitbitActivityResponse>(activitiesUrl);
@@ -95,9 +88,8 @@ namespace StriveUp.Sync.Application.Services
                         IsManuallyAdded = activity.LogType == "manual",
                         AvarageSpeed = activity.Speed / 3.6,
                         AvarageHr = activity.AverageHeartRate,
-                        MaxHr = activity.HeartRateZones?.Max(z => z.Max),
                         ElevationGain = Convert.ToInt32(activity.ElevationGain),
-                        Distance = (int)Math.Round(activity.Distance / 1000),
+                        Distance = (int)Math.Round(activity.Distance * 1000),
                         Route = new List<GeoPointDto>(),
                         HrData = new List<ActivityHrDto>(),
                         SpeedData = new List<ActivitySpeedDto>()
@@ -106,6 +98,7 @@ namespace StriveUp.Sync.Application.Services
                     // 3. Fetch aggregated detailed data for this session time range
                     var activityTcx = await FetchActivityTcx(activity.LogId);
 
+                    Debug.WriteLine(activity.LogType);
                     // 4. Enrich activityDto with the TCX data
                     EnrichActivityWithActivityTcx(activityDto, activityTcx);
 
@@ -142,19 +135,19 @@ namespace StriveUp.Sync.Application.Services
             if (!trackpoints.Any())
                 return;
 
-            Trackpoint? prev = null;
-
             foreach (var tp in trackpoints)
             {
                 // Route
+                GeoPointDto? currentPoint = null;
                 if (tp.Position != null)
                 {
-                    activityDto.Route.Add(new GeoPointDto
+                    currentPoint = new GeoPointDto
                     {
                         Latitude = tp.Position.LatitudeDegrees,
                         Longitude = tp.Position.LongitudeDegrees,
                         Timestamp = tp.Time
-                    });
+                    };
+                    activityDto.Route.Add(currentPoint);
                 }
 
                 // Heart Rate
@@ -166,28 +159,7 @@ namespace StriveUp.Sync.Application.Services
                         TimeStamp = tp.Time
                     });
                 }
-
-                // Speed
-                if (prev != null)
-                {
-                    var timeDiff = (tp.Time - prev.Time).TotalSeconds;
-                    var distanceDiff = tp.DistanceMeters - prev.DistanceMeters;
-
-                    if (timeDiff > 0 && distanceDiff >= 0)
-                    {
-                        var speed = distanceDiff / timeDiff; // m/s
-
-                        activityDto.SpeedData.Add(new ActivitySpeedDto
-                        {
-                            SpeedValue = speed,
-                            TimeStamp = tp.Time
-                        });
-                    }
-                }
-
-                prev = tp;
             }
         }
-
     }
 }

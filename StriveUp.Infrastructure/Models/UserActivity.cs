@@ -44,7 +44,7 @@ namespace StriveUp.Infrastructure.Models
         [Required]
         public DateTime DateEnd { get; set; }
         [Required]
-        public bool isManualAdded { get; set; } = false;
+        public bool IsManuallyAdded { get; set; } = false;
         [Required]
         public bool isSynchronized { get; set; } = false;
         public string? SynchroId { get; set; }

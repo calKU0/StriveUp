@@ -277,23 +277,35 @@
     [JSInvokable]
     public async Task LoadMoreActivities()
     {
-        if (isActivitiesLoading || !hasMoreActivities) return;
-
-        isActivitiesLoading = true;
-        StateHasChanged();
-
-        var pageActivities = await ActivityService.GetUserActivitiesAsync(activityPage, ActivityPageSize);
-
-        if (pageActivities.Count < ActivityPageSize)
+        try
         {
-            hasMoreActivities = false;
+            if (isActivitiesLoading || !hasMoreActivities) return;
+
+            isActivitiesLoading = true;
+            StateHasChanged();
+
+            var pageActivities = await ActivityService.GetUserActivitiesAsync(activityPage, ActivityPageSize);
+
+            if (pageActivities != null)
+            {
+                if (pageActivities.Count < ActivityPageSize)
+                {
+                    hasMoreActivities = false;
+                }
+
+                pagedActivities.AddRange(pageActivities);
+                activityPage++;
+            }
         }
-
-        pagedActivities.AddRange(pageActivities);
-        activityPage++;
-        isActivitiesLoading = false;
-
-        StateHasChanged();
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isActivitiesLoading = false;
+            StateHasChanged();
+        }
     }
 
 

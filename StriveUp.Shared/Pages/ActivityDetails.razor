@@ -76,7 +76,7 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-activity fs-3 text-success"></i>
-                                <h6 class="mt-2">Max HR: 0 bpm</h6>
+                                <h6 class="mt-2">Max HR: @Activity.MaxHr bpm</h6>
                                 <small class="text-muted">Max Heart Rate</small>
                             </div>
                         </div>
@@ -86,7 +86,7 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-speedometer2 fs-3 text-success"></i>
-                                <h6 class="mt-2">Max Speed: 0 km/h</h6>
+                                <h6 class="mt-2">Max Speed: @Activity.MaxSpeed km/h</h6>
                                 <small class="text-muted">Max Speed</small>
                             </div>
                         </div>
@@ -96,7 +96,7 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-heart-pulse fs-3 text-info"></i>
-                                <h6 class="mt-2">Avg HR: 0 bpm</h6>
+                                <h6 class="mt-2">Avg HR: @Activity.AvarageHr bpm</h6>
                                 <small class="text-muted">Avg Heart Rate</small>
                             </div>
                         </div>
@@ -106,7 +106,7 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-speedometer2 fs-3 text-info"></i>
-                                <h6 class="mt-2">Avg Speed: @(Math.Round(0.0, 2)) km/h</h6>
+                                <h6 class="mt-2">Avg Speed: @Activity.AvarageSpeed km/h</h6>
                                 <small class="text-muted">Avg Speed</small>
                             </div>
                         </div>
@@ -220,13 +220,8 @@
 
                 // Convert speed (m/s) to pace (min/km) in seconds as double
                 var paceValues = Activity.SpeedData
-                    .Select(d =>
-                    {
-                        if (d.SpeedValue <= 0)
-                            return double.NaN; // Chart.js can handle NaN as a gap
-
-                        return 1000.0 / d.SpeedValue; // seconds per km
-                    })
+                    .Select(d => d.SpeedValue > 0 ? 1000.0 / d.SpeedValue : double.NaN)
+                    .Where(p => !double.IsNaN(p) && !double.IsInfinity(p))
                     .ToArray();
 
                 await JS.InvokeVoidAsync("renderLineChartById", "speedChart", speedLabels, paceValues, "Pace (min/km)");

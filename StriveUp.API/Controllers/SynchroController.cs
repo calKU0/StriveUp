@@ -209,6 +209,7 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
         [HttpPost("exchange-code")]
         public async Task<IActionResult> ExchangeCode([FromBody] CodeExchangeDto dto)
         {
@@ -303,6 +304,33 @@ namespace StriveUp.API.Controllers
                 await _context.SaveChangesAsync();
 
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPut("updateTokens/{id}/{userId}")]
+        public async Task<IActionResult> UpdateTokens(int id, string userId, [FromBody] UpdateTokenDto dto)
+        {
+            try
+            {
+                var callerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (callerId == null)
+                    return Unauthorized();
+
+                var userSynchro = await _context.UserSynchros
+                    .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
+
+                if (userSynchro == null)
+                    return NotFound("UserSynchro not found");
+
+                _mapper.Map(dto, userSynchro);
+
+                await _context.SaveChangesAsync();
+                return NoContent();
             }
             catch (Exception ex)
             {
