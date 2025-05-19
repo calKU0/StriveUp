@@ -17,11 +17,13 @@ namespace StriveUp.Infrastructure.Models
         [Required]
         public required string DefaultDistanceUnit { get; set; } = "km";
 
-        public bool UseHeartRate { get; set; } = false;
+        public bool UseHeartRate { get; set; } = true;
 
-        public bool ElevationRelevant { get; set; } = false;
+        public bool ElevationRelevant { get; set; } = true;
 
-        public bool SpeedRelevant { get; set; } = false;
+        public bool SpeedRelevant { get; set; } = true;
+
+        public bool DistanceRelevant { get; set; } = true;
 
         public bool Indoor { get; set; } = false;
 

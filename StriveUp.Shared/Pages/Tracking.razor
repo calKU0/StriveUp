@@ -39,7 +39,7 @@
                 IsTracking="@isTracking"
                 IsPaused="@isPaused"
                 OnSelectedSensorChanged="@(sensor => ConnectHrDevice(sensor))"
-                SelectedActivityChanged="@((ActivityDto a) => selectedActivity = a)"
+                SelectedActivityChanged="@((ActivityDto a) => OnSelectedActivityChanged(a))"
                 OnStartClick="@ToggleTracking"
                 OnStopClick="@ToggleTracking"
                 OnResumeClick="@ResumeTracking"
@@ -52,7 +52,7 @@
                 <div class="tiles-wrapper p-2">
                     <!-- Info Tiles -->
                     <div class="row g-3">
-                        @if(!selectedActivity.Indoor)
+                        @if(!selectedActivity.DistanceRelevant)
                         {
                             <InfoTile Label="Distance" Value="@($"{Distance * 1000:F2} km")" IconClass="fas fa-route" />
                             <!-- Conditional display of Speed or Pace -->
@@ -77,7 +77,7 @@
             </div>
         }
     }
-    
+
 
 </div>
 
@@ -118,6 +118,15 @@ OnResume="@ResumeTracking" />
     private const double smoothingAlpha = 0.2;
     private Location lastLocation;
     private DateTime resumeTime;
+    private IGeolocator locator = CrossGeolocator.Current;
+    private ListenerSettings listenerSettings = new ListenerSettings
+    {
+        AllowBackgroundUpdates = true,
+        ActivityType = ActivityType.Fitness,
+        DeferLocationUpdates = false,
+        ListenForSignificantChanges = false,
+        PauseLocationUpdatesAutomatically = false
+    };
 
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
@@ -140,22 +149,20 @@ OnResume="@ResumeTracking" />
             Console.WriteLine(ex);
         }
 
-        StartCompass();
-
-        var status = await Permissions.RequestAsync<Permissions.Bluetooth>();
-        if (status != PermissionStatus.Granted)
-        {
-            btPermission = false;
-            return;
-        }
-        btPermission = true;
         var activities = await ActivityService.GetAvailableActivitiesAsync();
         if (activities != null)
             availableActivities = activities;
 
         selectedActivity = availableActivities.FirstOrDefault();
+
+        locator.DesiredAccuracy = 5;
         mapToken = await SecurableService.GetMapboxTokenAsync();
-        _ = StartLocationTracking();
+
+        if (!selectedActivity.Indoor)
+        {
+            StartCompass();
+            _ = StartLocationTracking();
+        }
     }  
 
     private async Task StartLocationTracking()
@@ -169,19 +176,7 @@ OnResume="@ResumeTracking" />
                 return;
             }
 
-            var locator = CrossGeolocator.Current;
-            locator.DesiredAccuracy = 5;
             locator.PositionChanged += OnPositionChanged;
-
-            var listenerSettings = new ListenerSettings
-            {
-                AllowBackgroundUpdates = true,
-                ActivityType = ActivityType.Fitness,
-                DeferLocationUpdates = false,
-                ListenForSignificantChanges = false,
-                PauseLocationUpdatesAutomatically = false
-            };
-
             if (!locator.IsListening)
             {
                 await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 5, false, listenerSettings);
@@ -283,6 +278,30 @@ OnResume="@ResumeTracking" />
         resumeTime = DateTime.UtcNow;
     }
 
+    private async Task OnSelectedActivityChanged(ActivityDto activity)
+    {
+        if (selectedActivity == activity)
+        {
+            return;
+        }
+
+        selectedActivity = activity;
+        if (selectedActivity.Indoor)
+        {
+            if (locator.IsListening)
+            {
+                locator.PositionChanged -= OnPositionChanged;
+                await locator.StopListeningAsync();
+            }
+            StopCompass();
+        }
+        else
+        {
+            StartCompass();
+            _ = StartLocationTracking();
+        }
+        await InvokeAsync(() => StateHasChanged());
+    }
 
     private async Task ConnectHrDevice(BluetoothDeviceDto device)
     {
@@ -351,7 +370,6 @@ OnResume="@ResumeTracking" />
         isTracking = false;
         isPaused = true;
         durationCts?.Cancel();
-        var locator = CrossGeolocator.Current;
         if (locator.IsListening)
         {
             locator.PositionChanged -= OnPositionChanged;
@@ -366,6 +384,11 @@ OnResume="@ResumeTracking" />
         showFinishModal = false;
         isTracking = true;
         durationCts = new CancellationTokenSource();
+        if (!locator.IsListening)
+        {
+            locator.PositionChanged += OnPositionChanged;
+            await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 5, false, listenerSettings);
+        }
 
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
     }
@@ -438,6 +461,19 @@ OnResume="@ResumeTracking" />
         }
     }
 
+    private void StopCompass()
+    {
+        if (!Compass.Default.IsSupported)
+        {
+            return;
+        }
+        if (Compass.IsMonitoring)
+        {
+            Compass.Default.Stop();
+            Compass.Default.ReadingChanged -= OnCompassReadingChanged;
+        }
+    }
+
     private void OnCompassReadingChanged(object sender, CompassChangedEventArgs e)
     {
         if (currentLocation == null)
@@ -452,9 +488,7 @@ OnResume="@ResumeTracking" />
     public void Dispose()
     {
         // Unsubscribe when the component is disposed to avoid memory leaks
-        Compass.Default.Stop();
-        Compass.Default.ReadingChanged -= OnCompassReadingChanged;
-        var locator = CrossGeolocator.Current;
+        StopCompass();
         locator.PositionChanged -= OnPositionChanged;
         locator.StopListeningAsync();
     }

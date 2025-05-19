@@ -54,13 +54,16 @@
                             <small class="text-muted">Duration</small>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 border rounded-3">
-                            <i class="bi bi-signpost-split fs-3 text-primary"></i>
-                            <h5 class="mt-2">@(Math.Round(Activity.Distance / 1000.0, 2)) km</h5>
-                            <small class="text-muted">Distance</small>
+                    @if(Activity.Distance > 0)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-signpost-split fs-3 text-primary"></i>
+                                <h5 class="mt-2">@(Math.Round(Activity.Distance / 1000.0, 2)) km</h5>
+                                <small class="text-muted">Distance</small>
+                            </div>
                         </div>
-                    </div>
+                    }
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded-3">
                             <i class="bi bi-fire fs-3 text-primary"></i>
@@ -68,34 +71,57 @@
                             <small class="text-muted">Calories</small>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 border rounded-3">
-                            <i class="bi bi-activity fs-3 text-success"></i>
-                            <h6 class="mt-2">Max HR: 0 bpm</h6>
-                            <small class="text-muted">Max Heart Rate</small>
+                    @if (Activity.MaxHr > 0)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-activity fs-3 text-success"></i>
+                                <h6 class="mt-2">Max HR: 0 bpm</h6>
+                                <small class="text-muted">Max Heart Rate</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 border rounded-3">
-                            <i class="bi bi-speedometer2 fs-3 text-success"></i>
-                            <h6 class="mt-2">Max Speed: 0 km/h</h6>
-                            <small class="text-muted">Max Speed</small>
+                    }
+                    @if (Activity.MaxSpeed > 0)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-speedometer2 fs-3 text-success"></i>
+                                <h6 class="mt-2">Max Speed: 0 km/h</h6>
+                                <small class="text-muted">Max Speed</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 border rounded-3">
-                            <i class="bi bi-heart-pulse fs-3 text-info"></i>
-                            <h6 class="mt-2">Avg HR: 0 bpm</h6>
-                            <small class="text-muted">Avg Heart Rate</small>
+                    }
+                    @if (Activity.AvarageHr > 0)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-heart-pulse fs-3 text-info"></i>
+                                <h6 class="mt-2">Avg HR: 0 bpm</h6>
+                                <small class="text-muted">Avg Heart Rate</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 border rounded-3">
-                            <i class="bi bi-speedometer2 fs-3 text-info"></i>
-                            <h6 class="mt-2">Avg Speed: @(Math.Round(0.0, 2)) km/h</h6>
-                            <small class="text-muted">Avg Speed</small>
+                    }
+                    @if (Activity.AvarageSpeed > 0)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-speedometer2 fs-3 text-info"></i>
+                                <h6 class="mt-2">Avg Speed: @(Math.Round(0.0, 2)) km/h</h6>
+                                <small class="text-muted">Avg Speed</small>
+                            </div>
                         </div>
-                    </div>
+                    }
+                    @if (Activity.ElevationGain > 0)
+                    {   // TO DO
+                        // Display elevation
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-speedometer2 fs-3 text-info"></i>
+                                <h6 class="mt-2">Avg Speed: @(Math.Round(0.0, 2)) km/h</h6>
+                                <small class="text-muted">Avg Speed</small>
+                            </div>
+                        </div>
+                    }
                 </div>
 
                 <!-- Heart Rate Chart -->
@@ -122,7 +148,7 @@
 
                 <!-- Buttons -->
                 <div class="d-flex gap-3 mt-3">
-                    <button class="btn btn-outline-danger rounded-pill px-4" @onclick="ToggleLike">
+                    <button class="btn btn-outline-danger rounded-pill px-4 @(Activity.IsLikedByCurrentUser ? "text-danger bg-danger-subtle like-active" : "text-body")" @onclick="ToggleLike">
                         <i class="bi bi-heart-fill me-2"></i>@Activity.LikeCount
                     </button>
                     <a href="/activity/@Activity.Id/comments" class="btn btn-outline-primary rounded-pill px-4">

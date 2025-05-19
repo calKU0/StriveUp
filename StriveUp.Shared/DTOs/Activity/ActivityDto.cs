@@ -15,5 +15,6 @@ namespace StriveUp.Shared.DTOs.Activity
         public bool Indoor { get; set; }
         public bool SpeedRelevant { get; set; }
         public bool UseHeartRate { get; set; }
+        public bool DistanceRelevant { get; set; }
     }
 }

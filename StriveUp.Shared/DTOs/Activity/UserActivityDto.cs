@@ -24,6 +24,11 @@ namespace StriveUp.Shared.DTOs
         public string UserId { get; set; }
         public string UserName { get; set; }
         public string UserAvatar { get; set; }
+        public double? AvarageSpeed { get; set; }
+        public double? MaxSpeed { get; set; }
+        public int? AvarageHr { get; set; }
+        public int? MaxHr { get; set; }
+        public int? ElevationGain { get; set; }
         public int LikeCount { get; set; }
         public bool IsLikedByCurrentUser { get; set; }
         public List<ActivityCommentDto>? Comments { get; set; }

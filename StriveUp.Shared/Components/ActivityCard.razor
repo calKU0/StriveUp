@@ -41,10 +41,13 @@
                     <span class="fw-semibold">@Activity.CaloriesBurned</span><br />
                     <small class="text-muted">kcal</small>
                 </div>
-                <div>
-                    <span class="fw-semibold">@(Math.Round(Activity.Distance / 1000.0, 2))</span><br />
-                    <small class="text-muted">km</small>
-                </div>
+                @if (Activity.Distance > 0)
+                {
+                    <div>
+                        <span class="fw-semibold">@(Math.Round(Activity.Distance / 1000.0, 2))</span><br />
+                        <small class="text-muted">km</small>
+                    </div>
+                }
                 <div>
                     <img src="@ActivityUtils.GetActivityImageUrl(Activity.ActivityName, "dark")" alt="@Activity.ActivityName" style="width:26px" /><br />
                     <small class="text-muted">Type</small>

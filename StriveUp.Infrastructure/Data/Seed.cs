@@ -115,6 +115,7 @@ namespace StriveUp.Infrastructure.Data
                         DefaultDistanceUnit = "km",
                         UseHeartRate = true,
                         ElevationRelevant = true,
+                        DistanceRelevant = true,
                         SpeedRelevant = true,
                         Indoor = false,
                         PointsPerMinute = 2
@@ -126,6 +127,7 @@ namespace StriveUp.Infrastructure.Data
                         DefaultDistanceUnit = "km",
                         UseHeartRate = true,
                         ElevationRelevant = true,
+                        DistanceRelevant = true,
                         SpeedRelevant = true,
                         Indoor = false,
                         PointsPerMinute = 1.5
@@ -137,6 +139,7 @@ namespace StriveUp.Infrastructure.Data
                         DefaultDistanceUnit = "km",
                         UseHeartRate = true,
                         ElevationRelevant = false,
+                        DistanceRelevant = true,
                         SpeedRelevant = true,
                         Indoor = true,
                         PointsPerMinute = 3
