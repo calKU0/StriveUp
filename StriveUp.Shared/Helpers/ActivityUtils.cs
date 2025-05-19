@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StriveUp.Shared.DTOs.Activity;
 
 namespace StriveUp.Shared.Helpers
 {
@@ -45,6 +46,46 @@ namespace StriveUp.Shared.Helpers
 
             activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
             activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
+        }
+
+        public static string GetSpeedOrPace(double? value, ActivityDto? activityConfig)
+        {
+            if (activityConfig != null)
+            {
+                if (activityConfig.MeasurementType == "pace")
+                {
+                    // Convert m/s to pace (min/km) without rounding
+                    double? paceInMinPerKm = 1000.0 / value / 60.0;
+
+                    int minutes = (int)paceInMinPerKm;
+                    int seconds = (int)((paceInMinPerKm - minutes) * 60);
+
+                    if (seconds == 60)
+                    {
+                        minutes++;
+                        seconds = 0;
+                    }
+
+                    return $"{minutes}:{seconds:D2} min/km";
+                }
+                else
+                {
+                    double? speedInKmH = value * 3.6;
+                    return $"{speedInKmH:F2} km/h";
+                }
+            }
+
+            return string.Empty;
+        }
+
+        public static string GetSpeedOrPaceLabel(ActivityDto? activityConfig)
+        {
+            if (activityConfig != null)
+            {
+                return activityConfig.MeasurementType == "pace" ? "Pace" : "Speed";
+            }
+
+            return string.Empty;
         }
     }
 

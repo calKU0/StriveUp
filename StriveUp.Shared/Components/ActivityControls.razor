@@ -10,35 +10,10 @@
     {
         <div class="mb-3 d-flex align-items-center justify-content-center gap-3">
             <!-- Clickable Activity Icon -->
-            <img src="@GetActivityImageUrl(SelectedActivity?.Id ?? 4, "dark")" alt="Activity Icon" class="activity-image" @onclick="ToggleActivitySelect" />
-
-
-            <div class="dropdown-menu @(ShowActivitySelect ? "show" : "")">
-                @if (AvailableActivities != null && AvailableActivities.Any())
-                {
-                    @foreach (var activity in AvailableActivities)
-                    {
-                        <a class="dropdown-item d-flex align-items-center" @onclick="() => SelectActivity(activity)">
-                            <div class="activity-image-container">
-                                <img src="@GetActivityImageUrl(activity.Id, "light")" alt="@activity.Name" class="activity-image" />
-                            </div>
-                            <span class="activity-name me-2">@activity.Name</span>
-                            @if (SelectedActivity?.Id == activity.Id)
-                            {
-                                <i class="fas fa-dot-circle text-success ms-auto"></i>
-                            }
-                            else
-                            {
-                                <i class="far fa-circle text-muted ms-auto"></i>
-                            }
-                        </a>
-                    }
-                }
-                else
-                {
-                    <div class="dropdown-item disabled">No available activities</div>
-                }
-            </div>
+            <img src="@GetActivityImageUrl(SelectedActivity?.Id ?? 4, "dark")"
+                 alt="Activity Icon"
+                 class="activity-image"
+                 @onclick="() => ShowActivitySelect = true" />
 
             <i class="fas fa-heartbeat activity-icon" @onclick="ToggleSensorSelect"></i>
             <div class="dropdown-menu @(ShowSensorSelect ? "show" : "")">
@@ -79,6 +54,18 @@
         <button class="btn btn-danger btn-lg" @onclick="OnStopClick">Stop Activity</button>
     }
 </div>
+
+<GenericSelectModal TItem="ActivityDto"
+                    Show="@ShowActivitySelect"
+                    ShowChanged="@((bool val) => ShowActivitySelect = val)"
+                    Label="Select an Activity"
+                    Options="AvailableActivities"
+                    SelectedValue="SelectedActivity"
+                    SelectedValueChanged="OnActivitySelected"
+                    GetLabel="GetActivityLabel"
+                    GetValue="GetActivityValue"
+                    GetIconUrl="GetActivityIconUrl">
+</GenericSelectModal>
 
 
 @code {
@@ -182,4 +169,24 @@
         await SelectedActivityChanged.InvokeAsync(activity);
     }
 
+    private string GetActivityLabel(ActivityDto activity)
+    {
+        return activity.Name;
+    }
+
+    private string GetActivityValue(ActivityDto activity)
+    {
+        return activity.Id.ToString();
+    }
+
+    private async Task OnActivitySelected(ActivityDto activity)
+    {
+        SelectedActivity = activity;
+        await SelectedActivityChanged.InvokeAsync(activity);
+    }
+
+    private string GetActivityIconUrl(ActivityDto activity)
+    {
+        return GetActivityImageUrl(activity.Id, "light");
+    }
 }

@@ -265,6 +265,26 @@ namespace StriveUp.API.Controllers
             }
         }
 
+        [HttpGet("activityConfig/{id}")]
+        public async Task<ActionResult<IEnumerable<ActivityDto>>> GetActivityConfig(int id)
+        {
+            try
+            {
+                var activity = await _context.Activities
+                    .Include(a => a.Config)
+                    .Where(a => a.Id == id)
+                    .ToListAsync();
+
+                var activityDto = _mapper.Map<ActivityDto>(activity);
+                return Ok(activityDto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred: {ex}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpPost("like/{activityId}")]
         public async Task<IActionResult> LikeActivity(int activityId)
         {

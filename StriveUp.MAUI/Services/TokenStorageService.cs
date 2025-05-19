@@ -1,15 +1,11 @@
 ﻿using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StriveUp.MAUI.Services
 {
     public class TokenStorageService : ITokenStorageService
     {
         private const string TokenKey = "authToken";
+        private const string RefreshTokenKey = "refreshToken";
 
         public Task StoreToken(string token)
         {
@@ -26,6 +22,24 @@ namespace StriveUp.MAUI.Services
         public Task ClearToken()
         {
             Preferences.Remove(TokenKey);
+            return Task.CompletedTask;
+        }
+
+        public Task StoreRefreshToken(string token)
+        {
+            Preferences.Set(RefreshTokenKey, token);
+            return Task.CompletedTask;
+        }
+
+        public Task<string?> GetRefreshToken()
+        {
+            var token = Preferences.Get(RefreshTokenKey, null);
+            return Task.FromResult(token);
+        }
+
+        public Task ClearRefreshToken()
+        {
+            Preferences.Remove(RefreshTokenKey);
             return Task.CompletedTask;
         }
     }

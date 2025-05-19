@@ -17,27 +17,40 @@ namespace StriveUp.Infrastructure.Services
             _tokenStorage = tokenStorage;
         }
 
-        public async Task<List<ActivityDto>?> GetAvailableActivitiesAsync()
+        public async Task<List<ActivityDto>> GetAvailableActivitiesAsync()
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                var result = await _httpClient.GetFromJsonAsync<List<ActivityDto>>("activity/availableActivities");
+                var result = await _httpClient.GetFromJsonAsync<List<ActivityDto>>("activity/availableActivities") ?? new List<ActivityDto>();
                 return result;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return null;
+                return new List<ActivityDto>();
             }
         }
 
-        public async Task<UserActivityDto?> GetActivityByIdAsync(int activityId)
+        public async Task<UserActivityDto> GetActivityByIdAsync(int activityId)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                return await _httpClient.GetFromJsonAsync<UserActivityDto>($"activity/{activityId}");
+                return await _httpClient.GetFromJsonAsync<UserActivityDto>($"activity/{activityId}") ?? new UserActivityDto();
+            }
+            catch
+            {
+                return new UserActivityDto();
+            }
+        }
+
+        public async Task<ActivityDto> GetActivityConfig(int id)
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                return await _httpClient.GetFromJsonAsync<ActivityDto>($"activityConfig/{id}") ?? new ActivityDto();
             }
             catch
             {
@@ -75,19 +88,19 @@ namespace StriveUp.Infrastructure.Services
                 return false;
             }
         }
-        public async Task<List<UserActivityDto>?> GetFeedAsync(int page, int pageSize)
+        public async Task<List<UserActivityDto>> GetFeedAsync(int page, int pageSize)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
 
                 var url = $"activity/feed?page={page}&pageSize={pageSize}";
-                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url);
+                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url) ?? new List<UserActivityDto>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching paginated feed: {ex}");
-                return null;
+                return new List<UserActivityDto>();
             }
         }
 
@@ -98,12 +111,12 @@ namespace StriveUp.Infrastructure.Services
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
 
                 var url = $"activity/userActivities?page={page}&pageSize={pageSize}";
-                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url);
+                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url) ?? new List<UserActivityDto>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching paginated feed: {ex}");
-                return null;
+                return new List<UserActivityDto>();
             }
         }
 
@@ -139,12 +152,12 @@ namespace StriveUp.Infrastructure.Services
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                return await _httpClient.GetFromJsonAsync<List<ActivityCommentDto>?>($"activity/activityComments/{activityId}");
+                return await _httpClient.GetFromJsonAsync<List<ActivityCommentDto>?>($"activity/activityComments/{activityId}") ?? new List<ActivityCommentDto>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return null;
+                return new List<ActivityCommentDto>();
             }
 }
     }

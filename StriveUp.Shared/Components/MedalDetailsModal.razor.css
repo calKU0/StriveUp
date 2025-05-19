@@ -1,70 +1,93 @@
-/* Modal Backdrop */
-.custom-modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1050;
-}
+@inject IJSRuntime JSRuntime
 
-/* Modal Container */
-.custom-modal {
-    background-color: white;
-    border-radius: 8px;
-    width: 80%;
-    max-width: 450px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.3s ease-out;
-}
-
-/* Modal Header */
-.custom-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 10px;
-}
-
-    .custom-modal-header h5 {
-        font-size: 1.5rem;
-        font-weight: 600;
+<div class="native-header d-flex justify-content-between align-items-center px-3 py-2 @(isHeaderVisible ? "" : "hidden-header")">
+    <!-- Left side: Back Button -->
+    @if (showBackButton)
+    {
+        <div class="left-icons d-flex align-items-center">
+            <i class="fas fa-arrow-left text-dark" @onclick="BackButtonClick"></i>
+        </div>
     }
 
-/* Modal Image Styling */
-.modal-image {
-    max-width: 300px;
-    height: auto;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
+    <!-- Page Title -->
+    <div class="page-title text-dark @(!showBackButton ? "" : "text-center")">
+        @PageTitle
+    </div>
 
-/* Modal Footer */
-.custom-modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    padding-top: 10px;
-}
+    <!-- Right side: Search, Bell, Settings -->
+    <div class="right-icons d-flex align-items-center">
+        @if (showSearch)
+        {
+            <SearchIcon></SearchIcon>
+        }
+        @if (showBell)
+        {
+            <BellIcon></BellIcon>
+        }
+        @if (showSettings)
+        {
+            <i class="fas fa-cog text-dark"></i>
+        }
+    </div>
+</div>
 
-.stat-icon i {
-    font-size: 1.5rem;
-}
+@code {
+    [Parameter]
+    public string PageTitle { get; set; } = "";
 
+    private bool showBell = true;
+    private bool showSearch = true;
+    private bool showBackButton = false;
+    private bool showSettings = false;
 
-/* Modal Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
+    private bool isHeaderVisible = true;
+    private DotNetObjectReference<YourComponent>? objRef;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (PageTitle == "Tracking" || PageTitle == "Comments" || PageTitle == "Search" || PageTitle == "Notifications" || PageTitle == "Settings")
+        {
+            showBell = false;
+            showSearch = false;
+            showBackButton = true;
+            showSettings = false;
+        }
+        else
+        {
+            showBell = true;
+            showSearch = true;
+            showBackButton = false;
+            showSettings = false;
+        }
+        await base.OnParametersSetAsync();
     }
 
-    to {
-        opacity: 1;
-        transform: scale(1);
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("headerScrollHelper.init", objRef);
+        }
+    }
+
+    [JSInvokable]
+    public void SetHeaderVisibility(bool visible)
+    {
+        if (isHeaderVisible != visible)
+        {
+            isHeaderVisible = visible;
+            StateHasChanged();
+        }
+    }
+
+    private async Task BackButtonClick()
+    {
+        await JSRuntime.InvokeVoidAsync("history.back");
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
     }
 }

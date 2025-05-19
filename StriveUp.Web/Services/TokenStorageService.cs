@@ -7,6 +7,7 @@ namespace StriveUp.Web.Services
     public class TokenStorageService : ITokenStorageService
     {
         private const string TokenKey = "authToken";
+        private const string RefreshTokenKey = "refreshToken";
         private readonly ILocalStorageService _localStorage;
 
         public TokenStorageService(ILocalStorageService localStorage)
@@ -29,7 +30,6 @@ namespace StriveUp.Web.Services
             catch (InvalidOperationException)
             {
             }
-            Console.WriteLine("token:" + token);
             return token;
         }
 
@@ -37,5 +37,30 @@ namespace StriveUp.Web.Services
         {
             await _localStorage.RemoveItemAsync(TokenKey);
         }
+
+        public async Task StoreRefreshToken(string token)
+        {
+            try
+            {
+                await _localStorage.SetItemAsync(RefreshTokenKey, token);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+        }
+
+        public async Task<string?> GetRefreshToken()
+        {
+            try
+            {
+                return await _localStorage.GetItemAsync<string>(RefreshTokenKey);
+            }
+            catch (InvalidOperationException)
+            {
+
+            }
+            return string.Empty;
+        }
+        public async Task ClearRefreshToken() => await _localStorage.RemoveItemAsync(RefreshTokenKey);
     }
 }

@@ -35,6 +35,10 @@ html, body {
     margin-top: 65px;
 }
 
+.login-wrapper{
+    height: calc(100vh - 65px) !important;
+}
+
 a, .btn-link {
     color: inherit;
     text-decoration: none;
@@ -44,6 +48,23 @@ a, .btn-link {
         color: inherit;
     }
 
+.login-btn {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    color: #000;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease-in-out;
+}
+
+    .login-btn:hover {
+        background-color: #e9ecef;
+    }
+
+    .login-btn .icon {
+        width: 30px;
+        height: 30px;
+    }
 
 .navbar {
     width: 100%;
@@ -450,6 +471,10 @@ textarea.form-control {
     .content {
         margin-top: 52px;
         margin-bottom: 80px;
+    }
+
+    .login-wrapper {
+        margin-top: 0px !important;
     }
 
     .container-full {

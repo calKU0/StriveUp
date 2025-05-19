@@ -1,6 +1,6 @@
 ﻿@inject IJSRuntime JSRuntime
 
-<div class="native-header d-flex justify-content-between align-items-center px-3 py-2">
+<div class="native-header d-flex justify-content-between align-items-center px-3 py-2 @(isHeaderVisible ? "" : "hidden-header")">
     <!-- Left side: Back Button -->
     @if (showBackButton)
     {
@@ -32,12 +32,16 @@
 </div>
 
 @code {
-    [Parameter] 
+    [Parameter]
     public string PageTitle { get; set; } = "";
+
     private bool showBell = true;
     private bool showSearch = true;
     private bool showBackButton = false;
     private bool showSettings = false;
+
+    private bool isHeaderVisible = true;
+    private DotNetObjectReference<Header>? objRef;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -55,13 +59,35 @@
             showBackButton = false;
             showSettings = false;
         }
-
         await base.OnParametersSetAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("headerScrollHelper.init", objRef);
+        }
+    }
+
+    [JSInvokable]
+    public void SetHeaderVisibility(bool visible)
+    {
+        if (isHeaderVisible != visible)
+        {
+            isHeaderVisible = visible;
+            StateHasChanged();
+        }
+    }
 
     private async Task BackButtonClick()
     {
         await JSRuntime.InvokeVoidAsync("history.back");
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
     }
 }

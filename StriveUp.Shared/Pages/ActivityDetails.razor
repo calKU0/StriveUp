@@ -2,6 +2,7 @@
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.Helpers
 @using System.Security.Claims
+@using StriveUp.Shared.DTOs.Activity
 
 @inject IJSRuntime JS
 @inject IActivityService ActivityService
@@ -21,28 +22,28 @@
             <!-- Header -->
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center p-4">
                 <div class="d-flex align-items-center gap-3">
-                    <img src="@Activity.UserAvatar" class="rounded-circle" width="60" height="60" alt="User" />
+                    <img src="@activity.UserAvatar" class="rounded-circle" width="60" height="60" alt="User" />
                     <div>
-                        <h5 class="mb-0">@Activity.UserName</h5>
-                        <small>@Activity.DateStart.ToLongDateString()</small>
+                        <h5 class="mb-0">@activity.UserName</h5>
+                        <small>@activity.DateStart.ToLongDateString()</small>
                     </div>
                 </div>
-                <span class="badge bg-primary fs-6">@Activity.ActivityName</span>
+                <span class="badge bg-primary fs-6">@activity.ActivityName</span>
             </div>
 
             <!-- Route Map -->
-            @if (Activity.Route?.Count > 1)
+            @if (activity.Route?.Count > 1)
             {
                 <div class="mb-4">
-                    <MapRoute Route="Activity.Route" Height="300px" IsInteractive=true Style="border-bottom-left-radius: 24px;border-bottom-right-radius: 24px;"/>
+                    <MapRoute Route="activity.Route" Height="300px" IsInteractive=true Style="border-bottom-left-radius: 24px;border-bottom-right-radius: 24px;"/>
                 </div>
             }
 
             <div class="card-body p-4">
                 <!-- Title and Description -->
                 <div class="mb-4">
-                    <h3 class="fw-bold">@Activity.Title</h3>
-                    <p class="text-muted">@Activity.Description</p>
+                    <h3 class="fw-bold">@activity.Title</h3>
+                    <p class="text-muted">@activity.Description</p>
                 </div>
 
                 <!-- Metrics -->
@@ -50,16 +51,16 @@
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded-3">
                             <i class="bi bi-clock fs-3 text-primary"></i>
-                            <h5 class="mt-2">@TimeSpan.FromSeconds(Activity.DurationSeconds).ToString(@"hh\:mm\:ss")</h5>
+                            <h5 class="mt-2">@TimeSpan.FromSeconds(activity.DurationSeconds).ToString(@"hh\:mm\:ss")</h5>
                             <small class="text-muted">Duration</small>
                         </div>
                     </div>
-                    @if(Activity.Distance > 0)
+                    @if(activity.Distance > 0)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-signpost-split fs-3 text-primary"></i>
-                                <h5 class="mt-2">@(Math.Round(Activity.Distance / 1000.0, 2)) km</h5>
+                                <h5 class="mt-2">@(Math.Round(activity.Distance / 1000.0, 2)) km</h5>
                                 <small class="text-muted">Distance</small>
                             </div>
                         </div>
@@ -67,65 +68,64 @@
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded-3">
                             <i class="bi bi-fire fs-3 text-primary"></i>
-                            <h5 class="mt-2">@Activity.CaloriesBurned kcal</h5>
+                            <h5 class="mt-2">@activity.CaloriesBurned kcal</h5>
                             <small class="text-muted">Calories</small>
                         </div>
                     </div>
-                    @if (Activity.MaxHr > 0)
+                    @if (activity.MaxHr > 0)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-activity fs-3 text-success"></i>
-                                <h6 class="mt-2">Max HR: @Activity.MaxHr bpm</h6>
+                                <h5 class="mt-2">@activity.MaxHr bpm</h5>
                                 <small class="text-muted">Max Heart Rate</small>
                             </div>
                         </div>
                     }
-                    @if (Activity.MaxSpeed > 0)
+                    @if (activity.MaxSpeed > 0)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-speedometer2 fs-3 text-success"></i>
-                                <h6 class="mt-2">Max Speed: @Activity.MaxSpeed km/h</h6>
-                                <small class="text-muted">Max Speed</small>
+                                <h5 class="mt-2">@ActivityUtils.GetSpeedOrPace(activity.MaxSpeed, activityConfig)</h5>
+                                <small class="text-muted">Max @ActivityUtils.GetSpeedOrPaceLabel(activityConfig)</small>
                             </div>
                         </div>
                     }
-                    @if (Activity.AvarageHr > 0)
+                    @if (activity.AvarageHr > 0)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-heart-pulse fs-3 text-info"></i>
-                                <h6 class="mt-2">Avg HR: @Activity.AvarageHr bpm</h6>
+                                <h5 class="mt-2">@activity.AvarageHr bpm</h5>
                                 <small class="text-muted">Avg Heart Rate</small>
                             </div>
                         </div>
                     }
-                    @if (Activity.AvarageSpeed > 0)
+                    @if (activity.AvarageSpeed > 0)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-speedometer2 fs-3 text-info"></i>
-                                <h6 class="mt-2">Avg Speed: @Activity.AvarageSpeed km/h</h6>
-                                <small class="text-muted">Avg Speed</small>
+                                <h5 class="mt-2">@ActivityUtils.GetSpeedOrPace(activity.AvarageSpeed, activityConfig)</h5>
+                                <small class="text-muted">Avg @ActivityUtils.GetSpeedOrPaceLabel(activityConfig)</small>
                             </div>
                         </div>
                     }
-                    @if (Activity.ElevationGain > 0)
-                    {   // TO DO
-                        // Display elevation
+                    @if (activity.ElevationGain > 0)
+                    {   
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-speedometer2 fs-3 text-info"></i>
-                                <h6 class="mt-2">Avg Speed: @(Math.Round(0.0, 2)) km/h</h6>
-                                <small class="text-muted">Avg Speed</small>
+                                <h5 class="mt-2">@activity.ElevationGain</h5>
+                                <small class="text-muted">Elevation Gain</small>
                             </div>
                         </div>
                     }
                 </div>
 
                 <!-- Heart Rate Chart -->
-                @if (Activity.HrData?.Any() == true)
+                @if (activity.HrData?.Any() == true)
                 {
                     <div class="mb-4">
                         <h5 class="text-primary">Heart Rate Over Time</h5>
@@ -136,7 +136,7 @@
                 }
 
                 <!-- Speed Chart -->
-                @if (Activity.SpeedData?.Any() == true)
+                @if (activity.SpeedData?.Any() == true)
                 {
                     <div class="mb-4">
                         <h5 class="text-primary">Speed Over Time</h5>
@@ -148,11 +148,11 @@
 
                 <!-- Buttons -->
                 <div class="d-flex gap-3 mt-3">
-                    <button class="btn btn-outline-danger rounded-pill px-4 @(Activity.IsLikedByCurrentUser ? "text-danger bg-danger-subtle like-active" : "text-body")" @onclick="ToggleLike">
-                        <i class="bi bi-heart-fill me-2"></i>@Activity.LikeCount
+                    <button class="btn btn-outline-danger rounded-pill px-4 @(activity.IsLikedByCurrentUser ? "text-danger bg-danger-subtle like-active" : "text-body")" @onclick="ToggleLike">
+                        <i class="bi bi-heart-fill me-2"></i>@activity.LikeCount
                     </button>
-                    <a href="/activity/@Activity.Id/comments" class="btn btn-outline-primary rounded-pill px-4">
-                        <i class="bi bi-chat-dots-fill me-2"></i>Comments (@(Activity.Comments?.Count ?? 0))
+                    <a href="/activity/@activity.Id/comments" class="btn btn-outline-primary rounded-pill px-4">
+                        <i class="bi bi-chat-dots-fill me-2"></i>Comments (@(activity.Comments?.Count ?? 0))
                     </a>
                 </div>
             </div>
@@ -163,7 +163,8 @@
 
 @code {
     [Parameter] public int activityId { get; set; }
-    private UserActivityDto Activity = new();
+    private UserActivityDto activity = new();
+    private ActivityDto activityConfig = new();
     private string userId = "";
     private bool isLoading = true;
 
@@ -179,7 +180,8 @@
             }
             userId = user.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            Activity = await ActivityService.GetActivityByIdAsync(activityId) ?? new();
+            activity = await ActivityService.GetActivityByIdAsync(activityId) ?? new();
+            activityConfig = await ActivityService.GetActivityConfig(activity.ActivityId) ?? new();
             await RenderChartsAsync();
         }
         catch (Exception ex)
@@ -197,29 +199,29 @@
     {
         try
         {
-            if (Activity.HrData?.Any() == true)
+            if (activity.HrData?.Any() == true)
             {
-                var hrLabels = Activity.HrData
+                var hrLabels = activity.HrData
                     .Select(d =>
-                        TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(Activity.DateStart).TotalMilliseconds)
+                        TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(activity.DateStart).TotalMilliseconds)
                             .ToString(@"hh\:mm\:ss"))
                     .ToArray();
 
-                var hrValues = Activity.HrData.Select(d => d.HearthRateValue).ToArray();
+                var hrValues = activity.HrData.Select(d => d.HearthRateValue).ToArray();
 
                 await JS.InvokeVoidAsync("renderLineChartById", "hrChart", hrLabels, hrValues, "Heart Rate (bpm)");
             }
 
-            if (Activity.SpeedData?.Any() == true)
+            if (activity.SpeedData?.Any() == true)
             {
-                var speedLabels = Activity.SpeedData
+                var speedLabels = activity.SpeedData
                     .Select(d =>
-                        TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(Activity.DateStart).TotalMilliseconds)
+                        TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(activity.DateStart).TotalMilliseconds)
                             .ToString(@"hh\:mm\:ss"))
                     .ToArray();
 
                 // Convert speed (m/s) to pace (min/km) in seconds as double
-                var paceValues = Activity.SpeedData
+                var paceValues = activity.SpeedData
                     .Select(d => d.SpeedValue > 0 ? 1000.0 / d.SpeedValue : double.NaN)
                     .Where(p => !double.IsNaN(p) && !double.IsInfinity(p))
                     .ToArray();
@@ -240,7 +242,7 @@
         try
         {
             await ActivityUtils.ToggleLikeAsync(
-                Activity,
+                activity,
                 userId,
                 ActivityService,
                 NotificationService
