@@ -1,5 +1,9 @@
 ﻿@page "/activity/{ActivityId:int}/comments"
+
+<!-- Usings -->
 @using StriveUp.Shared.DTOs.Activity
+
+<!-- Injections -->
 @inject IActivityService ActivityService
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation

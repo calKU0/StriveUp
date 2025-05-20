@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
-using StriveUp.API.Services;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
@@ -16,7 +15,7 @@ using System.Text;
 using LoginRequest = StriveUp.Shared.DTOs.LoginRequest;
 using RegisterRequest = StriveUp.Shared.DTOs.RegisterRequest;
 
-public class AuthService : StriveUp.API.Services.IAuthService
+public class AuthService : StriveUp.API.Interfaces.IAuthService
 {
     private readonly SignInManager<AppUser> _signInManager;
     private readonly UserManager<AppUser> _userManager;

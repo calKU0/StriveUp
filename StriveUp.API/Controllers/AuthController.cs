@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using StriveUp.API.Services;
+using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Shared.DTOs;
 

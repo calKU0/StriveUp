@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
@@ -18,11 +19,13 @@ namespace StriveUp.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
-        public FollowController(AppDbContext context, UserManager<AppUser> userManager, IMapper mapper)
+        public FollowController(AppDbContext context, UserManager<AppUser> userManager, IMapper mapper, INotificationService notificationService)
         {
             _context = context;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         [HttpGet("search")]
@@ -83,6 +86,27 @@ namespace StriveUp.API.Controllers
                         FollowedId = userId
                     });
 
+                    // Fetch follower user info to personalize notification
+                    var followerUser = await _context.Users
+                        .Where(u => u.Id == currentUserId)
+                        .Select(u => new { u.UserName })
+                        .FirstOrDefaultAsync();
+
+                    if (followerUser != null)
+                    {
+                        var notifDto = new CreateNotificationDto
+                        {
+                            UserId = userId,          // The followed user (recipient)
+                            ActorId = currentUserId,  // The follower (actor)
+                            Title = "New Follower",
+                            Message = $"{followerUser.UserName} started following you.",
+                            Type = "follow",
+                            RedirectUrl = $"/profile/{followerUser.UserName}"
+                        };
+
+                        await _notificationService.CreateNotificationAsync(notifDto);
+                    }
+
                     await _context.SaveChangesAsync();
                 }
 
@@ -99,7 +123,7 @@ namespace StriveUp.API.Controllers
         public async Task<IActionResult> UnfollowUser(string userId)
         {
             try
-            { 
+            {
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(currentUserId)) return Unauthorized();
 
@@ -112,7 +136,7 @@ namespace StriveUp.API.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-            return Ok();
+                return Ok();
             }
             catch (Exception ex)
             {

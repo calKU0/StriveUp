@@ -1,0 +1,15 @@
+﻿@page "/"
+
+<!-- Injections -->
+@inject IPlatformService PlatformService
+
+<PageTitle>Home</PageTitle>
+
+@if (PlatformService.IsNativeApp())
+{
+    <FeedPage />
+}
+else
+{
+    <Home />
+}

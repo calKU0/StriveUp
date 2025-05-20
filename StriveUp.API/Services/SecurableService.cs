@@ -10,6 +10,7 @@ using StriveUp.Shared.DTOs;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
 using StriveUp.Infrastructure.Data.Settings;
+using StriveUp.API.Interfaces;
 
 namespace StriveUp.API.Services
 {

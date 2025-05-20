@@ -1,8 +1,12 @@
 ﻿@page "/register"
+
+<!-- Usings -->
 @using Microsoft.AspNetCore.Authorization
 @using StriveUp.Shared.DTOs
 @using System.Drawing
 @attribute [AllowAnonymous]
+
+<!-- Injections -->
 @inject NavigationManager Nav
 @inject IAuthService AuthService
 

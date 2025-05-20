@@ -32,7 +32,6 @@ namespace StriveUp.API.Controllers
         {
             try
             {
-
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 var notifs = await _context.Notifications
@@ -71,20 +70,6 @@ namespace StriveUp.API.Controllers
                 Console.WriteLine(ex);
                 return StatusCode(500, "Internal server error");
             }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationDto dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var notification = _mapper.Map<Notification>(dto);
-            notification.CreatedAt = DateTime.UtcNow;
-
-            _context.Notifications.Add(notification);
-            await _context.SaveChangesAsync();
-
-            return Ok();
         }
 
         [HttpPost("read/{id}")]

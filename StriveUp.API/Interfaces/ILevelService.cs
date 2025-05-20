@@ -1,6 +1,6 @@
 ﻿using StriveUp.Infrastructure.Identity;
 
-namespace StriveUp.API.Services
+namespace StriveUp.API.Interfaces
 {
     public interface ILevelService
     {

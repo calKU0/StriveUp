@@ -25,24 +25,9 @@ namespace StriveUp.Shared.Helpers
         public static async Task ToggleLikeAsync(
             UserActivityDto activity,
             string currentUserId,
-            IActivityService activityService,
-            INotificationService notificationService)
+            IActivityService activityService)
         {
             await activityService.LikeActivityAsync(activity.Id);
-
-            if (currentUserId != activity.UserId && !activity.IsLikedByCurrentUser)
-            {
-                var notificationDto = new CreateNotificationDto
-                {
-                    UserId = activity.UserId,
-                    Title = "New Like",
-                    ActorId = currentUserId,
-                    Type = "like",
-                    Message = "liked your activity",
-                    RedirectUrl = $"/activity/{activity.Id}",
-                };
-                await notificationService.CreateNotificationAsync(notificationDto);
-            }
 
             activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
             activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;

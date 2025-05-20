@@ -1,8 +1,11 @@
-﻿@using StriveUp.Shared.DTOs
+﻿<!-- Usings -->
+
+@using StriveUp.Shared.DTOs
 @using System.Security.Claims
 @using StriveUp.Shared.DTOs.Activity
 @using StriveUp.Shared.Helpers
 
+<!-- Injections -->
 @inject IActivityService ActivityService
 @inject INotificationService NotificationService
 @inject ICustomAuthStateProvider AuthStateProvider
@@ -117,8 +120,7 @@
             await ActivityUtils.ToggleLikeAsync(
                 Activity,
                 userId,
-                ActivityService,
-                NotificationService
+                ActivityService
             );
         }
         catch (Exception ex)

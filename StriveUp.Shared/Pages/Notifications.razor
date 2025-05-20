@@ -1,8 +1,13 @@
 ﻿@page "/notifications"
+
+<!-- Usings -->
 @using StriveUp.Shared.DTOs
+
+<!-- Injections -->
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject INotificationService NotificationService
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <div class="container-fluid px-0 mx-0">
     <div class="row justify-content-center">
@@ -85,5 +90,22 @@
             return $"{(int)timeAgo.TotalHours} hours ago";
         else
             return $"{(int)timeAgo.TotalDays} days ago";
+    }
+
+    public void Dispose()
+    {
+        _ = MarkAllAsReadOnExitAsync();
+    }
+
+    private async Task MarkAllAsReadOnExitAsync()
+    {
+        try
+        {
+            await NotificationService.MarkAllAsReadAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to mark notifications as read on exit: {ex}");
+        }
     }
 }

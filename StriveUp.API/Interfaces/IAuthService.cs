@@ -5,7 +5,7 @@ using System.Security.Claims;
 using LoginRequest = StriveUp.Shared.DTOs.LoginRequest;
 using RegisterRequest = StriveUp.Shared.DTOs.RegisterRequest;
 
-namespace StriveUp.API.Services
+namespace StriveUp.API.Interfaces
 {
     public interface IAuthService
     {

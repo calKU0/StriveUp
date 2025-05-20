@@ -1,5 +1,11 @@
 ﻿@page "/profile"
 @page "/profile/{username?}"
+
+<!-- Usings -->
+@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Profile
+
+<!-- Injections -->
 @inject IAuthService AuthService
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -8,10 +14,6 @@
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
 @implements IDisposable
-
-
-@using StriveUp.Shared.DTOs
-@using StriveUp.Shared.DTOs.Profile
 
 <div class="container py-5">
     @if (isLoading)
