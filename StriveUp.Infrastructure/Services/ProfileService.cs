@@ -77,5 +77,18 @@ namespace StriveUp.Infrastructure.Services
                 });
             }
         }
+
+        public async Task<SimpleUserDto> GetSimpleUserData(string userId)
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                return await _httpClient.GetFromJsonAsync<SimpleUserDto>($"user/simpleData/{userId}");
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

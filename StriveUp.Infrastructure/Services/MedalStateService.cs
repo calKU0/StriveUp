@@ -27,6 +27,14 @@ namespace StriveUp.Infrastructure.Services
                 NotifyStateChanged();
             }
         }
+        public void IncrementMedalsCount()
+        {
+            if (MedalsToClaim > 0)
+            {
+                MedalsToClaim++;
+                NotifyStateChanged();
+            }
+        }
 
         private void NotifyStateChanged() => OnChange?.Invoke();
     }

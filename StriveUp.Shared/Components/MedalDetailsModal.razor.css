@@ -15,10 +15,13 @@
 .custom-modal {
     background-color: white;
     border-radius: 8px;
-    width: 80%;
+    width: 90%;
     max-width: 450px;
+    max-height: 90vh; /* Limit height on mobile */
+    overflow-y: auto; /* Enable scrolling if content is too tall */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     animation: fadeIn 0.3s ease-out;
+    padding: 1rem;
 }
 /* Modal Header */
 .custom-modal-header {
@@ -32,12 +35,32 @@
         font-size: 1.5rem;
         font-weight: 600;
     }
+
 /* Modal Image Styling */
 .modal-image {
-    max-width: 300px;
+    max-width: 100%;
+    max-height: 300px;
     height: auto;
     border-radius: 8px;
     margin-bottom: 15px;
+    object-fit: contain;
+}
+
+.info-card .card-body {
+    padding: 0.75rem; /* Default is usually 1.25rem – reduce it */
+}
+
+    .info-card .card-body p {
+        margin: 0.25rem 0; /* Less vertical spacing */
+        font-size: 0.9rem; /* Optional: slightly smaller text */
+    }
+
+.info-card .stat-icon {
+    margin-bottom: 0.25rem;
+}
+
+.stat-icon i {
+    font-size: 1.25rem; /* Reduce icon size if needed */
 }
 
 /* Modal Footer */
@@ -59,5 +82,11 @@
     to {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+@media (max-width: 576px) {
+    .modal-image {
+        max-height: 200px;
     }
 }

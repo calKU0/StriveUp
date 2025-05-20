@@ -1,7 +1,9 @@
-﻿@inject IMedalService MedalService
+﻿@using System.Security.Claims
+@inject IMedalService MedalService
 @inject IPlatformService PlatformService
-@inject NavigationManager Navigation
 @inject IMedalStateService MedalState
+@inject IProfileService ProfileService
+@inject NavigationManager Navigation
 
 
 <div class="d-block d-md-none">
@@ -57,8 +59,7 @@
                 </div>
                 <NavLink href="/settings"><i class="icon-header nav-link d-flex align-items-center justify-content-center fas fa-cog text-dark"></i></NavLink>
                 <NavLink class="nav-link d-flex flex-column align-items-center" href="profile">
-                    <i class="fas fa-user icon"></i>
-                    <span class="small-text">Profile</span>
+                    <img src="@userAvatarUrl" alt="User Avatar" class="avatar-icon" />
                 </NavLink>
             </div>
         </div>
@@ -96,20 +97,25 @@
                     <span class="small-text">Medals</span>
                 </NavLink>
             </div>
-            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="profile">
-                <i class="fas fa-user icon"></i>
-                <span class="small-text">Profile</span>
+            <NavLink class="nav-link d-flex flex-column align-items-center" href="profile">
+                <img src="@userAvatarUrl" alt="User Avatar" class="avatar-icon" />
             </NavLink>
         </div>
     </nav>
 }
 @code {
     private int medalsToClaim = 0;
+    private string userAvatarUrl = "images/icons/user.png";
     bool shouldHide = false;
     string pageTitle;
 
     protected override async Task OnInitializedAsync()
     {
+        var user = await ProfileService.GetSimpleUserData(ClaimTypes.Name);
+        if (user != null)
+        {
+            userAvatarUrl = user.Avatar ?? "images/icons/user.png";
+        }
         MedalState.OnChange += StateHasChanged;
         var count = await MedalService.GetMedalsToClaimCountAsync();
         MedalState.SetMedalsCount(count);
