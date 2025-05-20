@@ -95,8 +95,6 @@
 @code {
     [Parameter] public UserActivityDto Activity { get; set; }
     private ActivityDto activityConfig = new();
-    private Dictionary<int, string> commentInputs = new();
-    private CreateNotificationDto notificationDto = new();
     private string userId = "";
 
     protected override async Task OnInitializedAsync()

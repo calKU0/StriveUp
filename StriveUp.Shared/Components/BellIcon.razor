@@ -1,6 +1,5 @@
-﻿<!-- Injections -->
-@inject NavigationManager Navigation
-@inject INotificationService NotificationService
+﻿@inject NavigationManager Navigation
+@inject INotificationStateService NotificationStateService
 
 <div class="position-relative @Class">
     <i class="fas fa-bell text-dark icon-header" @onclick="OnBellClick"></i>
@@ -14,11 +13,18 @@
 
 @code {
     [Parameter] public string Class { get; set; } = "";
-    private int notificationCount = 0;
+    private int notificationCount;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await PeriodicRefresh();
+        notificationCount = NotificationStateService.UnreadCount;
+        NotificationStateService.OnChange += UpdateNotificationCount;
+    }
+
+    private void UpdateNotificationCount()
+    {
+        notificationCount = NotificationStateService.UnreadCount;
+        InvokeAsync(StateHasChanged);
     }
 
     private void OnBellClick()
@@ -26,19 +32,8 @@
         Navigation.NavigateTo("/notifications");
     }
 
-    private async Task PeriodicRefresh()
+    public void Dispose()
     {
-        while (true)
-        {
-            await LoadNotifications();
-            await Task.Delay(30000);
-        }
-    }
-
-    private async Task LoadNotifications()
-    {
-        var notifications = await NotificationService.GetMyNotificationsAsync();
-        notificationCount = notifications.Count(n => !n.IsRead);
-        StateHasChanged();
+        NotificationStateService.OnChange -= UpdateNotificationCount;
     }
 }

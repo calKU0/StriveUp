@@ -34,7 +34,8 @@
                         </div>
                     </div>
                     <button class="btn btn-sm @(user.IsFollowed ? "btn-outline-danger" : "btn-primary")"
-                    @onclick="@(() => ToggleFollow(user))">
+                            @onclick:stopPropagation
+                            @onclick="@(() => ToggleFollow(user))">
                         @(user.IsFollowed ? "Unfollow" : "Follow")
                     </button>
                 </li>

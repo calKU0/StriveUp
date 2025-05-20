@@ -37,7 +37,7 @@ namespace StriveUp.API.Services
                     Title = "Level Up!",
                     Message = $"Congratulations! You've reached level {newLevel.LevelNumber}.",
                     Type = "levelup",
-                    RedirectUrl = "/profile/levels" // or wherever appropriate
+                    RedirectUrl = "/profile"
                 };
                 await _notificationService.CreateNotificationAsync(notifDto);
             }

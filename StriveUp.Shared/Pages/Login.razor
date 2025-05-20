@@ -79,20 +79,28 @@ else
         try
         {
             var uri = Nav.ToAbsoluteUri(Nav.Uri);
-            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-            var token = query["token"];
+            var fragment = uri.Fragment;
 
-            if (!string.IsNullOrWhiteSpace(token))
+            if (!string.IsNullOrWhiteSpace(fragment))
             {
-                var (success, error) = await AuthService.ExternalLoginAsync(token);
-                if (success)
+                var parts = System.Web.HttpUtility.ParseQueryString(fragment.TrimStart('#'));
+                var accessToken = parts["access_token"];
+                var refreshToken = parts["refresh_token"];
+
+                if (!string.IsNullOrWhiteSpace(accessToken) && !string.IsNullOrWhiteSpace(refreshToken))
                 {
+                    var jwt = new JwtResponse
+                    {
+                        Token = accessToken,
+                        RefreshToken = refreshToken
+                    };
+
+                    await AuthService.ExternalLoginAsync(jwt);
                     Nav.NavigateTo("/");
+                    return;
                 }
-                else
-                {
-                    loginError = error ?? "External login failed.";
-                }
+
+                loginError = "Missing tokens in external login response.";
             }
         }
         catch (Exception ex)
@@ -106,6 +114,7 @@ else
             StateHasChanged();
         }
     }
+
 
 
 

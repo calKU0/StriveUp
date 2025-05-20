@@ -55,7 +55,7 @@ namespace StriveUp.Sync.Application.Services
             //1.Fetch activities for last 5 minutes
 
             var now = DateTime.UtcNow;
-            var fiveMinutesAgo = now.AddMinutes(-5000);
+            var fiveMinutesAgo = now.AddDays(-2);
             var afterDate = Uri.EscapeDataString(fiveMinutesAgo.ToString("yyyy-MM-ddTHH:mm:ss"));
 
             var activitiesUrl = $"/1/user/-/activities/list.json?afterDate={afterDate}&sort=asc&offset=0&limit=10";

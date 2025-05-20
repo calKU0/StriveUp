@@ -50,7 +50,7 @@ namespace StriveUp.Infrastructure.Services
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                return await _httpClient.GetFromJsonAsync<ActivityDto>($"activityConfig/{id}") ?? new ActivityDto();
+                return await _httpClient.GetFromJsonAsync<ActivityDto>($"activity/activityConfig/{id}") ?? new ActivityDto();
             }
             catch
             {

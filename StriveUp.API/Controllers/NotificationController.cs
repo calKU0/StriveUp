@@ -89,10 +89,13 @@ namespace StriveUp.API.Controllers
         public async Task<IActionResult> MarkAsReadAll()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.IsRead == false && n.UserId == userId);
-            if (notif == null) return NotFound();
+            var notifs = await _context.Notifications.Where(n => n.IsRead == false && n.UserId == userId).ToListAsync();
+            if (notifs == null) return NotFound();
 
-            notif.IsRead = true;
+            foreach (var notif in notifs)
+            {
+                notif.IsRead = true;
+            }
             await _context.SaveChangesAsync();
 
             return Ok();

@@ -59,6 +59,19 @@ namespace StriveUp.API.Controllers
                     dto.UserId = callingUserId;
                 }
 
+                var userActivity = _mapper.Map<UserActivity>(dto);
+
+                if (!string.IsNullOrEmpty(userActivity.SynchroId))
+                {
+                    var duplicate = await _context.UserActivities
+                        .AnyAsync(ua => ua.SynchroId == userActivity.SynchroId);
+
+                    if (duplicate)
+                    {
+                        return Conflict("This activity has already been synchronized.");
+                    }
+                }
+
                 var user = await _context.Users
                     .Include(u => u.Level)
                     .FirstOrDefaultAsync(u => u.Id == dto.UserId);
@@ -69,7 +82,6 @@ namespace StriveUp.API.Controllers
 
                 double durationSeconds = (dto.DateEnd - dto.DateStart).TotalSeconds;
 
-                var userActivity = _mapper.Map<UserActivity>(dto);
                 userActivity.DurationSeconds = durationSeconds;
                 userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
 
@@ -111,9 +123,9 @@ namespace StriveUp.API.Controllers
                         UserId = user.Id,
                         ActorId = user.Id, // the one who added it
                         Title = "New Activity Synchronized",
-                        Message = $"The activity {activity.Name} has been synced to your account. Click to review your performance.",
+                        Message = $"The activity {userActivity.Title} has been synced to your account. Click to review your performance!",
                         Type = "sync",
-                        RedirectUrl = $"/activity/{activity.Id}"
+                        RedirectUrl = $"/activity/{userActivity.Id}"
                     };
 
                     await _notificationService.CreateNotificationAsync(notifDto);
@@ -237,7 +249,7 @@ namespace StriveUp.API.Controllers
             {
                 var activity = await _context.UserActivities
                     .AsSplitQuery()
-                    .Where(ua => ua.Id == id && ua.UserId == userId)
+                    .Where(ua => ua.Id == id)
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.User)
                     .Include(ua => ua.ActivityLikes)
@@ -291,7 +303,7 @@ namespace StriveUp.API.Controllers
                 var activity = await _context.Activities
                     .Include(a => a.Config)
                     .Where(a => a.Id == id)
-                    .ToListAsync();
+                    .FirstOrDefaultAsync();
 
                 var activityDto = _mapper.Map<ActivityDto>(activity);
                 return Ok(activityDto);

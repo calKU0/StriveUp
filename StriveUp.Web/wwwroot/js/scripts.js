@@ -163,3 +163,20 @@ window.headerScrollHelper = {
         }.bind(this), { passive: true });
     }
 };
+window.getTimeAgo = function (utcDateString) {
+    const utcDate = new Date(utcDateString);
+    const localDate = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000) * -1);
+    const now = new Date();
+    const diffMs = now.getTime() - localDate.getTime();
+
+    if (diffMs < 0) return 'just now';
+
+    const secondsAgo = Math.floor(diffMs / 1000);
+    if (secondsAgo < 60) return `${secondsAgo}s ago`;
+    const minutesAgo = Math.floor(secondsAgo / 60);
+    if (minutesAgo < 60) return `${minutesAgo}m ago`;
+    const hoursAgo = Math.floor(minutesAgo / 60);
+    if (hoursAgo < 24) return `${hoursAgo}h ago`;
+    const daysAgo = Math.floor(hoursAgo / 24);
+    return `${daysAgo}d ago`;
+};
