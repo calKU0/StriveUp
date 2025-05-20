@@ -1,45 +1,52 @@
-﻿@using StriveUp.Shared.DTOs
-@using StriveUp.Shared.Layout
+﻿@using StriveUp.Shared.Helpers
+<!-- Injections -->
 @inject IMedalService MedalsService;
 @inject IMedalStateService MedalState
 @inject IJSRuntime JS
 
+<div class="position-relative w-100 h-100">
+    <div class="position-relative medal-card h-100 d-flex flex-column @(IsAchieved || isClaimable ? "" : "opacity-50") @(isJustAchieved ? "claimed" : "")" @onclick="HandleClick" @onclick:stopPropagation="false">
+        @if (MedalDto.TimesClaimed > 0)
+        {
+            <span class="badge bg-primary position-absolute top-0 start-100 translate-middle badge-rounded-pill">
+                @MedalDto.TimesClaimed
+            </span>
+        }
+        <div class="card-body d-flex flex-column">
+            <img src="images/medals/@(Uri.EscapeDataString(MedalDto.Name.Replace(" ", "_")).ToLower()).webp" loading="lazy" class="mx-auto mb-2" alt="@MedalDto.Name"/>
+            <h6 class="fw-bold">@MedalDto.Name</h6>
+            <span class="badge @(GetBadgeClass(MedalDto.Frequency))">@MedalDto.Frequency</span>
 
-<div class="medal-card h-100 d-flex flex-column @(IsAchieved || isClaimable ? "" : "opacity-50") @(isJustAchieved ? "claimed" : "")" @onclick="HandleClick">
-    <div class="card-body d-flex flex-column">
-        <img src="images/medals/@(Uri.EscapeDataString(MedalDto.Name.Replace(" ","_")).ToLower()).webp" loading="lazy" class="mx-auto mb-2" alt="@MedalDto.Name" />
-        <h6 class="fw-bold">@MedalDto.Name</h6>
-        <span class="badge @(GetBadgeClass(MedalDto.Frequency))">@MedalDto.Frequency</span>
-
-        <!-- Make the footer auto-push to bottom -->
-        <div class="medal-card-footer mt-auto">
-            @if (ShowRedeemButton && !IsAchieved)
-            {
-                <button class="btn btn-primary btn-sm claim-animate mt-3"
-                @onclick:stopPropagation="true"
-                @onclick="ClaimMedal">
-                    🎉 Claim
-                </button>
-            }
-            else if (ShowProgressBar && !IsAchieved)
-            {
-                <div class="progress mt-2">
-                    <div class="progress-bar @GetProgressGradientClass()"
-                    role="progressbar"
-                    style="width: @DisplayedProgress%"
-                    aria-valuenow="@DisplayedProgress"
-                    aria-valuemin="0"
-                    aria-valuemax="100">
+            <!-- Make the footer auto-push to bottom -->
+            <div class="medal-card-footer mt-auto">
+                @if (ShowRedeemButton && !IsAchieved)
+                {
+                    <button class="btn btn-primary btn-sm claim-animate mt-3"
+                            @onclick:stopPropagation="true"
+                            @onclick="ClaimMedal">
+                        🎉 Claim
+                    </button>
+                }
+                else if (ShowProgressBar && !IsAchieved)
+                {
+                    <div class="progress mt-2">
+                        <div class="progress-bar @MedalUtils.GetProgressGradientClass(MedalDto.ProgressPercent)"
+                             role="progressbar"
+                             style="width: @DisplayedProgress%"
+                             aria-valuenow="@DisplayedProgress"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
                     </div>
-                </div>
-                <div class="progress-text text-center mt-2">
-                    <span>@AnimatedPercent% Completed</span>
-                </div>
-            }
-            else
-            {
-                <div class="mt-1 text-muted small">Earned: @MedalDto.DateEarned?.ToShortDateString()</div>
-            }
+                    <div class="progress-text text-center mt-2">
+                        <span>@AnimatedPercent% Completed</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="mt-1 text-muted small">Earned: @MedalDto.DateEarned?.ToShortDateString()</div>
+                }
+            </div>
         </div>
     </div>
 </div>
@@ -90,20 +97,6 @@
         }
     }
 
-    private string GetProgressGradientClass()
-    {
-        if (MedalDto.ProgressPercent >= 100)
-            return "progress-100";
-        else if (MedalDto.ProgressPercent >= 75)
-            return "progress-75";
-        else if (MedalDto.ProgressPercent >= 50)
-            return "progress-50";
-        else if (MedalDto.ProgressPercent >= 25)
-            return "progress-25";
-        else
-            return "progress-0";
-    }
-
 
     private string GetBadgeClass(string frequency)
     {
@@ -118,23 +111,39 @@
 
     private async Task HandleClick()
     {
+        Console.WriteLine("Medal clicked from MedalCard");
         await OnMedalClick.InvokeAsync();
     }
 
     private async Task ClaimMedal()
     {
+        // Optimistically update UI first
+        ShowRedeemButton = false;
+        IsAchieved = true;
+        isJustAchieved = true;
+        MedalDto.DateEarned = DateTime.Now;
+        MedalDto.TimesClaimed++;
+        MedalState.DecrementMedalsCount();
+        StateHasChanged();
+        await JS.InvokeVoidAsync("launchConfetti");
+        // Call the service, but do NOT await before updating UI
         var response = await MedalsService.ClaimMedal(MedalDto.Id);
 
         if (response)
         {
-            ShowRedeemButton = false;
-            await JS.InvokeVoidAsync("launchConfetti");
 
-            IsAchieved = true;
-            isJustAchieved = true;
-            MedalDto.DateEarned = DateTime.Now;
-            MedalState.DecrementMedalsCount();
+        }
+        else
+        {
+            // Failure: rollback optimistic changes
+            ShowRedeemButton = true;
+            IsAchieved = false;
+            isJustAchieved = false;
+            MedalDto.DateEarned = null;
+            MedalDto.TimesClaimed--;
+            MedalState.IncrementMedalsCount();
             StateHasChanged();
+
         }
     }
 }

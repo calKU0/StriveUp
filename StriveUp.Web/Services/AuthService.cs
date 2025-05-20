@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
+using Newtonsoft.Json.Linq;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
@@ -33,7 +34,7 @@ namespace StriveUp.Web.Services
                 var jwt = await response.Content.ReadFromJsonAsync<JwtResponse>();
                 if (jwt == null) return (false, "Invalid response from server.");
 
-                await _authStateProvider.NotifyUserAuthentication(jwt.Token);
+                await _authStateProvider.NotifyUserAuthentication(jwt);
 
                 return (true, null);
             }
@@ -60,7 +61,7 @@ namespace StriveUp.Web.Services
                     var jwt = await response.Content.ReadFromJsonAsync<JwtResponse>();
                     if (jwt != null)
                     {
-                        await _authStateProvider.NotifyUserAuthentication(jwt.Token);
+                        await _authStateProvider.NotifyUserAuthentication(jwt);
                         return (true, null);
                     }
 
@@ -79,14 +80,14 @@ namespace StriveUp.Web.Services
             }
         }
 
-        public async Task<(bool Success, string? ErrorMessage)> ExternalLoginAsync(string token)
+        public async Task<(bool Success, string? ErrorMessage)> ExternalLoginAsync(JwtResponse jwt)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(token))
+                if (string.IsNullOrWhiteSpace(jwt.Token))
                     return (false, "No token provided.");
 
-                await _authStateProvider.NotifyUserAuthentication(token);
+                await _authStateProvider.NotifyUserAuthentication(jwt);
                 return (true, null);
             }
             catch (Exception ex)

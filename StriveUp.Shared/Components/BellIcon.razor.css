@@ -1,10 +1,13 @@
 .notification-count {
-    font-size: 0.75rem;
-    width: 18px;
-    height: 18px;
+    top: 0;
+    right: 0;
+    font-size: 0.70rem;
+    width: 20px;
+    height: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
     background-color: red;
+
 }

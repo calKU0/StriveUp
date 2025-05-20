@@ -1,69 +1,72 @@
 ﻿@page "/settings"
+
+<!-- Injections -->
 @inject ICustomAuthStateProvider AuthStateProvider
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 
 <div class="container py-4">
     <h1 class="mb-4 text-center">Settings</h1>
 
     <div class="row g-3">
-        <div class="col-12 col-md-6">
-            <a href="/change-email" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+        <div class="col-12 col-md-6 d-flex">
+            <a href="/change-email" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
                 <span>Change Email</span>
                 <i class="bi bi-chevron-right text-muted"></i>
             </a>
         </div>
 
-        <div class="col-12 col-md-6">
-            <a href="/synchronize" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+        <div class="col-12 col-md-6 d-flex">
+            <a href="/synchronize" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
                 <span>Synchronize Activities</span>
                 <i class="bi bi-arrow-repeat text-muted"></i>
             </a>
         </div>
 
-        <div class="col-12 col-md-6">
-            <a href="/manage-devices" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+        <div class="col-12 col-md-6 d-flex">
+            <a href="/manage-devices" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
                 <span>Manage Devices</span>
                 <i class="bi bi-phone text-muted"></i>
             </a>
         </div>
 
-        <div class="col-12 col-md-6">
-            <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center" @onclick="() => showModal = true" style="cursor: pointer;">
+        <div class="col-12 col-md-6 d-flex">
+            <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100" @onclick="() => showModal = true" style="cursor: pointer;">
                 <span>Appearance</span>
                 <span class="text-muted small">@selectedTheme</span>
             </div>
         </div>
 
-        <div class="col-12 col-md-6">
-            <a href="/privacy-control" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+        <div class="col-12 col-md-6 d-flex">
+            <a href="/privacy-control" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
                 <span>Privacy Control</span>
                 <i class="bi bi-shield-lock text-muted"></i>
             </a>
         </div>
 
-        <div class="col-12 col-md-6">
-            <a href="/default-metrics" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+        <div class="col-12 col-md-6 d-flex">
+            <a href="/default-metrics" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
                 <span>Default Metrics</span>
                 <i class="bi bi-sliders text-muted"></i>
             </a>
         </div>
 
-        <div class="col-12 col-md-6">
-            <a href="/terms-of-service" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+        <div class="col-12 col-md-6 d-flex">
+            <a href="/terms-of-service" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
                 <span>Terms Of Service</span>
                 <i class="bi bi-file-earmark-text text-muted"></i>
             </a>
         </div>
 
-        <div class="col-12 col-md-6">
-            <a href="/privacy-policy" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center">
+        <div class="col-12 col-md-6 d-flex">
+            <a href="/privacy-policy" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
                 <span>Privacy Policy</span>
                 <i class="bi bi-file-earmark-text text-muted"></i>
             </a>
         </div>
 
-        <div class="col-12 col-md-6">
-            <button class="list-group-item list-group-item-action text-danger shadow-sm rounded d-flex justify-content-between align-items-center" @onclick="HandleLogout">
+        <div class="col-12 col-md-6 d-flex">
+            <button class="list-group-item list-group-item-action text-danger shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100" @onclick="HandleLogout">
                 <span>Log Out</span>
                 <i class="bi bi-box-arrow-right"></i>
             </button>
@@ -108,8 +111,9 @@
         // Optionally persist or apply the theme
     }
 
-    void HandleLogout()
+    async Task HandleLogout()
     {
-        // logout logic here
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login");
     }
 }

@@ -13,5 +13,6 @@ namespace StriveUp.Shared.Interfaces
 
         void SetMedalsCount(int count);
         void DecrementMedalsCount();
+        void IncrementMedalsCount();
     }
 }

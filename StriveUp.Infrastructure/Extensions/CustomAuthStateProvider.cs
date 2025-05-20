@@ -49,12 +49,13 @@ namespace StriveUp.Infrastructure.Extensions
         }
 
 
-        public async Task NotifyUserAuthentication(string token)
+        public async Task NotifyUserAuthentication(JwtResponse jwt)
         {
             try
             {
-                await _tokenStorage.StoreToken(token);
-                var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+                await _tokenStorage.StoreToken(jwt.Token);
+                await _tokenStorage.StoreRefreshToken(jwt.RefreshToken);
+                var identity = new ClaimsIdentity(ParseClaimsFromJwt(jwt.Token), "jwt");
                 _currentUser = new ClaimsPrincipal(identity);
                 NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_currentUser)));
             }

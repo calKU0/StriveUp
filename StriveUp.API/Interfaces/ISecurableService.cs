@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StriveUp.API.Services
+namespace StriveUp.API.Interfaces
 {
     public interface ISecurableService
     {

@@ -32,7 +32,6 @@ namespace StriveUp.API.Controllers
         {
             try
             {
-
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 var notifs = await _context.Notifications
@@ -73,20 +72,6 @@ namespace StriveUp.API.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationDto dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var notification = _mapper.Map<Notification>(dto);
-            notification.CreatedAt = DateTime.UtcNow;
-
-            _context.Notifications.Add(notification);
-            await _context.SaveChangesAsync();
-
-            return Ok();
-        }
-
         [HttpPost("read/{id}")]
         public async Task<IActionResult> MarkAsRead(int id)
         {
@@ -104,10 +89,13 @@ namespace StriveUp.API.Controllers
         public async Task<IActionResult> MarkAsReadAll()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.IsRead == false && n.UserId == userId);
-            if (notif == null) return NotFound();
+            var notifs = await _context.Notifications.Where(n => n.IsRead == false && n.UserId == userId).ToListAsync();
+            if (notifs == null) return NotFound();
 
-            notif.IsRead = true;
+            foreach (var notif in notifs)
+            {
+                notif.IsRead = true;
+            }
             await _context.SaveChangesAsync();
 
             return Ok();

@@ -243,9 +243,52 @@ window.initIntersectionObserver = (element, dotNetHelper) => {
 
     observer.observe(element);
 };
+
 window.triggerFileInputClick = function () {
     var fileInput = document.getElementById("fileInput");
     if (fileInput) {
         fileInput.click();
     }
 }
+
+window.headerScrollHelper = {
+    lastScrollTop: 0,
+    threshold: 10, // Minimum scroll difference to detect direction
+    init: function (dotNetHelper) {
+        window.addEventListener('scroll', function () {
+            let st = window.pageYOffset || document.documentElement.scrollTop;
+            if (Math.abs(st - this.lastScrollTop) <= this.threshold) {
+                // Ignore small scrolls
+                return;
+            }
+
+            if (st > this.lastScrollTop) {
+                // Scrolling down -> hide header
+                dotNetHelper.invokeMethodAsync('SetHeaderVisibility', false);
+            } else {
+                // Scrolling up -> show header
+                dotNetHelper.invokeMethodAsync('SetHeaderVisibility', true);
+            }
+            this.lastScrollTop = st <= 0 ? 0 : st; // For Mobile or negative scrolling
+        }.bind(this), { passive: true });
+    }
+};
+
+window.getTimeAgo = function (utcDateString) {
+    const utcDate = new Date(utcDateString);
+    const localDate = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000) * -1);
+    const now = new Date();
+    const diffMs = now.getTime() - localDate.getTime();
+
+    if (diffMs < 0) return 'just now';
+
+    const secondsAgo = Math.floor(diffMs / 1000);
+    if (secondsAgo < 60) return `${secondsAgo}s ago`;
+    const minutesAgo = Math.floor(secondsAgo / 60);
+    if (minutesAgo < 60) return `${minutesAgo}m ago`;
+    const hoursAgo = Math.floor(minutesAgo / 60);
+    if (hoursAgo < 24) return `${hoursAgo}h ago`;
+    const daysAgo = Math.floor(hoursAgo / 24);
+    return `${daysAgo}d ago`;
+};
+

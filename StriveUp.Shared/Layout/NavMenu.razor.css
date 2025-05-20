@@ -1,11 +1,7 @@
-.notification-count {
-    font-size: 0.65rem;
-    width: 18px;
-    height: 18px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    background-color: red;
-    z-index: 10;
+.avatar-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 0px solid #000000;
 }

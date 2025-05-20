@@ -1,5 +1,9 @@
 ﻿@page "/medals"
-@using StriveUp.Shared.DTOs
+
+<!-- Usings -->
+@using StriveUp.Shared.Helpers
+
+<!-- Injections -->
 @inject IMedalService MedalService
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -10,10 +14,7 @@
 
     @if (isLoading)
     {
-        <div class="loading-overlay">
-            <div class="spinner"></div>
-            <p class="loading-text">Loading medals. Please wait...</p>
-        </div>
+        <Spinner text="Loading medals..."></Spinner>
     }
     else
     {
@@ -71,17 +72,16 @@
                 @for (int i = 0; i < FilteredMedals.Count; i++)
                 {
                     var medal = FilteredMedals[i];
-                    <div class="col-6 col-sm-4 col-md-2">
-                        <div class="medal-drop-animation" style="animation-delay:@($"{i * 45}ms")">
-                            <MedalCard @key="medal.Id"
-                                       MedalDto="@medal"
-                                       IsAchieved="@claimedMedals.Any(a => a.Id == medal.Id)"
-                                       OnMedalClick="@(() => ShowMedalDetails(medal))" />
-                        </div>
+                    <div class="col-6 col-sm-4 col-md-2 d-flex">
+                        <MedalCard @key="medal.Id"
+                                   MedalDto="@medal"
+                                   IsAchieved="IsMedalAchieved(medal)"
+                                   OnMedalClick="@(() => ShowMedalDetails(medal))" />
                     </div>
                 }
             }
         </div>
+
     }
 </div>
 
@@ -90,13 +90,14 @@
     <MedalDetailsModal Medal="@selectedMedal"
                        IsVisible="@isMedalModalVisible"
                        IsVisibleChanged="@(v => isMedalModalVisible = v)"
+                       IsAchieved = "IsMedalAchieved(selectedMedal)"
                        OnModalClaim="v => OnModalClaim(v)" />
 }
+
 @code {
     private bool isLoading = true;
     private List<MedalDto> allMedals = new();
     private List<MedalDto> claimedMedals = new();
-    private List<MedalDto> notClaimedMedals = new();
     private MedalDto selectedMedal;
     private bool isMedalModalVisible = false;
     private string activeFrequencyTab = "all";
@@ -120,7 +121,6 @@
 
             allMedals = await MedalService.GetAllMedalsAsync() ?? new();
             claimedMedals = await MedalService.GetUserMedalsAsync() ?? new();
-            notClaimedMedals = allMedals.Where(medal => !claimedMedals.Contains(medal)).ToList();
         }
         catch (Exception ex)
         {
@@ -157,8 +157,10 @@
 
     private void ShowMedalDetails(MedalDto medal)
     {
+        Console.WriteLine($"Clicked Medal: {medal.Name}");
         selectedMedal = medal;
         isMedalModalVisible = true;
+        StateHasChanged();
     }
 
     private void ToggleFilters()
@@ -185,9 +187,11 @@
         foreach (var medal in allMedals)
         {
             var claimed = claimedMedals.FirstOrDefault(cm => cm.Id == medal.Id);
+
             if (claimed != null)
             {
                 medal.DateEarned = claimed.DateEarned;
+                medal.TimesClaimed = claimed.TimesClaimed;
             }
         }
 
@@ -219,8 +223,11 @@
                 break;
             case "% complete":
                 medalsToFilter = medalsToFilter
-                    .OrderByDescending(m => m.ProgressPercent == 100 && !claimedMedals.Any(c => c.Id == m.Id))  // Claimable first
-                    .ThenByDescending(m => m.ProgressPercent);  // Then by highest completion
+                    .OrderByDescending(m => 
+                        m.ProgressPercent == 100 && 
+                        !IsMedalAchieved(m)) // Claimable first
+                    .ThenByDescending(m => m.ProgressPercent) // Highest progress next
+                    .ThenBy(m => m.Name); // Optional: tie-breaker
                 break;
         }
 
@@ -229,7 +236,36 @@
 
     private void OnModalClaim(int medalId)
     {
-        claimedMedals.Add(allMedals.First(m => m.Id == medalId));
+        var claimedMedal = allMedals.FirstOrDefault(m => m.Id == medalId);
+        if (claimedMedal == null) return;
+
+        claimedMedal.DateEarned = DateTime.UtcNow;
+
+        // Replace or add in claimedMedals list
+        var index = claimedMedals.FindIndex(m => m.Id == medalId);
+        if (index >= 0)
+        {
+            claimedMedals[index] = claimedMedal;
+        }
+        else
+        {
+            claimedMedals.Add(claimedMedal);
+        }
+
+        selectedMedal = claimedMedal; // make sure modal sees updated data
         StateHasChanged();
+    }
+
+    private bool IsMedalAchieved(MedalDto medal)
+    {
+        var claimed = claimedMedals.FirstOrDefault(m => m.Id == medal.Id);
+        if (claimed == null) return false;
+        var earnedDate = claimed.DateEarned ?? DateTime.MinValue;
+        return medal.Frequency switch
+        {
+            "Weekly" => earnedDate >= DateUtils.GetStartOfWeek(DateTime.UtcNow),
+            "Monthly" => earnedDate >= new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1),
+            _ => true // Once or others are always claimed once
+        };
     }
 }

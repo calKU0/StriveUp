@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using StriveUp.API.Services;
+using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Shared.DTOs;
 
@@ -25,7 +25,9 @@ namespace StriveUp.API.Controllers
         public async Task<IActionResult> Login(LoginRequest request)
         {
             var (success, token) = await _authService.LoginAsync(request);
-            return success ? Ok(token) : Unauthorized("Invalid credentials.");
+            return success
+                ? Ok(token)
+                : Unauthorized(new ErrorResponse { Message = "Invalid credentials." });
         }
 
         [HttpPost("register")]
@@ -46,11 +48,12 @@ namespace StriveUp.API.Controllers
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
         {
             var token = await _authService.RefreshToken(request);
-            if(token == null)
-                return Unauthorized("Invalid refresh token.");
+            if (token == null)
+                return Unauthorized(new ErrorResponse { Message = "Invalid refresh token." });
 
             return Ok(token);
         }
+
 
         [HttpGet("google-login")]
         public IActionResult GoogleLogin(string returnUrl = "https://localhost:7153/login")
@@ -68,15 +71,16 @@ namespace StriveUp.API.Controllers
             var info = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
             if (info?.Principal == null)
             {
-                return Unauthorized("External login info not found.");
+                return Unauthorized(new ErrorResponse { Message = "External login info not found." });
             }
 
-            var(success, token) = await _authService.ExternalLoginAsync(info.Principal);
-            if (!success)
-                return Unauthorized("External login failed.");
+            var (success, jwt) = await _authService.ExternalLoginAsync(info.Principal);
+            if (!success || jwt == null)
+                return Unauthorized(new ErrorResponse { Message = "External login failed." });
 
-            // Redirect to client with token (you may also issue a Set-Cookie here)
-            return Redirect($"{returnUrl}?token={token}");
+            // Instead of passing tokens via query string (insecure), use fragment or localStorage via intermediate redirect
+            var redirectUrl = $"{returnUrl}#access_token={jwt.Token}&refresh_token={jwt.RefreshToken}";
+            return Redirect(redirectUrl);
         }
 
     }

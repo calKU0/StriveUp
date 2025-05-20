@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StriveUp.API.Services;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Activity;
 using System.Security.Claims;
 using StriveUp.Infrastructure.Identity;
+using StriveUp.API.Interfaces;
 
 namespace StriveUp.API.Controllers
 {
@@ -22,13 +22,15 @@ namespace StriveUp.API.Controllers
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILevelService _levelService;
+        private readonly INotificationService _notificationService;
 
-        public ActivityController(AppDbContext context, IMapper mapper, ILevelService levelService, UserManager<AppUser> userManager)
+        public ActivityController(AppDbContext context, IMapper mapper, ILevelService levelService, UserManager<AppUser> userManager, INotificationService notificationService)
         {
             _context = context;
             _mapper = mapper;
             _levelService = levelService;
             _userManager = userManager;
+            _notificationService = notificationService;
         }
 
         private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -57,6 +59,19 @@ namespace StriveUp.API.Controllers
                     dto.UserId = callingUserId;
                 }
 
+                var userActivity = _mapper.Map<UserActivity>(dto);
+
+                if (!string.IsNullOrEmpty(userActivity.SynchroId))
+                {
+                    var duplicate = await _context.UserActivities
+                        .AnyAsync(ua => ua.SynchroId == userActivity.SynchroId);
+
+                    if (duplicate)
+                    {
+                        return Conflict("This activity has already been synchronized.");
+                    }
+                }
+
                 var user = await _context.Users
                     .Include(u => u.Level)
                     .FirstOrDefaultAsync(u => u.Id == dto.UserId);
@@ -67,12 +82,11 @@ namespace StriveUp.API.Controllers
 
                 double durationSeconds = (dto.DateEnd - dto.DateStart).TotalSeconds;
 
-                var userActivity = _mapper.Map<UserActivity>(dto);
                 userActivity.DurationSeconds = durationSeconds;
                 userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
 
-                userActivity.MaxSpeed = userActivity.SpeedData.Count > 0 && userActivity.MaxSpeed == null 
-                    ? userActivity.SpeedData.Max(s => s.SpeedValue) 
+                userActivity.MaxSpeed = userActivity.SpeedData.Count > 0 && userActivity.MaxSpeed == null
+                    ? userActivity.SpeedData.Max(s => s.SpeedValue)
                     : userActivity.MaxSpeed;
 
                 userActivity.AvarageSpeed = userActivity.SpeedData.Count > 0 && userActivity.AvarageSpeed == null
@@ -93,13 +107,29 @@ namespace StriveUp.API.Controllers
                 if (activityConfig != null)
                 {
                     // Add XP 
-                    int xpReward = activityConfig.PointsPerMinute > 0 
-                        ? Convert.ToInt32(Math.Round(activityConfig.PointsPerMinute * userActivity.DurationSeconds / 60)) 
+                    int xpReward = activityConfig.PointsPerMinute > 0
+                        ? Convert.ToInt32(Math.Round(activityConfig.PointsPerMinute * userActivity.DurationSeconds / 60))
                         : 1 * Convert.ToInt32(Math.Round(userActivity.DurationSeconds / 60));
                     user.CurrentXP += xpReward;
                 }
 
                 _context.UserActivities.Add(userActivity);
+
+                // If activity is synchronized, notify the user
+                if (userActivity.isSynchronized)
+                {
+                    var notifDto = new CreateNotificationDto
+                    {
+                        UserId = user.Id,
+                        ActorId = user.Id, // the one who added it
+                        Title = "New Activity Synchronized",
+                        Message = $"The activity {userActivity.Title} has been synced to your account. Click to review your performance!",
+                        Type = "sync",
+                        RedirectUrl = $"/activity/{userActivity.Id}"
+                    };
+
+                    await _notificationService.CreateNotificationAsync(notifDto);
+                }
 
                 await _levelService.UpdateUserLevelAsync(user);
                 await _context.SaveChangesAsync();
@@ -219,7 +249,7 @@ namespace StriveUp.API.Controllers
             {
                 var activity = await _context.UserActivities
                     .AsSplitQuery()
-                    .Where(ua => ua.Id == id && ua.UserId == userId)
+                    .Where(ua => ua.Id == id)
                     .Include(ua => ua.Activity)
                     .Include(ua => ua.User)
                     .Include(ua => ua.ActivityLikes)
@@ -273,7 +303,7 @@ namespace StriveUp.API.Controllers
                 var activity = await _context.Activities
                     .Include(a => a.Config)
                     .Where(a => a.Id == id)
-                    .ToListAsync();
+                    .FirstOrDefaultAsync();
 
                 var activityDto = _mapper.Map<ActivityDto>(activity);
                 return Ok(activityDto);
@@ -293,20 +323,53 @@ namespace StriveUp.API.Controllers
 
             try
             {
+                // Get the current user (the actor)
+                var actorUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+                if (actorUser == null) return Unauthorized();
+
+                // Get the owner of the activity (destination user)
+                var destinationUserId = await _context.UserActivities
+                    .Where(a => a.Id == activityId)
+                    .Select(a => a.UserId)
+                    .FirstOrDefaultAsync();
+
+                if (string.IsNullOrEmpty(destinationUserId))
+                    return BadRequest("Invalid activity ID.");
+
+                // Check if the like already exists
                 var existingLike = await _context.ActivityLikes
                     .FirstOrDefaultAsync(l => l.UserActivityId == activityId && l.UserId == userId);
 
                 if (existingLike == null)
                 {
+                    // Add the like
                     _context.ActivityLikes.Add(new ActivityLike
                     {
                         UserActivityId = activityId,
                         UserId = userId,
                         LikedAt = DateTime.UtcNow
                     });
+
+                    // Only notify if user is not liking their own activity
+                    if (userId != destinationUserId)
+                    {
+                        var notifDto = new CreateNotificationDto
+                        {
+                            UserId = destinationUserId,      // The owner of the activity
+                            ActorId = userId,                // The liker
+                            Title = "New Like",
+                            Message = $"{actorUser.UserName} liked your activity.",
+                            Type = "like",
+                            RedirectUrl = $"/activity/{activityId}"
+                        };
+
+                        await _notificationService.CreateNotificationAsync(notifDto);
+                    }
                 }
                 else
                 {
+                    // Remove the like (unlike)
                     _context.ActivityLikes.Remove(existingLike);
                 }
 
@@ -320,6 +383,7 @@ namespace StriveUp.API.Controllers
             }
         }
 
+
         [HttpPost("comment/{activityId}")]
         public async Task<IActionResult> AddComment(int activityId, AddCommentDto dto)
         {
@@ -328,6 +392,7 @@ namespace StriveUp.API.Controllers
 
             try
             {
+                // Add the comment
                 var comment = new ActivityComment
                 {
                     UserActivityId = activityId,
@@ -338,6 +403,35 @@ namespace StriveUp.API.Controllers
                 _context.ActivityComments.Add(comment);
                 await _context.SaveChangesAsync();
 
+                // Get actor user (commenter)
+                var actorUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (actorUser == null) return Unauthorized();
+
+                // Get owner of the activity
+                var destinationUserId = await _context.UserActivities
+                    .Where(a => a.Id == activityId)
+                    .Select(a => a.UserId)
+                    .FirstOrDefaultAsync();
+
+                if (string.IsNullOrEmpty(destinationUserId))
+                    return BadRequest("Invalid activity ID.");
+
+                // Avoid notifying yourself
+                if (userId != destinationUserId)
+                {
+                    var notifDto = new CreateNotificationDto
+                    {
+                        UserId = destinationUserId,
+                        ActorId = userId,
+                        Title = "New Comment",
+                        Message = $"{actorUser.UserName} commented on your activity.",
+                        Type = "comment",
+                        RedirectUrl = $"/activity/{activityId}/comments"
+                    };
+
+                    await _notificationService.CreateNotificationAsync(notifDto);
+                }
+
                 return NoContent();
             }
             catch (Exception ex)
@@ -346,6 +440,7 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
 
         [HttpGet("activityComments/{activityId}")]
         public async Task<ActionResult<IEnumerable<ActivityCommentDto>>> GetActivityComments(int activityId)

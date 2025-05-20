@@ -9,7 +9,6 @@ namespace StriveUp.Shared.Interfaces
 {
     public interface INotificationService
     {
-        Task CreateNotificationAsync(CreateNotificationDto notification);
         Task<List<NotificationDto>> GetMyNotificationsAsync();
         Task MarkAsReadAsync(int id);
         Task MarkAllAsReadAsync();

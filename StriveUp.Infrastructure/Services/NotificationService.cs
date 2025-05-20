@@ -16,19 +16,6 @@ namespace StriveUp.Infrastructure.Services
             _tokenStorage = tokenStorage;
         }
 
-        public async Task CreateNotificationAsync(CreateNotificationDto notification)
-        {
-            try
-            {
-                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                await _httpClient.PostAsJsonAsync("notifications", notification);
-            }
-            catch
-            {
-
-            }
-        }
-
         public async Task<List<NotificationDto>> GetMyNotificationsAsync()
         {
             try

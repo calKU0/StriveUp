@@ -3,7 +3,7 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StriveUp.API.Services;
+using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Infrastructure.Services;
@@ -66,12 +66,23 @@ namespace StriveUp.API.Controllers
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                var medals = await _context.MedalsEarned
+                var groupedMedals = await _context.MedalsEarned
                     .Where(m => m.UserId == userId)
                     .Include(m => m.Medal)
+                    .GroupBy(m => m.MedalId)
                     .ToListAsync();
 
-                var medalDtos = _mapper.Map<List<MedalDto>>(medals);
+                var medalDtos = groupedMedals.Select(g =>
+                {
+                    var firstClaim = g.OrderByDescending(m => m.DateEarned).First();
+                    var dto = _mapper.Map<MedalDto>(firstClaim.Medal);
+
+                    // Set extra properties manually
+                    dto.TimesClaimed = g.Count();
+                    dto.DateEarned = firstClaim.DateEarned;
+
+                    return dto;
+                }).ToList();
 
                 return Ok(medalDtos);
             }
@@ -81,6 +92,7 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
 
         [HttpGet("medalsToClaimCount")]
         public async Task<ActionResult<int>> GetMedalsToClaimCount()

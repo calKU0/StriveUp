@@ -1,8 +1,11 @@
-﻿@using StriveUp.Shared.DTOs
+﻿<!-- Usings -->
+
+@using StriveUp.Shared.DTOs
 @using System.Security.Claims
 @using StriveUp.Shared.DTOs.Activity
 @using StriveUp.Shared.Helpers
 
+<!-- Injections -->
 @inject IActivityService ActivityService
 @inject INotificationService NotificationService
 @inject ICustomAuthStateProvider AuthStateProvider
@@ -92,8 +95,6 @@
 @code {
     [Parameter] public UserActivityDto Activity { get; set; }
     private ActivityDto activityConfig = new();
-    private Dictionary<int, string> commentInputs = new();
-    private CreateNotificationDto notificationDto = new();
     private string userId = "";
 
     protected override async Task OnInitializedAsync()
@@ -117,8 +118,7 @@
             await ActivityUtils.ToggleLikeAsync(
                 Activity,
                 userId,
-                ActivityService,
-                NotificationService
+                ActivityService
             );
         }
         catch (Exception ex)

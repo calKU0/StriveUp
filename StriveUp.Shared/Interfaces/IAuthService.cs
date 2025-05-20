@@ -12,7 +12,7 @@ namespace StriveUp.Shared.Interfaces
         Task<(bool Success, string? ErrorMessage)> LoginAsync(LoginRequest request);
         Task LogoutAsync();
         Task<(bool Success, List<string>? Errors)> RegisterAsync(RegisterRequest request);
-        Task<(bool Success, string? ErrorMessage)> ExternalLoginAsync(string token);
+        Task<(bool Success, string? ErrorMessage)> ExternalLoginAsync(JwtResponse jwt);
 
     }
 }

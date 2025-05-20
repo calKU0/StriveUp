@@ -58,6 +58,33 @@ namespace StriveUp.API.Controllers
             }
         }
 
+        [HttpGet("simpleData/{userId}")]
+        public async Task<ActionResult<SimpleUserDto>> GetSimpleUserData(string userId)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(currentUserId))
+                return Unauthorized();
+
+            try
+            {
+                var user = await _context.Users.Where(i => i.Id == userId).FirstOrDefaultAsync();
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                var userProfile = _mapper.Map<SimpleUserDto>(user);
+
+                return Ok(userProfile);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, new { Message = "An internal server error occurred while fetching the profile.", Error = ex.Message });
+            }
+        }
+
 
         [HttpPut]
         public async Task<ActionResult> UpdateProfile([FromBody] EditUserProfileDto profile)

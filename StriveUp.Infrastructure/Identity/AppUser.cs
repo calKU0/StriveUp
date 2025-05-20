@@ -17,8 +17,7 @@ namespace StriveUp.Infrastructure.Identity
         [MaxLength(50)]
         public string LastName { get; set; }
 
-        [Url]
-        public string? Avatar { get; set; }
+        [Url] public string Avatar { get; set; } = "images/icons/user.png";
 
         [Required]
         [Range(0, int.MaxValue, ErrorMessage = "XP cannot be negative")]

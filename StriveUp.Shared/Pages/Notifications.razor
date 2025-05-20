@@ -1,44 +1,46 @@
 ﻿@page "/notifications"
-@using StriveUp.Shared.DTOs
+
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject INotificationService NotificationService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject INotificationStateService NotificationStateService
+@implements IDisposable
 
 <div class="container-fluid px-0 mx-0">
     <div class="row justify-content-center">
         <div class="col-md-8">
-               <div class="p-0">
-                    @if (notifications.Count == 0)
-                    {
-                        <div class="text-center p-4 text-muted">
-                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                            No notifications yet.
-                        </div>
-                    }
-                    else
-                    {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var notif in notifications)
-                            {
-                                <li class="list-group-item d-flex justify-content-between align-items-start notification-item border-bottom @(!notif.IsRead ? "bg-light" : "")"
-                                    @onclick="() => OnNotificationClick(notif)">
-                                    <div class="d-flex align-items-start">
-                                        <img src="@notif.ActorAvatar" alt="Avatar" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
-                                        <div>
-                                            <div class="fw-bold">@notif.Title</div>
-                                            <div><strong>@notif.ActorName</strong>: @notif.Message</div>
-                                            <div class="text-muted small">@GetTimeAgo(notif.CreatedAt)</div>
-                                        </div>
+            <div class="p-0">
+                @if (notifications.Count == 0)
+                {
+                    <div class="text-center p-4 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        No notifications yet.
+                    </div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var notif in notifications)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-start notification-item border-bottom @(!notif.IsRead ? "bg-light" : "")"
+                                @onclick="() => OnNotificationClick(notif)">
+                                <div class="d-flex align-items-start">
+                                    <img src="@notif.ActorAvatar" alt="Avatar" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold">@notif.Title</div>
+                                        <div><strong>@notif.ActorName</strong>: @notif.Message</div>
+                                        <div class="text-muted small">@notif.TimeAgo</div>
                                     </div>
-                                </li>
-                            }
-                        </ul>
-                    }
-                </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
             </div>
         </div>
     </div>
-
+</div>
 
 @code {
     private List<NotificationDto> notifications = new();
@@ -49,41 +51,67 @@
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var currentUser = authState.User;
-
             if (currentUser.Identity?.IsAuthenticated ?? false)
             {
-                // Token is valid, fetch notifications
                 notifications = await NotificationService.GetMyNotificationsAsync();
+
+                foreach (var notif in notifications)
+                {
+                    notif.TimeAgo = await JS.InvokeAsync<string>("getTimeAgo", notif.CreatedAt.ToUniversalTime().ToString("o"));
+                }
+
+                // Update unread count in shared state
+                NotificationStateService.UnreadCount = notifications.Count(n => !n.IsRead);
             }
             else
             {
-                Navigation.NavigateTo("/login");  // Redirect to login page
+                Navigation.NavigateTo("/login");
             }
-            await InvokeAsync(() => StateHasChanged());
-        }
-    }
 
-    private async Task MarkAsRead(int id)
-    {
-        await NotificationService.MarkAsReadAsync(id);
-        notifications = await NotificationService.GetMyNotificationsAsync();
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task OnNotificationClick(NotificationDto notif)
     {
-        await NotificationService.MarkAsReadAsync(notif.Id);
+        if (!notif.IsRead)
+        {
+            notif.IsRead = true;
+
+            // Update unread count in shared state immediately (optimistic UI)
+            NotificationStateService.UnreadCount = notifications.Count(n => !n.IsRead);
+
+            StateHasChanged();
+
+            await NotificationService.MarkAsReadAsync(notif.Id);
+        }
+
         Navigation.NavigateTo(notif.RedirectUrl);
     }
 
-    private string GetTimeAgo(DateTime timestamp)
+    public void Dispose()
     {
-        var timeAgo = DateTime.Now - timestamp;
+        _ = MarkAllAsReadOnExitAsync();
+    }
 
-        if (timeAgo.TotalMinutes < 60)
-            return $"{(int)timeAgo.TotalMinutes} minutes ago";
-        else if (timeAgo.TotalHours < 24)
-            return $"{(int)timeAgo.TotalHours} hours ago";
-        else
-            return $"{(int)timeAgo.TotalDays} days ago";
+    private async Task MarkAllAsReadOnExitAsync()
+    {
+        try
+        {
+            foreach (var notif in notifications)
+            {
+                notif.IsRead = true;
+            }
+
+            NotificationStateService.UnreadCount = 0;
+
+            StateHasChanged();
+
+            await NotificationService.MarkAllAsReadAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to mark notifications as read on exit: {ex}");
+        }
     }
 }

@@ -1,11 +1,5 @@
-﻿@inject NavigationManager Navigation
-<i class="fas fa-search text-dark @Class icon-header" @onclick="OnSearchClick"></i>
+﻿<a href="/search"><i class="fas fa-search text-dark @Class icon-header"></i></a>
 
 @code {
     [Parameter] public string Class { get; set; } = "";
-
-    private void OnSearchClick()
-    {
-        Navigation.NavigateTo("/search");
-    }
 }

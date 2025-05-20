@@ -1,9 +1,12 @@
 ﻿@page "/activity/{activityId:int}"
+
+<!-- Usings -->
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.Helpers
 @using System.Security.Claims
 @using StriveUp.Shared.DTOs.Activity
 
+<!-- Injections -->
 @inject IJSRuntime JS
 @inject IActivityService ActivityService
 @inject INotificationService NotificationService
@@ -148,8 +151,8 @@
 
                 <!-- Buttons -->
                 <div class="d-flex gap-3 mt-3">
-                    <button class="btn btn-outline-danger rounded-pill px-4 @(activity.IsLikedByCurrentUser ? "text-danger bg-danger-subtle like-active" : "text-body")" @onclick="ToggleLike">
-                        <i class="bi bi-heart-fill me-2"></i>@activity.LikeCount
+                    <button class="btn btn-light like-button d-flex align-items-center gap-2 px-3 py-1 border rounded-pill shadow-sm @(activity.IsLikedByCurrentUser ? "text-danger bg-danger-subtle like-active" : "text-body")" @onclick="ToggleLike" @onclick:stopPropagation="true">
+                        <i class="bi bi-heart-fill me-2 @(activity.IsLikedByCurrentUser ? "" : "text-muted")"></i>@activity.LikeCount
                     </button>
                     <a href="/activity/@activity.Id/comments" class="btn btn-outline-primary rounded-pill px-4">
                         <i class="bi bi-chat-dots-fill me-2"></i>Comments (@(activity.Comments?.Count ?? 0))
@@ -244,8 +247,7 @@
             await ActivityUtils.ToggleLikeAsync(
                 activity,
                 userId,
-                ActivityService,
-                NotificationService
+                ActivityService
             );
         }
         catch (Exception ex)

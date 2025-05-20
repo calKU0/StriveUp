@@ -1,6 +1,9 @@
-﻿@using StriveUp.Shared.DTOs
+﻿<!-- Usings -->
+@using StriveUp.Shared.Helpers
 
+<!-- Injections -->
 @inject IMedalService MedalsService;
+@inject IMedalStateService MedalState
 @inject IJSRuntime JS
 
 @if (IsVisible)
@@ -60,9 +63,8 @@
             </div>
 
             <!-- Progress Bar -->
-
             <div class="progress mt-3">
-                <div class="progress-bar @GetProgressGradientClass()"
+                <div class="progress-bar @MedalUtils.GetProgressGradientClass(Medal.ProgressPercent)"
                 role="progressbar"
                 style="width: @DisplayedProgress%"
                 aria-valuenow="@DisplayedProgress"
@@ -75,7 +77,7 @@
             </div>
 
             <div class="custom-modal-footer d-flex justify-content-md-end gap-3 justify-content-around">
-                @if (isClaimable && Medal.DateEarned == null)
+                @if (!IsMedalCurrentlyAchieved() && Medal.ProgressPercent == 100)
                 {
                     <button class="btn btn-primary claim-animate" @onclick="ClaimMedal">🎉 Claim Medal</button>
                 }
@@ -89,15 +91,22 @@
 @code {
     [Parameter] public MedalDto Medal { get; set; }
     [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public bool IsAchieved { get; set; }
     [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
     [Parameter] public EventCallback<int> OnModalClaim { get; set; }
 
-    private bool isClaimable => Medal.ProgressPercent == 100;
     private int AnimatedPercent = 0;
     private int DisplayedProgress = 0;
 
     protected override async Task OnParametersSetAsync()
     {
+        if (DisplayedProgress == Medal.ProgressPercent)
+        {
+            // Skip animation if already at correct progress
+            AnimatedPercent = Medal.ProgressPercent;
+            return;
+        }
+
         // Reset progress state for the new medal
         DisplayedProgress = 0;
         AnimatedPercent = 0;
@@ -118,20 +127,6 @@
         }
     }
 
-    private string GetProgressGradientClass()
-    {
-        if (Medal.ProgressPercent >= 100)
-            return "progress-100";
-        else if (Medal.ProgressPercent >= 75)
-            return "progress-75";
-        else if (Medal.ProgressPercent >= 50)
-            return "progress-50";
-        else if (Medal.ProgressPercent >= 25)
-            return "progress-25";
-        else
-            return "progress-0";
-    }
-
     private async Task CloseModal()
     {
         await IsVisibleChanged.InvokeAsync(false);
@@ -144,16 +139,39 @@
 
     private async Task ClaimMedal()
     {
-        var response = await MedalsService.ClaimMedal(Medal.Id);
+        // Optimistically update UI first
+        IsAchieved = true;
+        Medal.DateEarned = DateTime.Now;
+        Medal.TimesClaimed++;
+        MedalState.DecrementMedalsCount();
+        StateHasChanged();
 
+        // Call the service, but do NOT await before updating UI
+        var response = await MedalsService.ClaimMedal(Medal.Id);
+        await JS.InvokeVoidAsync("launchConfetti");
         if (response)
         {
-            await JS.InvokeVoidAsync("launchConfetti");
-
-            Medal.DateEarned = DateTime.Now;
             await OnModalClaim.InvokeAsync(Medal.Id);
-            StateHasChanged();
-
         }
+        else
+        {
+            // Failure: rollback optimistic changes
+            IsAchieved = false;
+            Medal.DateEarned = null;
+            Medal.TimesClaimed--;
+            MedalState.IncrementMedalsCount();
+            StateHasChanged();
+        }
+    }
+
+    private bool IsMedalCurrentlyAchieved()
+    {
+        var earned = Medal.DateEarned ?? DateTime.MinValue;
+        return Medal.Frequency switch
+        {
+            "Weekly" => earned >= DateUtils.GetStartOfWeek(DateTime.UtcNow),
+            "Monthly" => earned >= new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1),
+            _ => earned != DateTime.MinValue
+        };
     }
 }

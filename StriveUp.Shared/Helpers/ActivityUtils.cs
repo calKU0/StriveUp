@@ -3,6 +3,7 @@ using StriveUp.Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using StriveUp.Shared.DTOs.Activity;
@@ -25,27 +26,21 @@ namespace StriveUp.Shared.Helpers
         public static async Task ToggleLikeAsync(
             UserActivityDto activity,
             string currentUserId,
-            IActivityService activityService,
-            INotificationService notificationService)
+            IActivityService activityService)
         {
-            await activityService.LikeActivityAsync(activity.Id);
-
-            if (currentUserId != activity.UserId && !activity.IsLikedByCurrentUser)
+            try
             {
-                var notificationDto = new CreateNotificationDto
-                {
-                    UserId = activity.UserId,
-                    Title = "New Like",
-                    ActorId = currentUserId,
-                    Type = "like",
-                    Message = "liked your activity",
-                    RedirectUrl = $"/activity/{activity.Id}",
-                };
-                await notificationService.CreateNotificationAsync(notificationDto);
-            }
+                // Optimistically update UI
+                activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
+                activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
 
-            activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
-            activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
+                await activityService.LikeActivityAsync(activity.Id);
+            }
+            catch (Exception ex)
+            {
+                activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
+                activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
+            }
         }
 
         public static string GetSpeedOrPace(double? value, ActivityDto? activityConfig)
@@ -66,12 +61,12 @@ namespace StriveUp.Shared.Helpers
                         seconds = 0;
                     }
 
-                    return $"{minutes}:{seconds:D2} min/km";
+                    return $"{minutes}:{seconds:D2}";
                 }
                 else
                 {
                     double? speedInKmH = value * 3.6;
-                    return $"{speedInKmH:F2} km/h";
+                    return $"{speedInKmH:F2}";
                 }
             }
 

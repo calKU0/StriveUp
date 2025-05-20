@@ -1,12 +1,6 @@
 ﻿@page "/tracking"
-@inject IJSRuntime JSRuntime
-@inject IActivityService ActivityService
-@inject ISecurableService SecurableService
-@inject IBleHeartRateService HeartRateService
-@inject NavigationManager Navigation
-@inject ICustomAuthStateProvider AuthStateProvider
-@implements IDisposable
 
+<!-- Usings -->
 @using GeolocatorPlugin
 @using GeolocatorPlugin.Abstractions
 @using Microsoft.Maui.ApplicationModel
@@ -15,6 +9,25 @@
 @using StriveUp.Shared.DTOs.Activity
 @using System.Diagnostics
 
+<!-- Injections -->
+@inject IJSRuntime JSRuntime
+@inject IActivityService ActivityService
+@inject ISecurableService SecurableService
+@inject IBleHeartRateService HeartRateService
+@inject NavigationManager Navigation
+@inject ICustomAuthStateProvider AuthStateProvider
+@inject IPlatformService PlatformService
+@implements IDisposable
+
+
+@if (!PlatformService.IsNativeApp())
+{
+    <!-- Show Not Found or Redirect -->
+    <LayoutView Layout="typeof(Layout.MainLayout)">
+        <h3>This page is not available on the web.</h3>
+        <p>Please use the mobile app to access tracking.</p>
+    </LayoutView>
+}
 
 
 <div class="page-wrapper container-full @(mapVisible ? "map-visible" : "")">

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Plugin.BLE.Abstractions.Contracts;
+using StriveUp.API.Interfaces;
 using StriveUp.API.Mapping;
 using StriveUp.API.Services;
 using StriveUp.Infrastructure.Data;
@@ -56,6 +57,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<ISecurableService, SecurableService>();
 builder.Services.AddScoped<ILevelService, LevelService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));

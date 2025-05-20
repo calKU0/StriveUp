@@ -1,5 +1,11 @@
 ﻿@page "/profile"
 @page "/profile/{username?}"
+
+<!-- Usings -->
+@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Profile
+
+<!-- Injections -->
 @inject IAuthService AuthService
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -8,10 +14,6 @@
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
 @implements IDisposable
-
-
-@using StriveUp.Shared.DTOs
-@using StriveUp.Shared.DTOs.Profile
 
 <div class="container py-5">
     @if (isLoading)
@@ -36,7 +38,7 @@
             else
             {
                 <!-- Profile Header -->
-                <div class="profile-card mb-4 position-relative row p-3">
+                <div class="profile-card mb-4 position-relative row p-3 mt-0 mt-md-3">
                     <!-- Avatar, Overlapping and Centered at the Left Border of the Card -->
                     <div class="col-12 col-md-4 col-lg-3 d-flex justify-content-center justify-content-md-start">
                         <div class="avatar-overlay-container">
@@ -321,10 +323,7 @@
         Navigation.NavigateTo("/profile/edit");
     }
 
-    private string GetAvatarUrl() =>
-        string.IsNullOrWhiteSpace(userProfile.Avatar)
-            ? "https://via.placeholder.com/100"
-            : userProfile.Avatar;
+    private string GetAvatarUrl() => userProfile.Avatar;
 
     private string FormatLocation(string? city, string? state, string? country)
     {
