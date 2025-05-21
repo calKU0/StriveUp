@@ -30,6 +30,8 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<Level> Levels { get; set; }
         public DbSet<SynchroProvider> SynchroProviders { get; set; }
         public DbSet<UserSynchro> UserSynchros { get; set; }
+        public DbSet<BestEffort> BestEfforts { get; set; }
+        public DbSet<SegmentConfig> SegmentConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -101,6 +103,30 @@ namespace StriveUp.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(n => n.ActorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BestEffort>(entity =>
+            {
+                entity.HasKey(be => be.Id);
+
+                entity.HasOne(be => be.User)
+                      .WithMany()
+                      .HasForeignKey(be => be.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(be => be.Activity)
+                      .WithMany()
+                      .HasForeignKey(be => be.ActivityId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(be => be.SegmentConfig)
+                      .WithMany()  // or WithMany(be => be.BestEfforts) if you add navigation on SegmentConfig side
+                      .HasForeignKey(be => be.SegmentConfigId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(be => be.DurationSeconds).IsRequired();
+                entity.Property(be => be.ActivityDate).IsRequired();
+            });
+
         }
     }
 }

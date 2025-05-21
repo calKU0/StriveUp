@@ -113,6 +113,21 @@ namespace StriveUp.API.Controllers
                     user.CurrentXP += xpReward;
                 }
 
+                // Load all segment configs
+
+                var segments = await _context.SegmentConfigs.ToListAsync();
+                var speedData = userActivity.SpeedData.OrderBy(s => s.TimeStamp).ToList();
+
+                foreach (var segment in segments)
+                {
+                    var bestSegment = GetBestSegmentFromGpsRoute(userActivity.UserId, userActivity.Id, userActivity.DateStart, userActivity.Route, segment.DistanceMeters);
+                    if (bestSegment != null)
+                    {
+                        _context.BestEfforts.Add(bestSegment);
+                    }
+                }
+
+
                 _context.UserActivities.Add(userActivity);
 
                 // If activity is synchronized, notify the user
@@ -461,5 +476,73 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        public BestEffort? GetBestSegmentFromGpsRoute(
+            string userId,
+            int activityId,
+            DateTime activityDate,
+            List<GeoPoint> route,
+            double targetDistanceMeters)
+        {
+            if (route == null || route.Count < 2)
+                return null;
+
+            // Precompute cumulative distance at each GPS point
+            var cumulativeDistances = new double[route.Count];
+            cumulativeDistances[0] = 0;
+
+            for (int i = 1; i < route.Count; i++)
+            {
+                cumulativeDistances[i] = cumulativeDistances[i - 1] +
+                    HaversineDistance(route[i - 1].Latitude, route[i - 1].Longitude, route[i].Latitude, route[i].Longitude);
+            }
+
+            int startIndex = 0;
+            double bestDuration = double.MaxValue;
+            BestEffort? bestSegment = null;
+
+            for (int endIndex = 1; endIndex < route.Count; endIndex++)
+            {
+                while (startIndex < endIndex && (cumulativeDistances[endIndex] - cumulativeDistances[startIndex]) >= targetDistanceMeters)
+                {
+                    var segmentDistance = cumulativeDistances[endIndex] - cumulativeDistances[startIndex];
+                    if (segmentDistance >= targetDistanceMeters)
+                    {
+                        var duration = (route[endIndex].Timestamp - route[startIndex].Timestamp).TotalSeconds;
+
+                        if (duration < bestDuration && duration > 0)
+                        {
+                            bestDuration = duration;
+                            bestSegment = new BestEffort
+                            {
+                                UserId = userId,
+                                ActivityId = activityId,
+                                ActivityDate = activityDate,
+                                DurationSeconds = duration,
+                            };
+                        }
+                    }
+                    startIndex++;
+                }
+            }
+
+            return bestSegment;
+        }
+
+        public static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371000; // Earth radius in meters
+            var dLat = DegreesToRadians(lat2 - lat1);
+            var dLon = DegreesToRadians(lon2 - lon1);
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(DegreesToRadians(lat1)) * Math.Cos(DegreesToRadians(lat2)) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
+        }
+
+        public static double DegreesToRadians(double deg) => deg * (Math.PI / 180);
     }
 }

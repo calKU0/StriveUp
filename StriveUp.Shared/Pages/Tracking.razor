@@ -266,7 +266,7 @@ OnResume="@ResumeTracking" />
         SpeedData.Add(new ActivitySpeedDto
         {
             SpeedValue = Speed,
-            TimeStamp = DateTime.UtcNow
+            TimeStamp = location.Timestamp.UtcDateTime
         });
 
         // Add heart rate data
@@ -275,7 +275,7 @@ OnResume="@ResumeTracking" />
             HrData.Add(new ActivityHrDto
             {
                 HearthRateValue = HeartRate,
-                TimeStamp = DateTime.UtcNow
+                TimeStamp = location.Timestamp.UtcDateTime
             });
         }
     }

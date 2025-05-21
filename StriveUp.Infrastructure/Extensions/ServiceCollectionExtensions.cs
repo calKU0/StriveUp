@@ -54,6 +54,7 @@ namespace StriveUp.Infrastructure.Extensions
             services.AddScoped<IMedalStateService, MedalStateService>();
             services.AddScoped<ISynchroService, SynchroService>();
             services.AddScoped<INotificationStateService, NotificationStateService>();
+            services.AddScoped<ILeaderboardService, LeaderboardService>();
             services.AddScoped<CustomAuthStateProvider>();
             services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());
             services.AddScoped<ICustomAuthStateProvider>(sp => sp.GetRequiredService<CustomAuthStateProvider>());

@@ -1,0 +1,41 @@
+﻿@page "/leaderboards"
+
+<!-- Injections -->
+@inject ILeaderboardService LeaderboardService
+
+<h3>Leaderboards</h3>
+
+<h4>Top 10 Distances (Running/Cycling)</h4>
+<ul>
+    @foreach (var entry in top400MetersRunLeaderboard)
+    {
+        <li>@entry.Username - @entry.Distance meters</li>
+    }
+</ul>
+
+<h4>Top 10 Time Spent Active</h4>
+<ul>
+    @foreach (var entry in topTimeSpentLeaderboard)
+    {
+        <li>@entry.Username - @entry.TotalDuration minutes</li>
+    }
+</ul>
+
+@code {
+    private List<LeaderboardDto> top400MetersRunLeaderboard = new List<LeaderboardDto>();
+    private List<LeaderboardDto> topOneKilometerRunLeaderboard = new List<LeaderboardDto>();
+    private List<LeaderboardDto> topFiveKilometersRunLeaderboard = new List<LeaderboardDto>();
+    private List<LeaderboardDto> topTenKilometersRunLeaderboard = new List<LeaderboardDto>();
+    private List<LeaderboardDto> topHalfMarathonKilometersRunLeaderboard = new List<LeaderboardDto>();
+    private List<LeaderboardDto> topMarathonMarathonKilometersRunLeaderboard = new List<LeaderboardDto>();
+    private List<LeaderboardDto> topTimeSpentLeaderboard = new List<LeaderboardDto>();
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (!first) return;
+
+        top400MetersRunLeaderboard = await LeaderboardService.GetTopDistanceAsync("Run", 400);
+        topTimeSpentLeaderboard = await LeaderboardService.GetTopTimeSpentAsync();
+        StateHasChanged();
+    }
+}

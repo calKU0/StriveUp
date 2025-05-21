@@ -49,7 +49,7 @@ builder.Services.AddAuthentication()
 {
     options.ClientId = builder.Configuration["GoogleSettings:ClientId"];
     options.ClientSecret = builder.Configuration["GoogleSettings:ClientSecret"];
-    options.Scope.Add("email");        // Add this
+    options.Scope.Add("email");
     options.Scope.Add("profile");
 });
 
@@ -58,6 +58,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<ISecurableService, SecurableService>();
 builder.Services.AddScoped<ILevelService, LevelService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
