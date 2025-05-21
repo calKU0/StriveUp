@@ -29,13 +29,14 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 .content {
     margin-top: 65px;
 }
 
-.login-wrapper{
+.login-wrapper {
     height: calc(100vh - 65px) !important;
 }
 
