@@ -18,12 +18,12 @@ namespace StriveUp.API.Controllers
             _leaderboardService = leaderboardService;
         }
 
-        [HttpGet("top-distance/{activityType}/{distance}")]
-        public async Task<IActionResult> GetTopDistance(string activityType, int distance)
+        [HttpGet("best-followers-efforts/{activityId}/{distance}")]
+        public async Task<IActionResult> GetBestFollowersEfforts(int activityId, int distance)
         {
             var userId = GetUserId();
 
-            var leaderboard = await _leaderboardService.GetTopDistanceAsync(userId, activityType, distance);
+            var leaderboard = await _leaderboardService.GetBestFollowersEfforts(userId, activityId, distance);
             return Ok(leaderboard);
         }
 

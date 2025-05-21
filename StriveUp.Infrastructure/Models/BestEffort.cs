@@ -17,7 +17,7 @@ namespace StriveUp.Infrastructure.Models
         public AppUser User { get; set; }
 
         [Required]
-        public int ActivityId { get; set; }
+        public int UserActivityId { get; set; }
         public UserActivity UserActivity { get; set; }
 
         [Required]
@@ -32,8 +32,6 @@ namespace StriveUp.Infrastructure.Models
         public DateTime ActivityDate { get; set; }
 
         public double Speed => SegmentConfig.DistanceMeters / DurationSeconds;
-
-        public UserActivity Activity { get; set; }
     }
 
 

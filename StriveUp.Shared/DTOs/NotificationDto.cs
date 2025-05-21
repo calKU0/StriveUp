@@ -15,9 +15,9 @@ namespace StriveUp.Shared.DTOs
         public bool IsRead { get; set; }
         public DateTime CreatedAt { get; set; }
         public string TimeAgo { get; set; }
-        public string ActorId { get; set; }
-        public string ActorName { get; set; }
-        public string ActorAvatar { get; set; }
+        public string? ActorId { get; set; }
+        public string? ActorName { get; set; }
+        public string? ActorAvatar { get; set; }
         public string RedirectUrl { get; set; }
     }
 

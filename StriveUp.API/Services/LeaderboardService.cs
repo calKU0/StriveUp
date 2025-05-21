@@ -16,23 +16,40 @@ namespace StriveUp.API.Services
         }
 
         // Get the best efforts for a particular distance (5km, 10km, etc.) and activity type (running, cycling, etc.)
-        public async Task<List<LeaderboardDto>> GetTopDistanceAsync(string userId, string activityType, int distance)
+        public async Task<List<LeaderboardDto>> GetBestFollowersEfforts(string userId, int activityId, int distance)
         {
             List<string> userIds = await GetUserAndFollowersIdsAsync(userId);
 
-            return await _context.UserActivities
-                .Where(ua => userIds.Contains(ua.UserId) && ua.Activity.Name == activityType && ua.Distance >= distance)
-                .OrderByDescending(ua => ua.Distance)
-                .Take(10)
-                .Select(ua => new LeaderboardDto
+            var query = _context.BestEfforts
+                .Include(be => be.SegmentConfig)
+                .Include(be => be.User)
+                .Include(be => be.UserActivity)
+                .ThenInclude(ua => ua.Activity)
+                .Where(be => userIds.Contains(be.UserId)
+                             && be.SegmentConfig.DistanceMeters == distance
+                             && be.SegmentConfig.ActivityId == activityId);
+
+            // Fetch data into memory first
+            var allEfforts = await query.ToListAsync();
+
+            // Then group and select on client side
+            var bestEfforts = allEfforts
+                .GroupBy(be => be.UserId)
+                .Select(g => g.OrderBy(be => be.DurationSeconds).First())
+                .Select(be => new LeaderboardDto
                 {
-                    UserId = ua.UserId,
-                    Username = ua.User.UserName,
-                    Distance = ua.Distance,
-                    DateStart = ua.DateStart,
-                    ActivityType = ua.Activity.Name
+                    UserId = be.UserId,
+                    Username = be.User.UserName!,
+                    UserAvatar = be.User.Avatar,
+                    TotalDuration = be.DurationSeconds,
+                    Distance = (int)be.SegmentConfig.DistanceMeters,
+                    Speed = be.Speed,
+                    ActivityDate = be.UserActivity.DateEnd,
+                    ActivityId = be.UserActivityId
                 })
-                .ToListAsync();
+                .ToList();
+
+            return bestEfforts;
         }
 
         public async Task<List<LeaderboardDto>> GetTopTimeSpentAsync(string userId)

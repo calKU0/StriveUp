@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250521150610_ElevationAndBestEfforts")]
+    partial class ElevationAndBestEfforts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -703,23 +706,14 @@ namespace StriveUp.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DistanceMeters")
-                        .HasColumnType("int");
+                    b.Property<double>("DistanceMeters")
+                        .HasColumnType("float");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ShortName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ActivityId");
 
                     b.ToTable("SegmentConfigs");
                 });
@@ -1117,17 +1111,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("StriveUp.Infrastructure.Models.SegmentConfig", b =>
-                {
-                    b.HasOne("StriveUp.Infrastructure.Models.Activity", "Activity")
-                        .WithMany("SegmentConfigs")
-                        .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Activity");
-                });
-
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserActivity", b =>
                 {
                     b.HasOne("StriveUp.Infrastructure.Models.Activity", "Activity")
@@ -1205,8 +1188,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("Config");
 
                     b.Navigation("Medals");
-
-                    b.Navigation("SegmentConfigs");
 
                     b.Navigation("UserActivities");
                 });

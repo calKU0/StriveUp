@@ -110,24 +110,30 @@ namespace StriveUp.Infrastructure.Data
                 entity.HasKey(be => be.Id);
 
                 entity.HasOne(be => be.User)
-                      .WithMany()
-                      .HasForeignKey(be => be.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                    .WithMany()
+                    .HasForeignKey(be => be.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(be => be.Activity)
-                      .WithMany()
-                      .HasForeignKey(be => be.ActivityId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(be => be.UserActivity)
+                    .WithMany()
+                    .HasForeignKey(be => be.UserActivityId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(be => be.SegmentConfig)
-                      .WithMany()  // or WithMany(be => be.BestEfforts) if you add navigation on SegmentConfig side
-                      .HasForeignKey(be => be.SegmentConfigId)
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                entity.Property(be => be.DurationSeconds).IsRequired();
-                entity.Property(be => be.ActivityDate).IsRequired();
+                    .WithMany()
+                    .HasForeignKey(be => be.SegmentConfigId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
+            modelBuilder.Entity<SegmentConfig>(entity =>
+            {
+                entity.HasKey(sc => sc.Id);
+
+                entity.HasOne(sc => sc.Activity)
+                    .WithMany(a => a.SegmentConfigs)
+                    .HasForeignKey(sc => sc.ActivityId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

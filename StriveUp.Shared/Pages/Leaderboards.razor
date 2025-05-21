@@ -1,41 +1,180 @@
 ﻿@page "/leaderboards"
 
+<!-- Usings -->
+@using StriveUp.Shared.DTOs.Activity
+@using StriveUp.Shared.Helpers
+
 <!-- Injections -->
+@inject NavigationManager NavigationManager
+@inject IActivityService ActivityService
 @inject ILeaderboardService LeaderboardService
 
-<h3>Leaderboards</h3>
 
-<h4>Top 10 Distances (Running/Cycling)</h4>
-<ul>
-    @foreach (var entry in top400MetersRunLeaderboard)
-    {
-        <li>@entry.Username - @entry.Distance meters</li>
-    }
-</ul>
+@if (IsLoading)
+{
+    <Spinner text="Loading..."></Spinner>
+}
+else 
+{
+    <!-- TO DO -->
+    <!-- ADD ICONS-->
+    <div class="container-fluid p-0 m-0 p-md-2 p-md-2">
+        <h1 class="d-md-block d-none">Leaderboards</h1>
+        <div class="tabs">
+            @foreach (var activity in Activities)
+            {
+                <button class="tab-button @(activity == SelectedActivity ? "active" : "")" @onclick="() => OnActivitySelected(activity)">
+                    @activity.Name
+                </button>
+            }
+        </div>
 
-<h4>Top 10 Time Spent Active</h4>
-<ul>
-    @foreach (var entry in topTimeSpentLeaderboard)
-    {
-        <li>@entry.Username - @entry.TotalDuration minutes</li>
-    }
-</ul>
+        @if (SelectedActivity != null)
+        {
+            <div class="tabs segments-tabs">
+                @foreach (var segment in SelectedActivitySegments)
+                {
+                     <button class="tab-button @(segment == SelectedSegment ? "active" : "")" @onclick="() => OnSegmentSelected(segment)">
+                        <span class="d-none d-sm-inline">@segment.Name</span>   <!-- Hide on xs, show on sm+ -->
+                        <span class="d-inline d-sm-none">@segment.ShortName</span> <!-- Show on xs only -->
+                    </button>
+                }
+            </div>
+
+            <div class="leaderboard-list px-2">
+                @if (LeaderboardEntries is null)
+                {
+                    <Spinner></Spinner>
+                }
+                else if (LeaderboardEntries.Count == 0)
+                {
+                    <p>No records found.</p>
+                }
+                else
+                {
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Duration</th>
+                            <th>@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
+                            <th>Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var entry in LeaderboardEntries.Select((value, index) => new { value, index }))
+                        {
+                            <tr class="@(entry.index < 3 ? "medal-row" : "")" @onclick="() => OnUserClicked(entry.value)">
+                                <td>
+                                    @if (entry.index == 0)
+                                    {
+                                        <span class="medal gold">🥇</span>
+                                    }
+                                    else if (entry.index == 1)
+                                    {
+                                        <span class="medal silver">🥈</span>
+                                    }
+                                    else if (entry.index == 2)
+                                    {
+                                        <span class="medal bronze">🥉</span>
+                                    }
+                                    else
+                                    {
+                                        @(entry.index + 1)
+                                    }
+                                </td>
+                                <td class="user-cell">
+                                    <img class="avatar" src="@entry.value.UserAvatar" alt="Avatar"/>
+                                    @entry.value.Username
+                                </td>
+                                <td>@TimeSpan.FromSeconds(entry.value.TotalDuration).ToString(@"mm\:ss")</td>
+                                <td>@(ActivityUtils.GetSpeedOrPace(entry.value.Speed, SelectedActivity.MeasurementType))</td>
+                                <td>@entry.value.ActivityDate.ToShortDateString()</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
+    </div>
+}
 
 @code {
-    private List<LeaderboardDto> top400MetersRunLeaderboard = new List<LeaderboardDto>();
-    private List<LeaderboardDto> topOneKilometerRunLeaderboard = new List<LeaderboardDto>();
-    private List<LeaderboardDto> topFiveKilometersRunLeaderboard = new List<LeaderboardDto>();
-    private List<LeaderboardDto> topTenKilometersRunLeaderboard = new List<LeaderboardDto>();
-    private List<LeaderboardDto> topHalfMarathonKilometersRunLeaderboard = new List<LeaderboardDto>();
-    private List<LeaderboardDto> topMarathonMarathonKilometersRunLeaderboard = new List<LeaderboardDto>();
-    private List<LeaderboardDto> topTimeSpentLeaderboard = new List<LeaderboardDto>();
+    private bool IsLoading = true;
+    private List<ActivityDto> Activities = new();
+    private ActivityDto? SelectedActivity;
+    private List<SegmentDto> SelectedActivitySegments = new();
+    private SegmentDto? SelectedSegment;
+
+    private List<LeaderboardDto>? LeaderboardEntries;
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
-        if (!first) return;
+        try
+        {
+            if (!first) return;
+            await LoadActivitiesAsync();
+            IsLoading = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
 
-        top400MetersRunLeaderboard = await LeaderboardService.GetTopDistanceAsync("Run", 400);
-        topTimeSpentLeaderboard = await LeaderboardService.GetTopTimeSpentAsync();
-        StateHasChanged();
+    }
+
+    private async Task LoadActivitiesAsync()
+    {
+        // Load activities with segments from API (combine or separate endpoints)
+        Activities = await ActivityService.GetActivitiesWithSegments() ?? new List<ActivityDto>();
+        if (Activities.Any())
+        {
+            SelectedActivity = Activities.First();
+            SelectedActivitySegments = SelectedActivity.Segments;
+            SelectedSegment = SelectedActivitySegments.FirstOrDefault();
+            await LoadLeaderboardAsync();
+        }
+    }
+
+    private async Task OnActivitySelected(ActivityDto activity)
+    {
+        if (SelectedActivity == activity)
+            return;
+
+        SelectedActivity = activity;
+        SelectedActivitySegments = activity.Segments;
+        SelectedSegment = SelectedActivitySegments.FirstOrDefault();
+        LeaderboardEntries = null;
+        await LoadLeaderboardAsync();
+    }
+
+    private async Task OnSegmentSelected(SegmentDto segment)
+    {
+        if (SelectedSegment == segment)
+            return;
+
+        SelectedSegment = segment;
+        LeaderboardEntries = null;
+        await LoadLeaderboardAsync();
+    }
+
+    private async Task LoadLeaderboardAsync()
+    {
+        if (SelectedActivity == null || SelectedSegment == null)
+            return;
+
+        LeaderboardEntries = await LeaderboardService.GetBestFollowersEfforts(SelectedSegment);
+    }
+
+    private void OnUserClicked(LeaderboardDto entry)
+    {
+        NavigationManager.NavigateTo($"/activity/{entry.ActivityId}");
     }
 }

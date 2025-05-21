@@ -32,6 +32,10 @@ namespace StriveUp.API.Mapping
 
             // GeoPoint <-> DTO
             CreateMap<GeoPoint, GeoPointDto>().ReverseMap();
+            CreateMap<ActivityElevation, ActivityElevationDto>();
+            CreateMap<ActivityElevation, ActivityElevationDto>().ReverseMap();
+
+            CreateMap<SegmentConfig, SegmentDto>();
 
             // Comment  <-> DTO
             CreateMap<ActivityComment, ActivityCommentDto>()
@@ -44,7 +48,8 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.Indoor, opt => opt.MapFrom(src => src.Config.Indoor))
                 .ForMember(dest => dest.UseHeartRate, opt => opt.MapFrom(src => src.Config.UseHeartRate))
                 .ForMember(dest => dest.SpeedRelevant, opt => opt.MapFrom(src => src.Config.SpeedRelevant))
-                .ForMember(dest => dest.DistanceRelevant, opt => opt.MapFrom(src => src.Config.DistanceRelevant));
+                .ForMember(dest => dest.DistanceRelevant, opt => opt.MapFrom(src => src.Config.DistanceRelevant))
+                .ForMember(dest => dest.Segments, opt => opt.MapFrom(src => src.SegmentConfigs));
 
 
             // Medal <-> DTO

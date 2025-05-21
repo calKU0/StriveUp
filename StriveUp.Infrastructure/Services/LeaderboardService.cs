@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
 
 namespace StriveUp.Infrastructure.Services
 {
@@ -21,10 +20,10 @@ namespace StriveUp.Infrastructure.Services
             _tokenStorage = tokenStorage;
             _httpClient = httpClient.CreateClient("ApiClient");
         }
-        public async Task<List<LeaderboardDto>> GetTopDistanceAsync(string activityType, int distance)
+        public async Task<List<LeaderboardDto>> GetBestFollowersEfforts(SegmentDto segmentDto)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            var result = await _httpClient.GetFromJsonAsync<List<LeaderboardDto>>($"leaderboard/top-distance/{activityType}/{distance}");
+            var result = await _httpClient.GetFromJsonAsync<List<LeaderboardDto>>($"leaderboard/best-followers-efforts/{segmentDto.ActivityId}/{segmentDto.DistanceMeters}");
             return result ?? new();
         }
 

@@ -14,6 +14,11 @@ namespace StriveUp.Infrastructure.Models
         [Required]
         public string Name { get; set; } = null!;
         [Required]
-        public double DistanceMeters { get; set; }
+        public string ShortName { get; set; } = null!;
+        [Required]
+        public int DistanceMeters { get; set; }
+        [Required]
+        public int ActivityId { get; set; }
+        public Activity Activity { get; set; } = null!;
     }
 }

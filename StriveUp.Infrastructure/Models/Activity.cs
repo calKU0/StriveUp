@@ -19,10 +19,9 @@ namespace StriveUp.Infrastructure.Models
         public string? Icon { get; set; }
         [Required]
         public required int AverageCaloriesPerHour { get; set; }
-
-        public ICollection<UserActivity>? UserActivities { get; set; }
-
-        public ICollection<Medal>? Medals { get; set; }
         public ActivityConfig? Config { get; set; }
+        public ICollection<UserActivity>? UserActivities { get; set; }
+        public ICollection<Medal>? Medals { get; set; }
+        public ICollection<SegmentConfig>? SegmentConfigs { get; set; }
     }
 }

@@ -9,7 +9,7 @@ namespace StriveUp.Shared.Interfaces
 {
     public interface ILeaderboardService
     {
-        Task<List<LeaderboardDto>> GetTopDistanceAsync(string activityType, int distance);
+        Task<List<LeaderboardDto>> GetBestFollowersEfforts(SegmentDto SelectedSegment);
         Task<List<LeaderboardDto>> GetTopTimeSpentAsync();
     }
 }

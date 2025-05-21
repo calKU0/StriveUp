@@ -32,6 +32,21 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
+        public async Task<List<ActivityDto>?> GetActivitiesWithSegments()
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                var result = await _httpClient.GetFromJsonAsync<List<ActivityDto>>("activity/activities-with-segments") ?? new List<ActivityDto>();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return new List<ActivityDto>();
+            }
+        }
+
         public async Task<UserActivityDto> GetActivityByIdAsync(int activityId)
         {
             try

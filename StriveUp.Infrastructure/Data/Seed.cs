@@ -154,99 +154,31 @@ namespace StriveUp.Infrastructure.Data
             {
                 var configs = new List<SegmentConfig>
                 {
-                    new SegmentConfig
-                    {
-                        DistanceMeters = 500,
-                        Name = "500 Meters"
-                    },
-                    new SegmentConfig
-                    {
-                        DistanceMeters = 1000,
-                        Name = "1 Kilometer"
-                    },
-                    new SegmentConfig
-                    {
-                        DistanceMeters = 5000,
-                        Name = "5 Kilometers"
-                    },
-                    new SegmentConfig
-                    {
-                        DistanceMeters = 10000,
-                        Name = "10 Kilometers"
-                    },
-                    new SegmentConfig
-                    {
-                        DistanceMeters = 15000,
-                        Name = "15 Kilometers"
-                    },
-                    new SegmentConfig
-                    {
-                        DistanceMeters = 21097,
-                        Name = "Half Marathon"
-                    },
-                    new SegmentConfig
-                    {
-                        DistanceMeters = 30000,
-                        Name = "30 Kilometers"
-                    },
-                    new SegmentConfig
-                    {
-                        DistanceMeters = 42195,
-                        Name = "Marathon"
-                    },
+                    // Run segments
+                    new SegmentConfig { DistanceMeters = 400, Name = "400 Meters", ShortName = "400 m", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 1000, Name = "1 Kilometer", ShortName = "1 km", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 5000, Name = "5 Kilometers", ShortName = "5 km", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 10000, Name = "10 Kilometers", ShortName = "10 km", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 21097, Name = "Half Marathon", ShortName = "Half Marathon", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 42195, Name = "Marathon", ShortName = "Marathon", ActivityId = runningActivity.Id },
+
+                    // Bike segments (typical cycling distances)
+                    new SegmentConfig { DistanceMeters = 10000, Name = "10 Kilometers", ShortName = "10 km", ActivityId = bikingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 20000, Name = "20 Kilometers", ShortName = "20 km", ActivityId = bikingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 40000, Name = "40 Kilometers", ShortName = "40 km", ActivityId = bikingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 80000, Name = "80 Kilometers", ShortName = "80 km", ActivityId = bikingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 160000, Name = "160 Kilometers", ShortName = "160 km", ActivityId = bikingActivity.Id },
+
+                    // Swim segments (typical swim distances in meters)
+                    new SegmentConfig { DistanceMeters = 500, Name = "500 Meters", ShortName = "500 m", ActivityId = swimmingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 1000, Name = "1 Kilometer", ShortName = "1 km", ActivityId = swimmingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 1500, Name = "1500 Meters", ShortName = "1.5 km", ActivityId = swimmingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 3000, Name = "3 Kilometers", ShortName = "3 km", ActivityId = swimmingActivity.Id },
                 };
 
                 context.SegmentConfigs.AddRange(configs);
                 await context.SaveChangesAsync();
             }
-
-            if (!context.UserActivities.Any(ua => ua.UserId == "793cfdcc-eaf6-437b-b191-68f581e7acbb" && ua.ActivityId == runningActivity.Id))
-            {
-                var activityStart = DateTime.UtcNow.AddDays(-1);
-
-                var userActivity = new UserActivity
-                {
-                    UserId = "793cfdcc-eaf6-437b-b191-68f581e7acbb",
-                    ActivityId = runningActivity.Id,
-                    Title = "Test 5km Run",
-                    DateStart = activityStart,
-                    DateEnd = activityStart.AddMinutes(30),  // 30 min duration
-                    Distance = 5000, // 5 km
-                    CaloriesBurned = 300,
-                    DurationSeconds = 1800, // 30 minutes
-                    IsManuallyAdded = true,
-                    isSynchronized = false,
-                    SpeedData = new List<ActivitySpeed>
-                    {
-                        new ActivitySpeed { TimeStamp = activityStart, SpeedValue = 3.0 },
-                        new ActivitySpeed { TimeStamp = activityStart.AddMinutes(1), SpeedValue = 3.2 },
-                        new ActivitySpeed { TimeStamp = activityStart.AddMinutes(2), SpeedValue = 3.5 },
-                        new ActivitySpeed { TimeStamp = activityStart.AddMinutes(3), SpeedValue = 3.6 },
-                        new ActivitySpeed { TimeStamp = activityStart.AddMinutes(4), SpeedValue = 3.8 },
-                        new ActivitySpeed { TimeStamp = activityStart.AddMinutes(5), SpeedValue = 4.0 },
-                        new ActivitySpeed { TimeStamp = activityStart.AddMinutes(6), SpeedValue = 4.2 },
-                        new ActivitySpeed { TimeStamp = activityStart.AddMinutes(7), SpeedValue = 4.8 },
-                        // Add more speed points if needed
-                    },
-                    Route = new List<GeoPoint>
-                    {
-                        // Mock route points approximately matching timestamps above
-                        new GeoPoint { Latitude = 40.7128, Longitude = -74.0060, Timestamp = activityStart },
-                        new GeoPoint { Latitude = 40.7135, Longitude = -74.0050, Timestamp = activityStart.AddMinutes(1) },
-                        new GeoPoint { Latitude = 40.7140, Longitude = -74.0040, Timestamp = activityStart.AddMinutes(2) },
-                        new GeoPoint { Latitude = 40.7145, Longitude = -74.0030, Timestamp = activityStart.AddMinutes(3) },
-                        new GeoPoint { Latitude = 40.7150, Longitude = -74.0020, Timestamp = activityStart.AddMinutes(4) },
-                        new GeoPoint { Latitude = 40.7155, Longitude = -74.0010, Timestamp = activityStart.AddMinutes(5) },
-                        new GeoPoint { Latitude = 40.7160, Longitude = -74.0000, Timestamp = activityStart.AddMinutes(6) },
-                        new GeoPoint { Latitude = 40.7165, Longitude = -73.9990, Timestamp = activityStart.AddMinutes(7) },
-                        // Add more route points if needed
-                    }
-                };
-
-                context.UserActivities.Add(userActivity);
-                await context.SaveChangesAsync();
-            }
-
 
 
             if (!context.Medals.Any())
