@@ -20,22 +20,22 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.LikeCount, opt => opt.MapFrom(src => src.ActivityLikes.Count))
                 .ForMember(dest => dest.IsLikedByCurrentUser, opt => opt.Ignore())
                 .ForMember(dest => dest.Comments, opt => opt.Ignore())
-                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route))
                 .ForMember(dest => dest.ActivityId, opt => opt.MapFrom(src => src.Activity.Id))
                 .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Activity.Description))
                 .ForMember(dest => dest.DurationSeconds, opt => opt.MapFrom(src => src.DurationSeconds));
 
             // CreateUserActivityDto <-> DTO
-            CreateMap<CreateUserActivityDto, UserActivity>()
-                .ForMember(dest => dest.HrData, opt => opt.MapFrom(src => src.HrData))
-                .ForMember(dest => dest.SpeedData, opt => opt.MapFrom(src => src.SpeedData))
-                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route));
+            CreateMap<CreateUserActivityDto, UserActivity>();
 
             CreateMap<UserActivityDto, UserActivity>();
 
             // GeoPoint <-> DTO
             CreateMap<GeoPoint, GeoPointDto>().ReverseMap();
+            CreateMap<ActivityElevation, ActivityElevationDto>();
+            CreateMap<ActivityElevation, ActivityElevationDto>().ReverseMap();
+
+            CreateMap<SegmentConfig, SegmentDto>();
 
             // Comment  <-> DTO
             CreateMap<ActivityComment, ActivityCommentDto>()
@@ -48,7 +48,8 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.Indoor, opt => opt.MapFrom(src => src.Config.Indoor))
                 .ForMember(dest => dest.UseHeartRate, opt => opt.MapFrom(src => src.Config.UseHeartRate))
                 .ForMember(dest => dest.SpeedRelevant, opt => opt.MapFrom(src => src.Config.SpeedRelevant))
-                .ForMember(dest => dest.DistanceRelevant, opt => opt.MapFrom(src => src.Config.DistanceRelevant));
+                .ForMember(dest => dest.DistanceRelevant, opt => opt.MapFrom(src => src.Config.DistanceRelevant))
+                .ForMember(dest => dest.Segments, opt => opt.MapFrom(src => src.SegmentConfigs));
 
 
             // Medal <-> DTO

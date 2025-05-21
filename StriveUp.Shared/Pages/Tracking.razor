@@ -99,14 +99,14 @@ Duration="@Duration"
 Title="@activityTitle"
 Description="@activityDescription"
 OnSave="@SaveActivityWithMeta"
-OnDiscard="@DiscardActivity"
-OnResume="@ResumeTracking" />
+OnDiscard="@DiscardActivity" />
 
 
 
 @code {
     private List<ActivityHrDto> HrData = new();
     private List<ActivitySpeedDto> SpeedData = new();
+    private List<ActivityElevationDto> ElevationData = new();
     private string selectedDeviceId;
     private List<Location> route = new();
     private List<ActivityDto> availableActivities = new();
@@ -168,7 +168,7 @@ OnResume="@ResumeTracking" />
 
         selectedActivity = availableActivities.FirstOrDefault();
 
-        locator.DesiredAccuracy = 5;
+        locator.DesiredAccuracy = 1;
         mapToken = await SecurableService.GetMapboxTokenAsync();
 
         if (!selectedActivity.Indoor)
@@ -192,7 +192,7 @@ OnResume="@ResumeTracking" />
             locator.PositionChanged += OnPositionChanged;
             if (!locator.IsListening)
             {
-                await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 5, false, listenerSettings);
+                await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 10, false, listenerSettings);
             }  
         }
         catch (Exception ex)
@@ -204,13 +204,6 @@ OnResume="@ResumeTracking" />
 
     private void OnPositionChanged(object sender, PositionEventArgs e)
     {
-        // Skip location updates briefly after resume because it causes noisy updates
-        if ((DateTime.UtcNow - resumeTime).TotalSeconds < 5)
-        {
-            Console.WriteLine("Ignoring location update during resume cooldown.");
-            return;
-        }
-
         isLoadingLocation = false;
         var location = new Location(e.Position.Latitude, e.Position.Longitude)
         {
@@ -263,32 +256,38 @@ OnResume="@ResumeTracking" />
         lastLocation = location;
         route.Add(location);
 
+        var timestamp = location.Timestamp.UtcDateTime;
+
         SpeedData.Add(new ActivitySpeedDto
         {
             SpeedValue = Speed,
-            TimeStamp = DateTime.UtcNow
+            TimeStamp = timestamp
         });
 
-        // Add heart rate data
         if (HeartRate > 0)
         {
             HrData.Add(new ActivityHrDto
             {
                 HearthRateValue = HeartRate,
-                TimeStamp = DateTime.UtcNow
+                TimeStamp = timestamp
+            });
+        }
+
+        if (location.Altitude.HasValue)
+        {
+            ElevationData.Add(new ActivityElevationDto
+            {
+                ElevationValue = location.Altitude.Value,
+                TimeStamp = timestamp
             });
         }
     }
+
 
     private double ApplyLowPassFilter(double newSpeed)
     {
         smoothedSpeed = smoothingAlpha * newSpeed + (1 - smoothingAlpha) * smoothedSpeed;
         return smoothedSpeed;
-    }
-
-    private void OnResume()
-    {
-        resumeTime = DateTime.UtcNow;
     }
 
     private async Task OnSelectedActivityChanged(ActivityDto activity)
@@ -427,22 +426,23 @@ OnResume="@ResumeTracking" />
     private async Task SaveActivityWithMeta()
     {
         var dto = new CreateUserActivityDto
+        {
+            Title = activityTitle,
+            Description = activityDescription,
+            ActivityId = selectedActivity.Id,
+            DateStart = startTime,
+            DateEnd = DateTime.UtcNow,
+            Route = route.Select(loc => new GeoPointDto
             {
-                Title = activityTitle,
-                Description = activityDescription,
-                ActivityId = selectedActivity.Id,
-                DateStart = startTime,
-                DateEnd = DateTime.UtcNow,
-                Route = route.Select(loc => new GeoPointDto
-                {
-                    Latitude = loc.Latitude,
-                    Longitude = loc.Longitude,
-                    Timestamp = loc.Timestamp.UtcDateTime,
-                }).ToList(),
-                Distance = Distance,
-                HrData = HrData,
-                SpeedData = SpeedData,
-            };
+                Latitude = loc.Latitude,
+                Longitude = loc.Longitude,
+                Timestamp = loc.Timestamp.UtcDateTime,
+            }).ToList(),
+            Distance = Distance,
+            HrData = HrData,
+            SpeedData = SpeedData,
+            ElevationData = ElevationData
+        };
 
         await ActivityService.AddActivityAsync(dto);
         await JSRuntime.InvokeVoidAsync("clearRoute");

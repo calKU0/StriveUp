@@ -3,7 +3,15 @@
     overflow-y: auto;
     height: 100vh;
     margin-top: -65px;
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
 }
+
+    .home-page::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
 
 .section {
     min-height: 100vh;
@@ -12,8 +20,8 @@
     flex-direction: column;
     justify-content: center;
     scroll-snap-stop: always;
-
 }
+
     .section:last-child {
         display: flex;
         flex-direction: column;
@@ -38,7 +46,6 @@
 }
 
 .feature-container {
-
     margin: 0 auto;
     height: 100vh;
     display: flex;
@@ -70,6 +77,12 @@
 .hero-section {
     background: url('/images/running-woman.jpg') center/cover no-repeat;
     position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
     .hero-section .overlay {
@@ -97,20 +110,22 @@
         height: auto;
         gap: 1.5rem;
     }
+
     .feature-text {
         flex-direction: column;
         align-items: center; /* horizontally center icon and text */
         text-align: center;
     }
 
-    .feature-text i {
-        margin-bottom: 0.25rem; /* spacing below icon */
-        font-size: 2.5rem !important;
-    }
+        .feature-text i {
+            margin-bottom: 0.25rem; /* spacing below icon */
+            font-size: 2.5rem !important;
+        }
 
     .mobile-placeholder {
         margin-right: 0;
     }
+
     .pc-frame {
         position: relative;
         top: 0;
@@ -119,8 +134,9 @@
         opacity: 1;
         margin-top: 1rem;
     }
+
     .device-placeholder.mobile-placeholder img,
     .device-placeholder.pc-placeholder img {
-        height: 300px; 
+        height: 300px;
     }
 }

@@ -12,8 +12,8 @@ namespace StriveUp.Infrastructure.Models
 {
     public class UserActivity
     {
-        [Key] 
-        [Required] 
+        [Key]
+        [Required]
         public int Id { get; set; }
         [Required]
         public string UserId { get; set; }
@@ -53,6 +53,7 @@ namespace StriveUp.Infrastructure.Models
         public List<GeoPoint>? Route { get; set; }
         public List<ActivityHr>? HrData { get; set; }
         public List<ActivitySpeed>? SpeedData { get; set; }
+        public List<ActivityElevation>? ElevationData { get; set; }
 
         //[NotMapped]
         //public List<string>? ImageUrls { get; set; }

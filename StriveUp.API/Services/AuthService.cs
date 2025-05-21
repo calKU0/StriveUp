@@ -38,8 +38,12 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
 
         var token = GenerateJwtToken(user);
         var refreshToken = GenerateRefreshToken();
+
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(31);
+
+        await _userManager.UpdateAsync(user);
+
         return (true, new JwtResponse { Token = token, RefreshToken = refreshToken });
     }
 
@@ -83,6 +87,7 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
                 City = request.City,
                 Bio = request.Bio
             };
+
             var token = GenerateJwtToken(user);
             var refreshToken = GenerateRefreshToken();
 
@@ -152,9 +157,7 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
         var username = principal.Identity?.Name;
 
         var user = await _userManager.FindByNameAsync(username);
-        if (user == null ||
-            user.RefreshToken != request.RefreshToken ||
-            user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        if (user == null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
             return null;
         }

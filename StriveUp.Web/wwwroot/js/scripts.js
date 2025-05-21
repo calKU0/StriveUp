@@ -1,4 +1,4 @@
-﻿window.renderLineChartById = (id, labels, data, label) => {
+﻿window.renderLineChartById = (id, labels, data, label, chartType) => {
     const tryRender = () => {
         const canvas = document.getElementById(id);
         if (!canvas) {
@@ -7,18 +7,49 @@
         }
 
         const ctx = canvas.getContext("2d");
-        const maxPace = Math.max(...data.filter(v => !isNaN(v)));
-        const invertedData = data.map(v => isNaN(v) ? NaN : maxPace - v);
-        const paceRange = Math.max(...data) - Math.min(...data);
-        const stepSize = paceRange > 300 ? 60 : 30;
+        let chartData = data;
+        let yTicksCallback = (value) => value;
+        let tooltipLabelCallback = (context) => `${label}: ${context.parsed.y}`;
 
-        let ticksLimit;
-        if (window.innerWidth >= 1200) {
-            ticksLimit = 15; // PC
-        } else if (window.innerWidth >= 768) {
-            ticksLimit = 10; // Tablet (md)
-        } else {
-            ticksLimit = 5; // Mobile (sm)
+        let stepSize = 10;
+        let ticksLimit = window.innerWidth >= 1200 ? 15 : window.innerWidth >= 768 ? 10 : 5;
+
+        if (chartType === "speed") {
+            const maxPace = Math.max(...data.filter(v => !isNaN(v)));
+            chartData = data.map(v => isNaN(v) ? NaN : maxPace - v);
+            const paceRange = Math.max(...data) - Math.min(...data);
+            stepSize = paceRange > 300 ? 60 : 30;
+
+            yTicksCallback = (value) => {
+                const originalPace = maxPace - value;
+                if (isNaN(originalPace)) return '';
+                const roundedPace = Math.round(originalPace / 30) * 30;
+                const minutes = Math.floor(roundedPace / 60);
+                const seconds = roundedPace % 60;
+                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            };
+
+            tooltipLabelCallback = (context) => {
+                const originalPace = maxPace - context.parsed.y;
+                if (isNaN(originalPace)) return '';
+                const minutes = Math.floor(originalPace / 60);
+                const seconds = Math.round(originalPace % 60);
+                return `Pace: ${minutes}:${seconds.toString().padStart(2, '0')} min/km`;
+            };
+        }
+
+        let borderColor = 'rgba(255, 167, 192, 0.8)';
+        let backgroundColor = 'rgba(255, 167, 38, 0.3)';
+
+        if (chartType === "speed") {
+            borderColor = 'rgba(13, 110, 253,1)'; // blue
+            backgroundColor = 'rgba(13, 110, 253, 0.5)';
+        } else if (chartType === "hr") {
+            borderColor = 'rgba(255, 99, 132, 1)'; // red
+            backgroundColor = 'rgba(255, 99, 132, 0.5)';
+        } else if (chartType === "elevation") {
+            borderColor = 'rgba(139, 69, 19, 1)'; // brown
+            backgroundColor = 'rgba(139, 69, 19, 0.5)';
         }
 
         new Chart(ctx, {
@@ -27,11 +58,11 @@
                 labels: labels,
                 datasets: [{
                     label: label,
-                    data: invertedData,
-                    borderColor: 'rgba(255, 167, 192, 38)',
-                    backgroundColor: 'rgba(255, 167, 38, 0.3)',
+                    data: chartData,
+                    borderColor: borderColor,
+                    backgroundColor: backgroundColor,
                     fill: 'origin',
-                    tension: 0,
+                    tension: 0.2,
                     pointRadius: 0
                 }]
             },
@@ -51,27 +82,14 @@
                             stepSize: stepSize,
                             autoSkip: true,
                             maxTicksLimit: 9,
-                            callback: (value) => {
-                                const originalPace = maxPace - value;
-                                if (isNaN(originalPace)) return '';
-                                const roundedPace = Math.round(originalPace / 30) * 30;
-                                const minutes = Math.floor(roundedPace / 60);
-                                const seconds = roundedPace % 60;
-                                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                            }
+                            callback: yTicksCallback
                         }
                     }
                 },
                 plugins: {
                     tooltip: {
                         callbacks: {
-                            label: function (context) {
-                                const originalPace = maxPace - context.parsed.y;
-                                const roundedPace = Math.round(originalPace / 30) * 30;
-                                const minutes = Math.floor(roundedPace / 60);
-                                const seconds = roundedPace % 60;
-                                return `Pace: ${minutes}:${seconds.toString().padStart(2, '0')} min/km`;
-                            }
+                            label: tooltipLabelCallback
                         }
                     }
                 },
@@ -113,26 +131,32 @@ window.launchConfetti = () => {
     }
 };
 
-// lazy loading (infinite scroll)
+window.activityFeedObserver = null;
+
 window.initIntersectionObserver = (element, dotNetHelper) => {
     console.log("Observer initialized");
+
     if (!element) {
         console.warn("Sentinel not found");
         return;
     }
 
-    const observer = new IntersectionObserver((entries) => {
+    // Disconnect previous observer if exists
+    if (window.activityFeedObserver) {
+        window.activityFeedObserver.disconnect();
+    }
+
+    window.activityFeedObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            console.log("Observer entry:", entry);
             if (entry.isIntersecting) {
-                console.log("Loading more activities...");
                 dotNetHelper.invokeMethodAsync('LoadMoreActivities');
             }
         });
     });
 
-    observer.observe(element);
+    window.activityFeedObserver.observe(element);
 };
+
 
 window.triggerFileInputClick = function () {
     var fileInput = document.getElementById("fileInput");
@@ -143,7 +167,7 @@ window.triggerFileInputClick = function () {
 
 window.headerScrollHelper = {
     lastScrollTop: 0,
-    threshold: 10, // Minimum scroll difference to detect direction
+    threshold: 15, // Minimum scroll difference to detect direction
     init: function (dotNetHelper) {
         window.addEventListener('scroll', function () {
             let st = window.pageYOffset || document.documentElement.scrollTop;

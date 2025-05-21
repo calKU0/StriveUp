@@ -43,44 +43,34 @@ namespace StriveUp.Shared.Helpers
             }
         }
 
-        public static string GetSpeedOrPace(double? value, ActivityDto? activityConfig)
+        public static string GetSpeedOrPace(double value, string measurementType)
         {
-            if (activityConfig != null)
+            if (measurementType == "pace")
             {
-                if (activityConfig.MeasurementType == "pace")
+                // Convert m/s to pace (min/km) without rounding
+                double? paceInMinPerKm = 1000.0 / value / 60.0;
+
+                int minutes = (int)paceInMinPerKm;
+                int seconds = (int)((paceInMinPerKm - minutes) * 60);
+
+                if (seconds == 60)
                 {
-                    // Convert m/s to pace (min/km) without rounding
-                    double? paceInMinPerKm = 1000.0 / value / 60.0;
-
-                    int minutes = (int)paceInMinPerKm;
-                    int seconds = (int)((paceInMinPerKm - minutes) * 60);
-
-                    if (seconds == 60)
-                    {
-                        minutes++;
-                        seconds = 0;
-                    }
-
-                    return $"{minutes}:{seconds:D2}";
+                    minutes++;
+                    seconds = 0;
                 }
-                else
-                {
-                    double? speedInKmH = value * 3.6;
-                    return $"{speedInKmH:F2}";
-                }
+
+                return $"{minutes}:{seconds:D2}";
             }
-
-            return string.Empty;
+            else
+            {
+                double? speedInKmH = value * 3.6;
+                return $"{speedInKmH:F2}";
+            }
         }
 
-        public static string GetSpeedOrPaceLabel(ActivityDto? activityConfig)
+        public static string GetSpeedOrPaceLabel(string measurementType)
         {
-            if (activityConfig != null)
-            {
-                return activityConfig.MeasurementType == "pace" ? "Pace" : "Speed";
-            }
-
-            return string.Empty;
+            return measurementType == "pace" ? "Pace" : "Speed";
         }
     }
 

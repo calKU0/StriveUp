@@ -24,12 +24,15 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<GeoPoint> GeoPoints { get; set; }
         public DbSet<ActivityHr> ActivityHrs { get; set; }
         public DbSet<ActivitySpeed> ActivitySpeeds { get; set; }
+        public DbSet<ActivityElevation> ActivityElevations { get; set; }
         public DbSet<ActivityConfig> ActivityConfig { get; set; }
         public DbSet<UserFollower> UserFollowers { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Level> Levels { get; set; }
         public DbSet<SynchroProvider> SynchroProviders { get; set; }
         public DbSet<UserSynchro> UserSynchros { get; set; }
+        public DbSet<BestEffort> BestEfforts { get; set; }
+        public DbSet<SegmentConfig> SegmentConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -101,6 +104,36 @@ namespace StriveUp.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(n => n.ActorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BestEffort>(entity =>
+            {
+                entity.HasKey(be => be.Id);
+
+                entity.HasOne(be => be.User)
+                    .WithMany()
+                    .HasForeignKey(be => be.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(be => be.UserActivity)
+                    .WithMany()
+                    .HasForeignKey(be => be.UserActivityId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(be => be.SegmentConfig)
+                    .WithMany()
+                    .HasForeignKey(be => be.SegmentConfigId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<SegmentConfig>(entity =>
+            {
+                entity.HasKey(sc => sc.Id);
+
+                entity.HasOne(sc => sc.Activity)
+                    .WithMany(a => a.SegmentConfigs)
+                    .HasForeignKey(sc => sc.ActivityId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

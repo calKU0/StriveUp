@@ -150,6 +150,36 @@ namespace StriveUp.Infrastructure.Data
                 await context.SaveChangesAsync();
             }
 
+            if (!context.SegmentConfigs.Any())
+            {
+                var configs = new List<SegmentConfig>
+                {
+                    // Run segments
+                    new SegmentConfig { DistanceMeters = 400, Name = "400 Meters", ShortName = "400 m", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 1000, Name = "1 Kilometer", ShortName = "1 km", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 5000, Name = "5 Kilometers", ShortName = "5 km", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 10000, Name = "10 Kilometers", ShortName = "10 km", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 21097, Name = "Half Marathon", ShortName = "Half Marathon", ActivityId = runningActivity.Id },
+                    new SegmentConfig { DistanceMeters = 42195, Name = "Marathon", ShortName = "Marathon", ActivityId = runningActivity.Id },
+
+                    // Bike segments (typical cycling distances)
+                    new SegmentConfig { DistanceMeters = 10000, Name = "10 Kilometers", ShortName = "10 km", ActivityId = bikingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 20000, Name = "20 Kilometers", ShortName = "20 km", ActivityId = bikingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 40000, Name = "40 Kilometers", ShortName = "40 km", ActivityId = bikingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 80000, Name = "80 Kilometers", ShortName = "80 km", ActivityId = bikingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 160000, Name = "160 Kilometers", ShortName = "160 km", ActivityId = bikingActivity.Id },
+
+                    // Swim segments (typical swim distances in meters)
+                    new SegmentConfig { DistanceMeters = 500, Name = "500 Meters", ShortName = "500 m", ActivityId = swimmingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 1000, Name = "1 Kilometer", ShortName = "1 km", ActivityId = swimmingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 1500, Name = "1500 Meters", ShortName = "1.5 km", ActivityId = swimmingActivity.Id },
+                    new SegmentConfig { DistanceMeters = 3000, Name = "3 Kilometers", ShortName = "3 km", ActivityId = swimmingActivity.Id },
+                };
+
+                context.SegmentConfigs.AddRange(configs);
+                await context.SaveChangesAsync();
+            }
+
 
             if (!context.Medals.Any())
             {

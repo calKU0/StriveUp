@@ -1,0 +1,102 @@
+.tabs {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    white-space: nowrap;
+}
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+
+
+.tab-button {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    transition: color 0.3s ease;
+}
+
+.tab-button.active {
+    color: #ff6600; /* orange */
+}
+
+    .tab-button::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        height: 3px;
+        width: 100%;
+        background-color: #ff6600;
+        transform-origin: center;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .tab-button.active::after {
+        transform: scaleX(1);
+    }
+
+/* Avatar styling */
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.leaderboard-list table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-list th,
+.leaderboard-list td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.medal-row {
+    font-weight: bold;
+}
+
+.medal {
+    font-size: 1.2rem;
+}
+
+    .medal.gold {
+        color: gold;
+    }
+
+    .medal.silver {
+        color: silver;
+    }
+
+    .medal.bronze {
+        color: #cd7f32;
+    }
+
+tr:hover {
+    background-color: #f0f8ff;
+    cursor: pointer;
+}

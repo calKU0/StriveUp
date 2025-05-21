@@ -16,5 +16,6 @@ namespace StriveUp.Shared.DTOs.Activity
         public bool SpeedRelevant { get; set; }
         public bool UseHeartRate { get; set; }
         public bool DistanceRelevant { get; set; }
+        public List<SegmentDto> Segments { get; set; } = new();
     }
 }

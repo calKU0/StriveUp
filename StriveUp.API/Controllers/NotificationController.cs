@@ -58,8 +58,12 @@ namespace StriveUp.API.Controllers
                 {
                     if (users.TryGetValue(dto.ActorId, out var user))
                     {
-                        dto.ActorName = user.UserName;
                         dto.ActorAvatar = user.Avatar;
+
+                        if (dto.ActorId != userId)
+                        {
+                            dto.ActorName = user.UserName;
+                        }
                     }
                 }
 

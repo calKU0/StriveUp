@@ -17,7 +17,7 @@
 }
 
 .material-path {
-    stroke: #FFA726;
+    stroke: #ff8000;
     stroke-linecap: round;
     animation: dash 1.5s ease-in-out infinite;
 }

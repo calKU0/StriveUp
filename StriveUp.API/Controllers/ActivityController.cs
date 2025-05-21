@@ -43,6 +43,7 @@ namespace StriveUp.API.Controllers
 
             if (callingUserId == null) return Unauthorized();
 
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var isAdmin = await _userManager.IsInRoleAsync(callingUser, "Admin");
@@ -50,9 +51,7 @@ namespace StriveUp.API.Controllers
                 if (!string.IsNullOrEmpty(dto.UserId))
                 {
                     if (!isAdmin)
-                    {
                         return Forbid();
-                    }
                 }
                 else
                 {
@@ -67,9 +66,7 @@ namespace StriveUp.API.Controllers
                         .AnyAsync(ua => ua.SynchroId == userActivity.SynchroId);
 
                     if (duplicate)
-                    {
                         return Conflict("This activity has already been synchronized.");
-                    }
                 }
 
                 var user = await _context.Users
@@ -85,43 +82,77 @@ namespace StriveUp.API.Controllers
                 userActivity.DurationSeconds = durationSeconds;
                 userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
 
-                userActivity.MaxSpeed = userActivity.SpeedData.Count > 0 && userActivity.MaxSpeed == null
+                userActivity.MaxSpeed ??= userActivity.SpeedData.Count > 0
                     ? userActivity.SpeedData.Max(s => s.SpeedValue)
-                    : userActivity.MaxSpeed;
+                    : null;
 
-                userActivity.AvarageSpeed = userActivity.SpeedData.Count > 0 && userActivity.AvarageSpeed == null
+                userActivity.AvarageSpeed ??= userActivity.SpeedData.Count > 0
                     ? userActivity.SpeedData.Average(s => s.SpeedValue)
-                    : userActivity.AvarageSpeed;
+                    : null;
 
-                userActivity.AvarageHr = userActivity.HrData.Count > 0 && userActivity.AvarageHr == null
+                userActivity.AvarageHr ??= userActivity.HrData.Count > 0
                     ? Convert.ToInt32(userActivity.HrData.Average(s => s.HearthRateValue))
-                    : userActivity.AvarageHr;
+                    : null;
 
-                userActivity.MaxHr = userActivity.HrData.Count > 0 && userActivity.MaxHr == null
+                userActivity.MaxHr ??= userActivity.HrData.Count > 0
                     ? userActivity.HrData.Max(s => s.HearthRateValue)
-                    : userActivity.MaxHr;
+                    : null;
+
+                if (userActivity.ElevationData != null && userActivity.ElevationData.Count > 0 && userActivity.ElevationGain == null)
+                {
+                    double gain = 0;
+                    for (int i = 1; i < userActivity.ElevationData.Count; i++)
+                    {
+                        double delta = userActivity.ElevationData[i].ElevationValue - userActivity.ElevationData[i - 1].ElevationValue;
+                        if (delta > 0)
+                            gain += delta;
+                    }
+                    userActivity.ElevationGain = Convert.ToInt32(gain);
+                }
 
                 var activityConfig = await _context.ActivityConfig
                     .FirstOrDefaultAsync(ac => ac.ActivityId == dto.ActivityId);
 
                 if (activityConfig != null)
                 {
-                    // Add XP 
                     int xpReward = activityConfig.PointsPerMinute > 0
                         ? Convert.ToInt32(Math.Round(activityConfig.PointsPerMinute * userActivity.DurationSeconds / 60))
-                        : 1 * Convert.ToInt32(Math.Round(userActivity.DurationSeconds / 60));
+                        : Convert.ToInt32(Math.Round(userActivity.DurationSeconds / 60));
                     user.CurrentXP += xpReward;
                 }
 
+
                 _context.UserActivities.Add(userActivity);
 
-                // If activity is synchronized, notify the user
+                await _context.SaveChangesAsync();
+
+                var segments = await _context.SegmentConfigs.Where(s => s.ActivityId == userActivity.Activity.Id).ToListAsync();
+                var cumulativeDistances = ComputeCumulativeDistances(userActivity.Route);
+
+                foreach (var segment in segments)
+                {
+                    var bestSegment = GetBestSegmentFromGpsRoute(
+                        segment.Id,
+                        userActivity.UserId,
+                        userActivity.Id,
+                        userActivity.DateStart,
+                        userActivity.Route,
+                        segment.DistanceMeters,
+                        userActivity.Distance,
+                        cumulativeDistances);
+
+                    if (bestSegment != null)
+                    {
+                        _context.BestEfforts.Add(bestSegment);
+                    }
+                }
+
                 if (userActivity.isSynchronized)
                 {
                     var notifDto = new CreateNotificationDto
                     {
                         UserId = user.Id,
-                        ActorId = user.Id, // the one who added it
+                        ActorId = user.Id,
                         Title = "New Activity Synchronized",
                         Message = $"The activity {userActivity.Title} has been synced to your account. Click to review your performance!",
                         Type = "sync",
@@ -132,13 +163,17 @@ namespace StriveUp.API.Controllers
                 }
 
                 await _levelService.UpdateUserLevelAsync(user);
+
+                // Final save and commit transaction
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 return Ok(userActivity.Id);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+                await transaction.RollbackAsync();
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -159,8 +194,6 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.ActivityLikes)
                     .Include(ua => ua.ActivityComments)!.ThenInclude(c => c.User)
                     .Include(ua => ua.Route)
-                    .Include(ua => ua.HrData)
-                    .Include(ua => ua.SpeedData)
                     .OrderByDescending(ua => ua.DateStart)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -208,8 +241,6 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.ActivityLikes)
                     .Include(ua => ua.ActivityComments)!.ThenInclude(c => c.User)
                     .Include(ua => ua.Route)
-                    .Include(ua => ua.HrData)
-                    .Include(ua => ua.SpeedData)
                     .OrderByDescending(ua => ua.DateStart)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -257,6 +288,7 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.Route)
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
+                    .Include(ua => ua.ElevationData)
                     .FirstOrDefaultAsync();
 
                 if (activity == null)
@@ -283,6 +315,26 @@ namespace StriveUp.API.Controllers
             {
                 var activities = await _context.Activities
                     .Include(a => a.Config)
+                    .ToListAsync();
+
+                var activityDtos = _mapper.Map<List<ActivityDto>>(activities);
+                return Ok(activityDtos);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred: {ex}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("activities-with-segments")]
+        public async Task<ActionResult<IEnumerable<ActivityDto>>> GetActivitiesWithSegments()
+        {
+            try
+            {
+                var activities = await _context.Activities
+                    .Include(a => a.Config)
+                    .Include(a => a.SegmentConfigs)
                     .ToListAsync();
 
                 var activityDtos = _mapper.Map<List<ActivityDto>>(activities);
@@ -359,7 +411,7 @@ namespace StriveUp.API.Controllers
                             UserId = destinationUserId,      // The owner of the activity
                             ActorId = userId,                // The liker
                             Title = "New Like",
-                            Message = $"{actorUser.UserName} liked your activity.",
+                            Message = "liked your activity.",
                             Type = "like",
                             RedirectUrl = $"/activity/{activityId}"
                         };
@@ -424,7 +476,7 @@ namespace StriveUp.API.Controllers
                         UserId = destinationUserId,
                         ActorId = userId,
                         Title = "New Comment",
-                        Message = $"{actorUser.UserName} commented on your activity.",
+                        Message = "commented on your activity.",
                         Type = "comment",
                         RedirectUrl = $"/activity/{activityId}/comments"
                     };
@@ -460,6 +512,93 @@ namespace StriveUp.API.Controllers
                 Console.WriteLine($"Error occurred: {ex}");
                 return StatusCode(500, "Internal server error");
             }
+        }
+
+        private BestEffort? GetBestSegmentFromGpsRoute(
+            int segmentId,
+            string userId,
+            int activityId,
+            DateTime activityDate,
+            List<GeoPoint> route,
+            double targetDistanceMeters,
+            double activityDistanceMeters,
+            double[] cumulativeDistances)
+        {
+            if (route == null || route.Count < 2)
+                return null;
+
+            double totalRouteDistanceMeters = cumulativeDistances[^1];
+
+            if (activityDistanceMeters < targetDistanceMeters)
+                return null;
+
+            if (totalRouteDistanceMeters < targetDistanceMeters)
+                return null;
+
+
+            double bestDuration = double.MaxValue;
+            BestEffort? bestSegment = null;
+
+            for (int startIndex = 0; startIndex < route.Count - 1; startIndex++)
+            {
+                for (int endIndex = startIndex + 1; endIndex < route.Count; endIndex++)
+                {
+                    double segmentDistance = cumulativeDistances[endIndex] - cumulativeDistances[startIndex];
+
+                    if (segmentDistance >= targetDistanceMeters)
+                    {
+                        var duration = (route[endIndex].Timestamp - route[startIndex].Timestamp).TotalSeconds;
+
+                        if (duration > 0 && duration < bestDuration)
+                        {
+                            bestDuration = duration;
+                            bestSegment = new BestEffort
+                            {
+                                SegmentConfigId = segmentId,
+                                UserId = userId,
+                                UserActivityId = activityId,
+                                ActivityDate = activityDate,
+                                DurationSeconds = duration,
+                            };
+                        }
+                        break;
+                    }
+
+                    if (segmentDistance > totalRouteDistanceMeters)
+                        break;
+                }
+            }
+
+            return bestSegment;
+        }
+
+
+        private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371000; // Earth radius in meters
+            var dLat = DegreesToRadians(lat2 - lat1);
+            var dLon = DegreesToRadians(lon2 - lon1);
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(DegreesToRadians(lat1)) * Math.Cos(DegreesToRadians(lat2)) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
+        }
+
+        private static double DegreesToRadians(double deg) => deg * (Math.PI / 180);
+        private double[] ComputeCumulativeDistances(List<GeoPoint> route)
+        {
+            var cumulativeDistances = new double[route.Count];
+            cumulativeDistances[0] = 0;
+            for (int i = 1; i < route.Count; i++)
+            {
+                cumulativeDistances[i] = cumulativeDistances[i - 1] +
+                                         HaversineDistance(route[i - 1].Latitude, route[i - 1].Longitude, route[i].Latitude, route[i].Longitude);
+            }
+
+            return cumulativeDistances;
         }
     }
 }

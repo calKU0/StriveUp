@@ -13,35 +13,47 @@ namespace StriveUp.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly SignInManager<AppUser> _signInManager;
 
-        public AuthController(IAuthService authService, SignInManager<AppUser> signInManager)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
-            _signInManager = signInManager;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
-            var (success, token) = await _authService.LoginAsync(request);
-            return success
-                ? Ok(token)
-                : Unauthorized(new ErrorResponse { Message = "Invalid credentials." });
+            try
+            {
+                var (success, token) = await _authService.LoginAsync(request);
+                return success
+                    ? Ok(token)
+                    : Unauthorized(new ErrorResponse { Message = "Invalid credentials." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ErrorResponse { Message = "An error occurred during login." });
+            }
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
-            var (result, token) = await _authService.RegisterAsync(request);
-
-            if (!result.Succeeded)
+            try
             {
-                var errors = result.Errors.Select(e => e.Description).ToList();
-                return BadRequest(new { Message = "Registration failed.", Errors = errors });
-            }
+                var (result, token) = await _authService.RegisterAsync(request);
 
-            return Ok(token);
+                if (!result.Succeeded)
+                {
+                    var errors = result.Errors.Select(e => e.Description).ToList();
+                    return BadRequest(new { Message = "Registration failed.", Errors = errors });
+                }
+
+                return Ok(token);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ErrorResponse { Message = "An error occurred during login." });
+            }
         }
 
         [HttpPost("refresh-token")]
