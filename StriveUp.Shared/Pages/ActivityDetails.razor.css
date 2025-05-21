@@ -1,0 +1,41 @@
+.stat-card {
+    padding: 1rem;
+    border-radius: 12px;
+    background: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.stat-icon {
+    display: block;
+    font-size: 1.8rem;
+    margin-top: 0.3rem;
+    margin-bottom: 1rem !important; /* match h5 mt-2 spacing */
+}
+
+.speed-heading {
+    color: rgb(13 110 253);
+    border-color: rgb(13 110 253) !important;
+}
+
+.elevation-heading {
+    color: rgba(139, 69, 19, 1);
+    border-color: rgba(139, 69, 19, 1) !important;
+}
+
+.heart-heading {
+    color: red;
+    border-color: red !important;
+}

@@ -20,35 +20,46 @@
                 <a class="navbar-brand me-3" href="">
                     <img class="logo-image img-fluid" src="images/StriveUp-logo-light.png" alt="Logo" />
                 </a>
-                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
-                    <i class="fas fa-home icon"></i>
-                    <span class="small-text">Home</span>
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center justify-content-center" href="" Match="NavLinkMatch.All">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 24px;">
+                        <i class="fas fa-home fa-lg"></i>
+                    </div>
+                    <small class="mt-1">Home</small>
                 </NavLink>
-                <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="feed">
-                    <i class="fas fa-rss icon"></i>
-                    <span class="small-text">Feed</span>
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center justify-content-center" href="feed">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 24px;">
+                        <i class="fas fa-rss fa-lg"></i>
+                    </div>
+                    <small class="mt-1">Feed</small>
                 </NavLink>
                 @if (PlatformService.IsNativeApp())
                 {
-                    <NavLink class="nav-link me-3 d-flex flex-column align-items-center" href="tracking">
-                        <i class="fas fa-running icon"></i>
-                        <span class="small-text">Activity</span>
+                    <NavLink class="nav-link me-3 d-flex flex-column align-items-center justify-content-center" href="tracking">
+                        <div class="d-flex justify-content-center align-items-center" style="height: 24px;">
+                            <i class="fas fa-running fa-lg"></i>
+                        </div>
+                        <small class="mt-1">Activity</small>
                     </NavLink>
                 }
-                <div class="position-relative">
-                    <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="medals">
-                        <div class="position-relative">
-                            <i class="fas fa-medal icon"></i>
-                            @if (MedalState.MedalsToClaim > 0)
-                            {
-                                <span class="notification-count badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
-                                    @MedalState.MedalsToClaim
-                                </span>
-                            }
-                        </div>
-                        <span class="small-text">Medals</span>
-                    </NavLink>
-                </div>
+                <NavLink class="nav-link me-3 d-flex flex-column align-items-center justify-content-center position-relative" href="medals">
+                    <div class="d-flex justify-content-center align-items-center position-relative" style="height: 24px;">
+                        <i class="fas fa-medal fa-lg"></i>
+                        @if (MedalState.MedalsToClaim > 0)
+                        {
+                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
+                                @MedalState.MedalsToClaim
+                            </span>
+                        }
+                    </div>
+                    <small class="mt-1">Medals</small>
+                </NavLink>
+
+                <NavLink class="nav-link me-3 text-center d-flex flex-column align-items-center justify-content-center" href="leaderboards">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 24px;">
+                        <i class="fas fa-crown fa-lg"></i>
+                    </div>
+                    <small class="mt-1">Top</small>
+                </NavLink>
             </div>
 
             <!-- Right Section -->
@@ -67,41 +78,61 @@
 
     <!-- Mobile Navbar (fixed bottom) -->
     <nav class="navbar fixed-bottom d-flex d-md-none">
-        <div class="container-fluid d-flex justify-content-around align-items-center px-2">
-            <NavLink class="d-none nav-link text-center d-flex flex-column align-items-center" href="" Match="NavLinkMatch.All">
-                <i class="fas fa-home icon"></i>
-                <span class="small-text">Home</span>
-            </NavLink>
-            <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="feed">
-                <i class="fas fa-rss icon"></i>
-                <span class="small-text">Feed</span>
-            </NavLink>
-            @if (PlatformService.IsNativeApp())
+        <div class="container-fluid d-flex justify-content-around align-items-center px-1">
+
+            @if (!PlatformService.IsNativeApp())
             {
-                <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="tracking">
-                    <i class="fas fa-running icon"></i>
-                    <span class="small-text">Activity</span>
+                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="" Match="NavLinkMatch.All">
+                    <div style="height: 24px;">
+                        <i class="fas fa-home fa-lg"></i>
+                    </div>
+                    <small class="mt-1">Home</small>
                 </NavLink>
             }
-            <div class="position-relative">
-                <NavLink class="nav-link text-center d-flex flex-column align-items-center" href="medals">
-                    <div class="position-relative">
-                        <i class="fas fa-medal icon"></i>
-                        @if (MedalState.MedalsToClaim > 0)
-                        {
-                            <span class="notification-count badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
-                                @MedalState.MedalsToClaim
-                            </span>
-                        }
+
+            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="feed">
+                <div style="height: 24px;">
+                    <i class="fas fa-rss fa-lg"></i>
+                </div>
+                <small class="mt-1">Feed</small>
+            </NavLink>
+
+            @if (PlatformService.IsNativeApp())
+            {
+                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="tracking">
+                    <div style="height: 24px;">
+                        <i class="fas fa-running fa-lg"></i>
                     </div>
-                    <span class="small-text">Medals</span>
+                    <small class="mt-1">Activity</small>
                 </NavLink>
-            </div>
-            <NavLink class="nav-link d-flex flex-column align-items-center" href="profile">
+            }
+
+            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="leaderboards">
+                <div style="height: 24px;">
+                    <i class="fas fa-crown fa-lg"></i>
+                </div>
+                <small class="mt-1">Top</small>
+            </NavLink>
+
+            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="medals">
+                <div style="height: 24px; position: relative;">
+                    <i class="fas fa-medal fa-lg"></i>
+                    @if (MedalState.MedalsToClaim > 0)
+                    {
+                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
+                            @MedalState.MedalsToClaim
+                        </span>
+                    }
+                </div>
+                <small class="mt-1">Medals</small>
+            </NavLink>
+
+            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="profile">
                 <img src="@userAvatarUrl" alt="User Avatar" class="avatar-icon" />
             </NavLink>
         </div>
     </nav>
+
 }
 @code {
     private int medalsToClaim = 0;

@@ -3,7 +3,15 @@
     overflow-y: auto;
     height: 100vh;
     margin-top: -65px;
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
 }
+
+    .home-page::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
 
 .section {
     min-height: 100vh;

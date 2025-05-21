@@ -112,13 +112,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (hasMore && sentinel.Id != null && !observerInitialized)
+        if (hasMore && sentinel.Id != null)
         {
             try
             {
                 dotNetRef = DotNetObjectReference.Create(this);
                 await JSRuntime.InvokeVoidAsync("initIntersectionObserver", sentinel, dotNetRef);
-                observerInitialized = true;
             }
             catch (Exception ex)
             {
@@ -132,19 +131,26 @@
     [JSInvokable]
     public async Task LoadMoreActivities()
     {
+        Console.WriteLine($"LoadMoreActivities called. isLoading={isLoading} hasMore={hasMore} currentPage={currentPage}");
         if (isLoading || !hasMore) return;
 
         isLoading = true;
         StateHasChanged();
+
         var more = await ActivityService.GetFeedAsync(currentPage, PageSize);
 
-        if (more.Count < PageSize)
+        if (more == null || more.Count == 0)
         {
             hasMore = false;
         }
+        else
+        {
+            activities.AddRange(more);
+            currentPage++;
 
-        activities.AddRange(more);
-        currentPage++;
+            hasMore = more.Count == PageSize;
+        }
+
         isLoading = false;
         StateHasChanged();
     }

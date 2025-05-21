@@ -70,7 +70,7 @@ a, .btn-link {
 .navbar {
     width: 100%;
     z-index: 1000;
-    background-color: #FFA726;
+    background-color: #ff8000;
     padding: 2px;
 }
 
@@ -181,19 +181,15 @@ a, .btn-link {
 
 
 .btn-warning {
-    background-color: #FFA726 !important;
+    background-color: #ff8000 !important;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.15rem #258cfb;
 }
 
 h1:focus {
     outline: none;
-}
-
-.valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
 }
 
 .invalid {
@@ -235,7 +231,6 @@ h1:focus {
 }
 
     .card:hover {
-        transform: translateY(-4px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
 

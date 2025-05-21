@@ -58,11 +58,11 @@
                             <small class="text-muted">Duration</small>
                         </div>
                     </div>
-                    @if(activity.Distance > 0)
+                    @if (activity.Distance > 0)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
-                                <i class="bi bi-signpost-split fs-3 text-primary"></i>
+                                <i class="fas fa-route fa-2x text-primary stat-icon"></i>
                                 <h5 class="mt-2">@(Math.Round(activity.Distance / 1000.0, 2)) km</h5>
                                 <small class="text-muted">Distance</small>
                             </div>
@@ -70,16 +70,36 @@
                     }
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded-3">
-                            <i class="bi bi-fire fs-3 text-primary"></i>
+                            <i class="bi bi-fire fs-3 text-danger"></i>
                             <h5 class="mt-2">@activity.CaloriesBurned kcal</h5>
                             <small class="text-muted">Calories</small>
                         </div>
                     </div>
+                    @if (activity.ElevationGain > 0)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-arrow-up-right fs-3 text-success"></i>
+                                <h5 class="mt-2">@activity.ElevationGain</h5>
+                                <small class="text-muted">Elevation Gain</small>
+                            </div>
+                        </div>
+                    }
+                    @if (activity.AvarageHr > 0)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-heart fs-3 text-danger"></i>
+                                <h5 class="mt-2">@activity.AvarageHr bpm</h5>
+                                <small class="text-muted">Avg Heart Rate</small>
+                            </div>
+                        </div>
+                    }
                     @if (activity.MaxHr > 0)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
-                                <i class="bi bi-activity fs-3 text-success"></i>
+                                <i class="bi bi-heart-pulse fs-3 text-danger"></i>
                                 <h5 class="mt-2">@activity.MaxHr bpm</h5>
                                 <small class="text-muted">Max Heart Rate</small>
                             </div>
@@ -89,19 +109,9 @@
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
-                                <i class="bi bi-speedometer2 fs-3 text-success"></i>
-                                <h5 class="mt-2">@ActivityUtils.GetSpeedOrPace(activity.MaxSpeed, activityConfig)</h5>
-                                <small class="text-muted">Max @ActivityUtils.GetSpeedOrPaceLabel(activityConfig)</small>
-                            </div>
-                        </div>
-                    }
-                    @if (activity.AvarageHr > 0)
-                    {
-                        <div class="col-6 col-md-3">
-                            <div class="p-3 border rounded-3">
-                                <i class="bi bi-heart-pulse fs-3 text-info"></i>
-                                <h5 class="mt-2">@activity.AvarageHr bpm</h5>
-                                <small class="text-muted">Avg Heart Rate</small>
+                                <i class="bi bi-speedometer fs-3 text-warning"></i> <!-- different icon & color -->
+                                <h5 class="mt-2">@ActivityUtils.GetSpeedOrPace(activity.MaxSpeed ?? 0, activityConfig.MeasurementType)</h5>
+                                <small class="text-muted">Max @ActivityUtils.GetSpeedOrPaceLabel(activityConfig.MeasurementType)</small>
                             </div>
                         </div>
                     }
@@ -110,44 +120,13 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
                                 <i class="bi bi-speedometer2 fs-3 text-info"></i>
-                                <h5 class="mt-2">@ActivityUtils.GetSpeedOrPace(activity.AvarageSpeed, activityConfig)</h5>
-                                <small class="text-muted">Avg @ActivityUtils.GetSpeedOrPaceLabel(activityConfig)</small>
-                            </div>
-                        </div>
-                    }
-                    @if (activity.ElevationGain > 0)
-                    {   
-                        <div class="col-6 col-md-3">
-                            <div class="p-3 border rounded-3">
-                                <i class="bi bi-speedometer2 fs-3 text-info"></i>
-                                <h5 class="mt-2">@activity.ElevationGain</h5>
-                                <small class="text-muted">Elevation Gain</small>
+                                <h5 class="mt-2">@ActivityUtils.GetSpeedOrPace(activity.AvarageSpeed ?? 0, activityConfig.MeasurementType)</h5>
+                                <small class="text-muted">Avg @ActivityUtils.GetSpeedOrPaceLabel(activityConfig.MeasurementType)</small>
                             </div>
                         </div>
                     }
                 </div>
 
-                <!-- Heart Rate Chart -->
-                @if (activity.HrData?.Any() == true)
-                {
-                    <div class="mb-4">
-                        <h5 class="text-primary">Heart Rate Over Time</h5>
-                        <div style="position: relative; height: 300px;">
-                            <canvas id="hrChart"></canvas>
-                        </div>
-                    </div>
-                }
-
-                <!-- Speed Chart -->
-                @if (activity.SpeedData?.Any() == true)
-                {
-                    <div class="mb-4">
-                        <h5 class="text-primary">Speed Over Time</h5>
-                        <div style="position: relative; height: 300px;">
-                            <canvas id="speedChart"></canvas>
-                        </div>
-                    </div>
-                }
 
                 <!-- Buttons -->
                 <div class="d-flex gap-3 mt-3">
@@ -158,6 +137,124 @@
                         <i class="bi bi-chat-dots-fill me-2"></i>Comments (@(activity.Comments?.Count ?? 0))
                     </a>
                 </div>
+
+                <div class="chart-stats-container mt-5">
+                    @if (activity.SpeedData?.Any() == true)
+                    {
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="m-0 speed-heading fw-bold border-bottom border-2 pb-1">
+                                    <i class="bi bi-speedometer2 me-2"></i>Speed Over Time
+                                </h5>
+                            </div>
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="speedChart"></canvas>
+                            </div>
+
+                            <div class="row mt-3 g-3">
+                                @if (activity.AvarageSpeed > 0)
+                                {
+                                    <div class="col-12 col-sm-6">
+                                        <div class="stat-card bg-primary-subtle text-primary-emphasis d-flex align-items-center gap-2">
+                                            <i class="bi bi-speedometer2 fs-4"></i>
+                                            <div>
+                                                <div class="stat-label">Avg Pace</div>
+                                                <div class="stat-value">@ActivityUtils.GetSpeedOrPace(activity.AvarageSpeed ?? 0, activityConfig.MeasurementType)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (activity.MaxSpeed > 0)
+                                {
+                                    <div class="col-12 col-sm-6">
+                                        <div class="stat-card bg-primary-subtle text-primary-emphasis d-flex align-items-center gap-2">
+                                            <i class="bi bi-speedometer fs-4"></i>
+                                            <div>
+                                                <div class="stat-label">Max Pace</div>
+                                                <div class="stat-value">@ActivityUtils.GetSpeedOrPace(activity.MaxSpeed ?? 0, activityConfig.MeasurementType)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="chart-stats-container mt-3">
+                    @if (activity.HrData?.Any() == true)
+                    {
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="m-0 heart-heading fw-bold border-bottom border-2 pb-1">
+                                    <i class="bi bi-heart-pulse me-2"></i>Heart Rate Over Time
+                                </h5>
+                            </div>
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="hrChart"></canvas>
+                            </div>
+
+                            <div class="row mt-3 g-3">
+                                @if (activity.AvarageHr > 0)
+                                {
+                                    <div class="col-12 col-sm-6">
+                                        <div class="stat-card bg-danger-subtle text-danger-emphasis d-flex align-items-center gap-2">
+                                            <i class="bi bi-heart fs-4"></i>
+                                            <div>
+                                                <div class="stat-label">Avg HR</div>
+                                                <div class="stat-value">@activity.AvarageHr bpm</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (activity.MaxHr > 0)
+                                {
+                                    <div class="col-12 col-sm-6">
+                                        <div class="stat-card bg-danger-subtle text-danger-emphasis d-flex align-items-center gap-2">
+                                            <i class="bi bi-heart-fill fs-4"></i>
+                                            <div>
+                                                <div class="stat-label">Max HR</div>
+                                                <div class="stat-value">@activity.MaxHr bpm</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="chart-stats-container mt-3">
+                    @if (activity.ElevationData?.Any() == true)
+                    {
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="m-0 elevation-heading fw-bold border-bottom border-2 pb-1">
+                                    <i class="bi bi-arrow-up-right-circle me-2"></i>Elevation Over Time
+                                </h5>
+                            </div>
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="elevationChart"></canvas>
+                            </div>
+
+                            @if (activity.ElevationGain > 0)
+                            {
+                                <div class="row mt-3 g-3">
+                                    <div class="col-12 col-sm-6">
+                                        <div class="stat-card bg-success-subtle text-success-emphasis d-flex align-items-center gap-2">
+                                            <i class="bi bi-arrow-up fs-4"></i>
+                                            <div>
+                                                <div class="stat-label">Elevation Gain</div>
+                                                <div class="stat-value">@activity.ElevationGain m</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
             </div>
         </div>
     }
@@ -202,6 +299,46 @@
     {
         try
         {
+            if (activity.SpeedData?.Any() == true)
+            {
+                var speedLabels = activity.SpeedData
+                    .Select(d =>
+                        TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(activity.DateStart).TotalMilliseconds)
+                            .ToString(@"hh\:mm\:ss"))
+                    .ToArray();
+
+                foreach (var d in activity.SpeedData)
+                {
+                    Console.WriteLine($"SpeedValue: {d.SpeedValue}");
+                }
+                Console.WriteLine(activity.SpeedData.Count);
+
+                var maxPaceValue = 1000; // some large number representing "stopped"
+                var paceValues = activity.SpeedData
+                    .Select(d => d.SpeedValue > 0 ? 1000.0 / d.SpeedValue : maxPaceValue)
+                    .ToArray();
+
+                Console.WriteLine(paceValues.Length);
+                foreach (var pace in paceValues)
+                {
+                    Console.WriteLine(pace);
+                }
+
+                await JS.InvokeVoidAsync("renderLineChartById", "speedChart", speedLabels, paceValues, "Pace (min/km)", "speed");
+            }
+
+            if (activity.ElevationData?.Any() == true)
+            {
+                var elevationLabels = activity.ElevationData
+                    .Select(d => TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(activity.DateStart).TotalMilliseconds)
+                        .ToString(@"hh\:mm\:ss"))
+                    .ToArray();
+
+                var elevationValues = activity.ElevationData.Select(d => d.ElevationValue).ToArray();
+
+                await JS.InvokeVoidAsync("renderLineChartById", "elevationChart", elevationLabels, elevationValues, "Elevation (m)", "elevation");
+            }
+
             if (activity.HrData?.Any() == true)
             {
                 var hrLabels = activity.HrData
@@ -212,24 +349,7 @@
 
                 var hrValues = activity.HrData.Select(d => d.HearthRateValue).ToArray();
 
-                await JS.InvokeVoidAsync("renderLineChartById", "hrChart", hrLabels, hrValues, "Heart Rate (bpm)");
-            }
-
-            if (activity.SpeedData?.Any() == true)
-            {
-                var speedLabels = activity.SpeedData
-                    .Select(d =>
-                        TimeSpan.FromMilliseconds(d.TimeStamp.Subtract(activity.DateStart).TotalMilliseconds)
-                            .ToString(@"hh\:mm\:ss"))
-                    .ToArray();
-
-                // Convert speed (m/s) to pace (min/km) in seconds as double
-                var paceValues = activity.SpeedData
-                    .Select(d => d.SpeedValue > 0 ? 1000.0 / d.SpeedValue : double.NaN)
-                    .Where(p => !double.IsNaN(p) && !double.IsInfinity(p))
-                    .ToArray();
-
-                await JS.InvokeVoidAsync("renderLineChartById", "speedChart", speedLabels, paceValues, "Pace (min/km)");
+                await JS.InvokeVoidAsync("renderLineChartById", "hrChart", hrLabels, hrValues, "Heart Rate (bpm)", "hr");
             }
 
         }

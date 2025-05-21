@@ -4,7 +4,11 @@
 }
 
     .notification-item:hover {
-        background-color: #f0f8ff;
+        background-color: #ebebeb;
+    }
+
+    .unred {
+        background-color: #d4d4d4;
     }
 
 .notification-icon {
@@ -16,11 +20,3 @@
     font-size: 0.85rem;
     color: #6c757d;
 }
-
-.btn-mark-read {
-    transition: 0.2s;
-}
-
-    .btn-mark-read:hover {
-        background-color: #e2e6ea;
-    }
