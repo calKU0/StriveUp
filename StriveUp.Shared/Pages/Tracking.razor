@@ -106,6 +106,7 @@ OnDiscard="@DiscardActivity" />
 @code {
     private List<ActivityHrDto> HrData = new();
     private List<ActivitySpeedDto> SpeedData = new();
+    private List<ActivityElevationDto> ElevationData = new();
     private string selectedDeviceId;
     private List<Location> route = new();
     private List<ActivityDto> availableActivities = new();
@@ -255,22 +256,33 @@ OnDiscard="@DiscardActivity" />
         lastLocation = location;
         route.Add(location);
 
+        var timestamp = location.Timestamp.UtcDateTime;
+
         SpeedData.Add(new ActivitySpeedDto
         {
             SpeedValue = Speed,
-            TimeStamp = location.Timestamp.UtcDateTime
+            TimeStamp = timestamp
         });
 
-        // Add heart rate data
         if (HeartRate > 0)
         {
             HrData.Add(new ActivityHrDto
             {
                 HearthRateValue = HeartRate,
-                TimeStamp = location.Timestamp.UtcDateTime
+                TimeStamp = timestamp
+            });
+        }
+
+        if (location.Altitude.HasValue)
+        {
+            ElevationData.Add(new ActivityElevationDto
+            {
+                ElevationValue = location.Altitude.Value,
+                TimeStamp = timestamp
             });
         }
     }
+
 
     private double ApplyLowPassFilter(double newSpeed)
     {
@@ -414,22 +426,23 @@ OnDiscard="@DiscardActivity" />
     private async Task SaveActivityWithMeta()
     {
         var dto = new CreateUserActivityDto
+        {
+            Title = activityTitle,
+            Description = activityDescription,
+            ActivityId = selectedActivity.Id,
+            DateStart = startTime,
+            DateEnd = DateTime.UtcNow,
+            Route = route.Select(loc => new GeoPointDto
             {
-                Title = activityTitle,
-                Description = activityDescription,
-                ActivityId = selectedActivity.Id,
-                DateStart = startTime,
-                DateEnd = DateTime.UtcNow,
-                Route = route.Select(loc => new GeoPointDto
-                {
-                    Latitude = loc.Latitude,
-                    Longitude = loc.Longitude,
-                    Timestamp = loc.Timestamp.UtcDateTime,
-                }).ToList(),
-                Distance = Distance,
-                HrData = HrData,
-                SpeedData = SpeedData,
-            };
+                Latitude = loc.Latitude,
+                Longitude = loc.Longitude,
+                Timestamp = loc.Timestamp.UtcDateTime,
+            }).ToList(),
+            Distance = Distance,
+            HrData = HrData,
+            SpeedData = SpeedData,
+            ElevationData = ElevationData
+        };
 
         await ActivityService.AddActivityAsync(dto);
         await JSRuntime.InvokeVoidAsync("clearRoute");

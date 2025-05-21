@@ -101,6 +101,19 @@ namespace StriveUp.API.Controllers
                     ? userActivity.HrData.Max(s => s.HearthRateValue)
                     : userActivity.MaxHr;
 
+                if (userActivity.ElevationData != null && userActivity.ElevationData.Count > 0 && userActivity.ElevationGain == null)
+                {
+                    double gain = 0;
+                    for (int i = 1; i < userActivity.ElevationData.Count; i++)
+                    {
+                        double delta = userActivity.ElevationData[i].ElevationValue - userActivity.ElevationData[i - 1].ElevationValue;
+                        if (delta > 0)
+                            gain += delta;
+                    }
+
+                    userActivity.ElevationGain = Convert.ToInt32(gain);
+                }
+
                 var activityConfig = await _context.ActivityConfig
                     .FirstOrDefaultAsync(ac => ac.ActivityId == dto.ActivityId);
 

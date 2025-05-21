@@ -24,6 +24,7 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<GeoPoint> GeoPoints { get; set; }
         public DbSet<ActivityHr> ActivityHrs { get; set; }
         public DbSet<ActivitySpeed> ActivitySpeeds { get; set; }
+        public DbSet<ActivityElevation> ActivityElevations { get; set; }
         public DbSet<ActivityConfig> ActivityConfig { get; set; }
         public DbSet<UserFollower> UserFollowers { get; set; }
         public DbSet<Notification> Notifications { get; set; }

@@ -27,6 +27,7 @@ namespace StriveUp.Shared.DTOs
         public List<GeoPointDto>? Route { get; set; }
         public List<ActivityHrDto>? HrData { get; set; }
         public List<ActivitySpeedDto>? SpeedData { get; set; }
+        public List<ActivityElevationDto>? ElevationData { get; set; }
     }
 
 }
