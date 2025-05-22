@@ -25,6 +25,7 @@ else
             @foreach (var activity in Activities)
             {
                 <button class="tab-button @(activity == SelectedActivity ? "active" : "")" @onclick="() => OnActivitySelected(activity)">
+                    <img src="@ActivityUtils.GetActivityImageUrl(activity.Name, "dark")" alt="@activity.Name icon" class="activity-icon me-2" />
                     @activity.Name
                 </button>
             }
@@ -60,7 +61,7 @@ else
                             <th>User</th>
                             <th>Duration</th>
                             <th>@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
-                            <th>Date</th>
+                            <th class="d-none d-md-block">Date</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -91,7 +92,7 @@ else
                                 </td>
                                 <td>@TimeSpan.FromSeconds(entry.value.TotalDuration).ToString(@"mm\:ss")</td>
                                 <td>@(ActivityUtils.GetSpeedOrPace(entry.value.Speed, SelectedActivity.MeasurementType))</td>
-                                <td>@entry.value.ActivityDate.ToShortDateString()</td>
+                                <td class="d-none d-md-block">@entry.value.ActivityDate.ToShortDateString()</td>
                             </tr>
                         }
                         </tbody>

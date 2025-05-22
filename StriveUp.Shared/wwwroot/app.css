@@ -381,6 +381,64 @@ textarea.form-control {
     animation: dropFade 0.5s ease-out both;
 }
 
+.tabs {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    white-space: nowrap;
+}
+
+    .tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+.activity-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.tab-button {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    transition: color 0.3s ease;
+}
+
+    .tab-button.active {
+        color: #ff6600; /* orange */
+    }
+
+    .tab-button::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        height: 3px;
+        width: 100%;
+        background-color: #ff6600;
+        transform-origin: center;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .tab-button.active::after {
+        transform: scaleX(1);
+    }
+
+
 @keyframes dropFade {
     0% {
         transform: translateY(-50px) scale(0.7);

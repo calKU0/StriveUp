@@ -20,44 +20,30 @@
     }
     else
     {
-        @if (showFilters)
-        {
-            <!-- Tabs for Frequency -->
-            <ul class="nav nav-tabs mb-4" id="medalFrequencyTabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link @(activeFrequencyTab == "all" ? "active" : "")" @onclick="@(() => SetFrequencyTab("all"))">All</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link @(activeFrequencyTab == "once" ? "active" : "")" @onclick="@(() => SetFrequencyTab("once"))">Once</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link @(activeFrequencyTab == "weekly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("weekly"))">Weekly</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link @(activeFrequencyTab == "monthly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("monthly"))">Monthly</button>
-                </li>
-            </ul>
+        <!-- Filters Section (Always rendered) -->
+        <div class="filter-wrapper @(showFilters ? "expanded" : "collapsed")">
+            <!-- Frequency Tabs -->
+            <div class="tabs mb-4">
+                <button class="tab-button @(activeFrequencyTab == "all" ? "active" : "")" @onclick="@(() => SetFrequencyTab("all"))">All</button>
+                <button class="tab-button @(activeFrequencyTab == "once" ? "active" : "")" @onclick="@(() => SetFrequencyTab("once"))">Once</button>
+                <button class="tab-button @(activeFrequencyTab == "weekly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("weekly"))">Weekly</button>
+                <button class="tab-button @(activeFrequencyTab == "monthly" ? "active" : "")" @onclick="@(() => SetFrequencyTab("monthly"))">Monthly</button>
+            </div>
 
-            <!-- Tabs for Status -->
-            <ul class="nav nav-tabs mb-4" id="medalStatusTabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link @(statusFilter == "all" ? "active" : "")" @onclick="@(() => SetStatusFilter("all"))">All</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link @(statusFilter == "achieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("achieved"))">Achieved</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link @(statusFilter == "notachieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("notachieved"))">Not Achieved</button>
-                </li>
-            </ul>
+            <!-- Status Tabs -->
+            <div class="tabs mb-4">
+                <button class="tab-button @(statusFilter == "all" ? "active" : "")" @onclick="@(() => SetStatusFilter("all"))">All</button>
+                <button class="tab-button @(statusFilter == "achieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("achieved"))">Achieved</button>
+                <button class="tab-button @(statusFilter == "notachieved" ? "active" : "")" @onclick="@(() => SetStatusFilter("notachieved"))">Not Achieved</button>
+            </div>
 
-            <!-- Dropdown for Order -->
+            <!-- Dropdown -->
             <div class="mb-3">
                 <button class="btn btn-outline-secondary" @onclick="CycleOrder">
                     <i class="fas fa-sort"></i> @GetOrderLabel()
                 </button>
             </div>
-        }
+        </div>
 
         <!-- Toggle Button for Filters -->
         <div class="text-end mb-3">
@@ -201,8 +187,8 @@
         if (statusFilter != "all")
         {
             medalsToFilter = statusFilter == "achieved"
-                ? medalsToFilter.Where(m => claimedMedals.Contains(m))
-                : medalsToFilter.Where(m => !claimedMedals.Contains(m));
+                ? medalsToFilter.Where(m => m.DateEarned != null)
+                : medalsToFilter.Where(m => m.DateEarned == null);
         }
 
         // Apply Frequency Filter
