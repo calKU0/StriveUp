@@ -29,7 +29,6 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     scroll-behavior: smooth;
-    overflow-x: hidden;
 }
 
 .content {
@@ -71,7 +70,7 @@ a, .btn-link {
     width: 100%;
     z-index: 1000;
     background-color: #ff8000;
-    padding: 2px;
+    padding: 0px;
 }
 
 .navbar-brand img {
@@ -83,6 +82,13 @@ a, .btn-link {
 .nav-link {
     color: inherit;
 }
+
+
+
+    .navbar .nav-link:hover {
+        color: #fff !important;
+    }
+
 
 .container-full {
     height: 100vh;
@@ -101,18 +107,6 @@ a, .btn-link {
 }
 
     .btn-primary:hover {
-        background-color: #4338ca !important;
-        border-color: #4338ca !important;
-    }
-
-.nav-tabs > .nav-item > .nav-link.active {
-    background-color: #4f46e5 !important;
-    border-color: #4f46e5 !important;
-    color: white !important;
-    transition: background-color 0.2s ease !important;
-}
-
-    .nav-tabs > .nav-item > .nav-link.active:hover {
         background-color: #4338ca !important;
         border-color: #4338ca !important;
     }
@@ -220,6 +214,17 @@ h1:focus {
 
 .activity-card-title {
     font-size: larger;
+}
+
+.badge-small {
+    font-size: 0.7rem;
+    padding: 0.40rem 0.4em;
+    min-width: 16px;
+    height: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Card Enhancements */
@@ -359,15 +364,22 @@ textarea.form-control {
 }
 
 
-.icon-header {
-    font-size: 1.4rem;
-    color: #333;
-    cursor: pointer;
+.icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0.25rem;
 }
 
-    .icon-header i:hover {
-        color: #555;
-    }
+.icon-header {
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 
 /* Styling the progress text */
@@ -385,7 +397,7 @@ textarea.form-control {
     position: relative;
     display: flex;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.7rem;
     border-bottom: 2px solid #eee;
     overflow-x: auto;
     overflow-y: hidden;
@@ -426,7 +438,7 @@ textarea.form-control {
         position: absolute;
         bottom: -2px;
         left: 0;
-        height: 3px;
+        height: 4px;
         width: 100%;
         background-color: #ff6600;
         transform-origin: center;
@@ -541,7 +553,44 @@ textarea.form-control {
         margin-bottom: -80px;
     }
 
-    .fa-search {
-        margin-right: 20px
+    .icon-header {
+        font-size: 1.3rem;
+        padding: 0.5rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
+}
+
+@media (max-width: 768px) {
+    .navbar .nav-link {
+        position: relative;
+        flex-grow: 1;
+        text-align: center;
+        padding: 10px 0;
+        color: black;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        border-radius: 0;
+        background-color: transparent;
+    }
+
+        .navbar .nav-link .nav-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background-color: #fff;
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.3s ease;
+            z-index: 10;
+            border-radius: 125px;
+        }
+
+
+        .navbar .nav-link.active .nav-slider {
+            transform: scaleX(1);
+        }
 }

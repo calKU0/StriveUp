@@ -1,15 +1,20 @@
 ﻿@inject NavigationManager Navigation
 @inject INotificationStateService NotificationStateService
 
-<div class="position-relative @Class">
-    <i class="fas fa-bell text-dark icon-header" @onclick="OnBellClick"></i>
-    @if (notificationCount > 0)
-    {
-        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
-            @notificationCount
-        </span>
-    }
-</div>
+<a href="/notifications">
+    <HeaderIcon>
+        <div class="position-relative">
+            <i class="fas fa-bell text-dark icon-header"></i>
+            @if (notificationCount > 0)
+            {
+                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
+                    @notificationCount
+                </span>
+            }
+        </div>
+    </HeaderIcon>
+</a>
+
 
 @code {
     [Parameter] public string Class { get; set; } = "";
@@ -25,11 +30,6 @@
     {
         notificationCount = NotificationStateService.UnreadCount;
         InvokeAsync(StateHasChanged);
-    }
-
-    private void OnBellClick()
-    {
-        Navigation.NavigateTo("/notifications");
     }
 
     public void Dispose()

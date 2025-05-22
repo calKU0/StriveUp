@@ -78,48 +78,34 @@
 
     <!-- Mobile Navbar (fixed bottom) -->
     <nav class="navbar fixed-bottom d-flex d-md-none">
-        <div class="container-fluid d-flex justify-content-around align-items-center px-1">
+        <div class="container-fluid p-0 m-0 d-flex justify-content-around align-items-center">
+            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="" Match="NavLinkMatch.All">
+                <span class="nav-slider"></span>
+                <div style="height: 24px;">
+                    <i class="fas fa-home fa-lg"></i>
+                </div>
+                <small class="mt-1">Home</small>
+            </NavLink>
 
             @if (!PlatformService.IsNativeApp())
             {
-                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="" Match="NavLinkMatch.All">
+                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="feed">
+                    <span class="nav-slider"></span>
                     <div style="height: 24px;">
-                        <i class="fas fa-home fa-lg"></i>
+                        <i class="fas fa-rss fa-lg"></i>
                     </div>
-                    <small class="mt-1">Home</small>
+                    <small class="mt-1">Feed</small>
                 </NavLink>
             }
-
-            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="feed">
-                <div style="height: 24px;">
-                    <i class="fas fa-rss fa-lg"></i>
-                </div>
-                <small class="mt-1">Feed</small>
-            </NavLink>
-
-            @if (PlatformService.IsNativeApp())
-            {
-                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="tracking">
-                    <div style="height: 24px;">
-                        <i class="fas fa-running fa-lg"></i>
-                    </div>
-                    <small class="mt-1">Activity</small>
-                </NavLink>
-            }
-
-            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="leaderboards">
-                <div style="height: 24px;">
-                    <i class="fas fa-crown fa-lg"></i>
-                </div>
-                <small class="mt-1">Top</small>
-            </NavLink>
 
             <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="medals">
+                <span class="nav-slider"></span>
                 <div style="height: 24px; position: relative;">
                     <i class="fas fa-medal fa-lg"></i>
                     @if (MedalState.MedalsToClaim > 0)
                     {
-                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
+                        <span class="badge bg-danger position-absolute start-100 translate-middle rounded-circle badge-small"
+                              style="top: 3px;">
                             @MedalState.MedalsToClaim
                         </span>
                     }
@@ -127,7 +113,27 @@
                 <small class="mt-1">Medals</small>
             </NavLink>
 
-            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center" href="profile">
+            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="leaderboards">
+                <span class="nav-slider"></span>
+                <div style="height: 24px;">
+                    <i class="fas fa-crown fa-lg"></i>
+                </div>
+                <small class="mt-1">Top</small>
+            </NavLink>
+
+            @if (PlatformService.IsNativeApp())
+            {
+                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="tracking">
+                    <span class="nav-slider"></span>
+                    <div style="height: 24px;">
+                        <i class="fas fa-running fa-lg"></i>
+                    </div>
+                    <small class="mt-1">Activity</small>
+                </NavLink>
+            }
+
+            <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="profile">
+                <span class="nav-slider" style="top:-5px"></span>
                 <img src="@userAvatarUrl" alt="User Avatar" class="avatar-icon" />
             </NavLink>
         </div>

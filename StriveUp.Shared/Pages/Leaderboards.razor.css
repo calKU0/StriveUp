@@ -1,51 +1,147 @@
-/* Avatar styling */
-.user-cell {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.custom-select-wrapper {
+    position: relative;
+    width: auto;
+    font-family: 'Segoe UI', sans-serif;
 }
 
-.avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid #ddd;
+.custom-select-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
+
+    .custom-select-toggle img.activity-icon {
+        width: 28px;
+        height: 28px;
+        margin-right: 4px;
+    }
+
+
+
+
+.custom-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    margin-top: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    z-index: 1;
+}
+
+
+.custom-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+    .custom-select-option:hover {
+        background-color: #f0f0f0;
+    }
+
+    .custom-select-option.selected {
+        background-color: #e7f1ff;
+    }
+
+    .custom-select-option img.activity-icon {
+        width: 28px;
+        height: 28px;
+        margin-right: 4px;
+    }
+
+.arrow {
+    margin-left: auto;
+    font-size: 1.2rem;
+    color: #888;
+}
+
+
 
 .leaderboard-list table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+    font-size: 0.95rem;
 }
 
-.leaderboard-list th,
-.leaderboard-list td {
-    padding: 0.5rem;
-    border-bottom: 1px solid #ddd;
+.leaderboard-list thead {
+    background-color: #f8f9fa;
     text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
 }
 
-.medal-row {
-    font-weight: bold;
+.leaderboard-list th, .leaderboard-list td {
+    padding: 0.3rem 1rem;
+    background: white;
+    vertical-align: middle;
 }
 
-.medal {
-    font-size: 1.2rem;
+.leaderboard-list tbody tr {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease;
 }
 
-    .medal.gold {
-        color: gold;
+    .leaderboard-list tbody tr:hover {
+        cursor: pointer;
     }
 
-    .medal.silver {
-        color: silver;
-    }
-
-    .medal.bronze {
-        color: #cd7f32;
-    }
-
-tr:hover {
-    background-color: #f0f8ff;
-    cursor: pointer;
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
 }
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #eee;
+}
+
+.medal-row td {
+    font-weight: 600;
+}
+
+.medal.gold {
+    color: #d4af37;
+}
+
+.medal.silver {
+    color: #c0c0c0;
+}
+
+.medal.bronze {
+    color: #cd7f32;
+}
+
+@media (max-width: 768px) {
+    .leaderboard-list table {
+        font-size: 0.95rem;
+    }
+
+    .avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .user-cell {
+        gap: 0.5rem;
+    }
+}
+

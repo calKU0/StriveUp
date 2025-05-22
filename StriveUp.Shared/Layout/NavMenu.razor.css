@@ -1,15 +1,9 @@
-.avatar-icon {
-    width: 35px;
-    height: 35px;
+﻿.avatar-icon {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
     border: 0px solid #000000;
 }
 
-.icon-wrapper {
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
+
