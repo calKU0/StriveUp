@@ -22,19 +22,3 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
-
-
-
-@code {
-    protected override async Task OnInitializedAsync()
-    {
-        if (!PlatformService.IsNativeApp())
-        {
-            
-        }
-        else
-        {
-            NavigationManager.NavigateTo("/feed"); 
-        }
-    }
-}
