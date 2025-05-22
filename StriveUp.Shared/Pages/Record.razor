@@ -1,4 +1,4 @@
-﻿@page "/tracking"
+﻿@page "/record"
 
 <!-- Usings -->
 @using GeolocatorPlugin
@@ -19,6 +19,7 @@
 @inject IPlatformService PlatformService
 @implements IDisposable
 
+<PageTitle>Record</PageTitle>
 
 @if (!PlatformService.IsNativeApp())
 {
@@ -33,7 +34,7 @@
 <div class="page-wrapper container-full @(mapVisible ? "map-visible" : "")">
     @if (isLoadingLocation)
     {
-        <Spinner text="Acquiring GPS. Please wait..."></Spinner>
+        <Spinner text="Acquiring GPS..."></Spinner>
     }
     else
     {
@@ -78,9 +79,7 @@
                         <InfoTile Label="Duration" Value="@Duration.ToString(@"hh\:mm\:ss")" IconClass="fas fa-stopwatch" />
                         @if (selectedActivity.ElevationRelevant)
                         {
-                            <!-- TO DO -->
-                            <!-- Elevation tracking -->
-                            <InfoTile Label="Elevation" Value="--" />
+                            <InfoTile Label="Elevation" Value="@($"{(int)Math.Round(elevation)} m")"/>
                         }
                         <!-- TO DO -->
                         <!-- Add dynamic kcal -->
@@ -117,6 +116,7 @@ OnDiscard="@DiscardActivity" />
     private bool mapInitialized = false;
     private Location currentLocation;
     private int Distance = 0;
+    private double elevation = 0; 
     private double Speed = 0;
     private int HeartRate = 0;
     private TimeSpan Duration = TimeSpan.Zero;
@@ -189,9 +189,9 @@ OnDiscard="@DiscardActivity" />
                 return;
             }
 
-            locator.PositionChanged += OnPositionChanged;
             if (!locator.IsListening)
             {
+                locator.PositionChanged += OnPositionChanged;
                 await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 10, false, listenerSettings);
             }  
         }
@@ -250,7 +250,16 @@ OnDiscard="@DiscardActivity" />
                 Speed = ApplyLowPassFilter(deltaSpeed);
             }
 
-            Distance += Convert.ToInt32(Math.Round(distanceDelta));
+            Distance += Convert.ToInt32(Math.Round(distanceDelta / 1000.0));
+
+            if (lastLocation.Altitude.HasValue && location.Altitude.HasValue)
+            {
+                double altitudeDelta = location.Altitude.Value - lastLocation.Altitude.Value;
+                if (altitudeDelta > 0)
+                {
+                    elevation += altitudeDelta;
+                }
+            }
         }
 
         lastLocation = location;
@@ -310,7 +319,7 @@ OnDiscard="@DiscardActivity" />
         else
         {
             StartCompass();
-            _ = StartLocationTracking();
+            _ = StartLocationTracking();           
         }
         await InvokeAsync(() => StateHasChanged());
     }
@@ -438,6 +447,7 @@ OnDiscard="@DiscardActivity" />
                 Longitude = loc.Longitude,
                 Timestamp = loc.Timestamp.UtcDateTime,
             }).ToList(),
+            ElevationGain = (int)Math.Round(elevation),
             Distance = Distance,
             HrData = HrData,
             SpeedData = SpeedData,
@@ -454,8 +464,7 @@ OnDiscard="@DiscardActivity" />
         Speed = 0;
         route.Clear();
 
-        Compass.Default.Stop();
-        Compass.Default.ReadingChanged -= OnCompassReadingChanged;
+        StopCompass();
 
         Navigation.NavigateTo("/feed");
     }
@@ -520,17 +529,14 @@ OnDiscard="@DiscardActivity" />
             // Convert m/s to pace (min/km)
             double paceInMinPerKm = 1000.0 / Speed / 60.0;
 
-            // Round to nearest 0.05 minutes (i.e., 3 seconds)
-            double roundedPace = Math.Round(paceInMinPerKm * 20.0) / 20.0;
+            // Extract total seconds
+            int totalSeconds = (int)Math.Round(paceInMinPerKm * 60);
 
-            int minutes = (int)roundedPace;
-            int seconds = (int)Math.Round((roundedPace - minutes) * 60);
+            // Round to nearest 5 seconds
+            int roundedSeconds = (int)(Math.Round(totalSeconds / 5.0) * 5);
 
-            if (seconds == 60)
-            {
-                minutes++;
-                seconds = 0;
-            }
+            int minutes = roundedSeconds / 60;
+            int seconds = roundedSeconds % 60;
 
             return $"{minutes}:{seconds:D2} min/km";
         }

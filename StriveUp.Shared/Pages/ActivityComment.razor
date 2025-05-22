@@ -8,9 +8,11 @@
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
+<PageTitle>Activity Comments</PageTitle>
+
 @if (comments == null)
 {
-    <Spinner text="Loading Comments. Please wait..."></Spinner>
+    <Spinner text="Loading Comments..."></Spinner>
 }
 else
 {

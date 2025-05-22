@@ -9,10 +9,11 @@
 @inject IActivityService ActivityService
 @inject ILeaderboardService LeaderboardService
 
+<PageTitle>Leaderboards</PageTitle>
 
 @if (IsLoading)
 {
-    <Spinner text="Loading..."></Spinner>
+    <Spinner text="Loading leaderboards..."></Spinner>
 }
 else 
 {

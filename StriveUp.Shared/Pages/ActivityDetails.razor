@@ -13,11 +13,12 @@
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
+<PageTitle>Activity Details</PageTitle>
 
 <div class="container-fluid container-md px-0 px-md-4 my-4">
     @if (isLoading)
     {
-        <Spinner text="Loading details. Please wait..."></Spinner>
+        <Spinner text="Loading details..."></Spinner>
     }
     else
     {

@@ -12,6 +12,8 @@
 @inject ITokenStorageService TokenStorageService
 @attribute [AllowAnonymous]
 
+<PageTitle>Login</PageTitle>
+
 @if (isLoading)
 {
     <Spinner></Spinner>
@@ -120,6 +122,7 @@ else
 
     private async Task HandleLogin()
     {
+        loginError = string.Empty;
         var (success, error) = await AuthService.LoginAsync(loginModel);
 
         if (success)

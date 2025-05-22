@@ -15,6 +15,8 @@
 @inject IActivityService ActivityService
 @implements IDisposable
 
+<PageTitle>Profile</PageTitle>
+
 <div class="container py-5">
     @if (isLoading)
     {
@@ -29,7 +31,7 @@
 
             @if (isLoading)
             {
-                <Spinner text="Loading profile. Please wait..."></Spinner>
+                <Spinner text="Loading profile..."></Spinner>
             }
             else if (!string.IsNullOrWhiteSpace(errorMessage))
             {
