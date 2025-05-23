@@ -34,7 +34,7 @@
                 </NavLink>
                 @if (PlatformService.IsNativeApp())
                 {
-                    <NavLink class="nav-link me-3 d-flex flex-column align-items-center justify-content-center" href="tracking">
+                    <NavLink class="nav-link me-3 d-flex flex-column align-items-center justify-content-center" href="record">
                         <div class="d-flex justify-content-center align-items-center" style="height: 24px;">
                             <i class="fas fa-running fa-lg"></i>
                         </div>
@@ -113,6 +113,17 @@
                 <small class="mt-1">Medals</small>
             </NavLink>
 
+            @if (PlatformService.IsNativeApp())
+            {
+                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="record">
+                    <span class="nav-slider"></span>
+                    <div style="height: 24px;">
+                        <i class="fas fa-running fa-lg"></i>
+                    </div>
+                    <small class="mt-1">Record</small>
+                </NavLink>
+            }
+
             <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="leaderboards">
                 <span class="nav-slider"></span>
                 <div style="height: 24px;">
@@ -120,17 +131,6 @@
                 </div>
                 <small class="mt-1">Top</small>
             </NavLink>
-
-            @if (PlatformService.IsNativeApp())
-            {
-                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="tracking">
-                    <span class="nav-slider"></span>
-                    <div style="height: 24px;">
-                        <i class="fas fa-running fa-lg"></i>
-                    </div>
-                    <small class="mt-1">Activity</small>
-                </NavLink>
-            }
 
             <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="profile">
                 <span class="nav-slider" style="top:-5px"></span>
