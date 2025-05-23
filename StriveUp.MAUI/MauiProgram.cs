@@ -8,6 +8,8 @@ using StriveUp.Infrastructure.Extensions;
 using StriveUp.MAUI.Services;
 using StriveUp.Shared.Interfaces;
 using System.Reflection;
+using Shiny;
+using Shiny.Locations;
 
 
 namespace StriveUp.MAUI;
@@ -36,16 +38,17 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
+            .UseShiny()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
+
         // Add device-specific services used by the StriveUp.Shared project
         builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddSingleton<IPlatformService, MauiPlatformService>();
-
         builder.Services.AddSingleton<IBleHeartRateService, BleHeartRateService>();
 
         builder.Services.AddClientInfrastructure(builder.Configuration);

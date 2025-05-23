@@ -192,7 +192,7 @@ OnDiscard="@DiscardActivity" />
             if (!locator.IsListening)
             {
                 locator.PositionChanged += OnPositionChanged;
-                await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 10, false, listenerSettings);
+                await locator.StartListeningAsync(TimeSpan.FromSeconds(3), 10, false, listenerSettings);
             }  
         }
         catch (Exception ex)
@@ -250,7 +250,7 @@ OnDiscard="@DiscardActivity" />
                 Speed = ApplyLowPassFilter(deltaSpeed);
             }
 
-            Distance += Convert.ToInt32(Math.Round(distanceDelta / 1000.0));
+            Distance += (int)Math.Round(distanceDelta);
 
             if (lastLocation.Altitude.HasValue && location.Altitude.HasValue)
             {

@@ -3,11 +3,11 @@
 
 <a href="/notifications">
     <HeaderIcon>
-        <div class="position-relative">
-            <i class="fas fa-bell text-dark icon-header"></i>
+        <div class="position-relative d-inline-block">
+            <i class="fas fa-bell text-dark icon-header nav-link"></i>
             @if (notificationCount > 0)
             {
-                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle">
+                <span class="notification-badge position-absolute top-0 start-100 translate-middle">
                     @notificationCount
                 </span>
             }

@@ -3,7 +3,10 @@
 
 <!-- Usings -->
 @using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Activity
+@using StriveUp.Shared.DTOs.Leaderboard
 @using StriveUp.Shared.DTOs.Profile
+@using StriveUp.Shared.Helpers
 
 <!-- Injections -->
 @inject IAuthService AuthService
@@ -13,6 +16,7 @@
 @inject IPlatformService PlatformService
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
+@inject ILeaderboardService LeaderboardService
 @implements IDisposable
 
 <PageTitle>Profile</PageTitle>
@@ -107,18 +111,26 @@
         }
 
         <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-button @(activeTab == "activities" ? "active" : "")" @onclick="@(() => activeTab = "activities")">
-                <i class="bi bi-activity me-1"></i> Activities
-            </button>
-            <button class="tab-button @(activeTab == "medals" ? "active" : "")" @onclick="@(() => activeTab = "medals")">
-                <i class="bi bi-award me-1"></i> Medals
-            </button>
+        <div class="tabs leaderboard-type-tabs row row-cols-3 g-0">
+            <div class="col">
+                <button class="tab-button w-100 @(SelectedUserTabType == UserTabType.Activities ? "active" : "")"
+                        @onclick="@(() => OnTabTypeChanged(UserTabType.Activities))">
+                    Activities
+                </button>
+                <button class="tab-button w-100 @(SelectedUserTabType == UserTabType.Medals ? "active" : "")"
+                        @onclick="@(() => OnTabTypeChanged(UserTabType.Medals))">
+                    Medals
+                </button>
+                <button class="tab-button w-100 @(SelectedUserTabType == UserTabType.Statistics ? "active" : "")"
+                        @onclick="@(() => OnTabTypeChanged(UserTabType.Statistics))">
+                    Statistics
+                </button>
+            </div>
         </div>
 
 
         <!-- Activities Tab -->
-        @if (activeTab == "activities")
+        @if (SelectedUserTabType == UserTabType.Activities)
         {
             <div>
                 @if (pagedActivities.Any())
@@ -175,7 +187,7 @@
         }
 
         <!-- Medals Tab -->
-        @if (activeTab == "medals")
+        @if (SelectedUserTabType == UserTabType.Medals)
         {
             <div>
                 <h5 class="mb-3">Earned Medals</h5>
@@ -204,8 +216,149 @@
                 }
             </div>
         }
+
+        <!-- Best Efforts -->
+        @if (SelectedUserTabType == UserTabType.Statistics)
+        {
+            <div class="custom-select-wrapper">
+                <div class="custom-select-toggle" @onclick="ToggleDropdown">
+                    <img src="@ActivityUtils.GetActivityImageUrl(SelectedActivity?.Name, "dark")" class="activity-icon" />
+                    <span class="arrow">&#9662;</span>
+                </div>
+                @if (IsDropdownOpen)
+                {
+                    <div class="custom-select-dropdown">
+                        @foreach (var activity in Activities)
+                        {
+                            <div class="custom-select-option @(activity == SelectedActivity ? "selected" : "")"
+                                    @onclick="() => SelectActivity(activity)">
+                                <img src="@ActivityUtils.GetActivityImageUrl(activity.Name, "dark")" class="activity-icon" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>  
+            @if (BestEffortStatsEntries != null && ActivityStatsEntries != null)
+            {
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th colspan="5">🏁 Best Efforts</th>
+                            </tr>
+                            <tr>
+                                <th>Segment</th>
+                                <th>@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var effort in BestEffortStatsEntries)
+                            {
+                                <tr>
+                                    <td class="d-none d-md-table-cell">@effort.SegmentName</td>
+                                    <td class="d-md-table-cell d-md-none">@effort.SegmentShortName</td>
+                                    <td>@ActivityUtils.GetSpeedOrPace(effort.Speed, SelectedActivity.MeasurementType)</td>
+                                    <td>@effort.ActivityDate.ToShortDateString()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <table class="table table-bordered mt-5">
+                        <thead class="table-dark">
+                            <tr>
+                                <th colspan="2">📊 All Time Stats</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Activities</td>
+                                <td>@ActivityStatsEntries.TotalActivities</td>
+                            </tr>
+                            <tr>
+                                <td>Time</td>
+                                <td>@($"{(int)TimeSpan.FromSeconds(ActivityStatsEntries.TotalTime).TotalHours}h {TimeSpan.FromSeconds(ActivityStatsEntries.TotalTime).Minutes}min")</td>
+                            </tr>
+                            <tr>
+                                <td>Distance</td>
+                                <td>@ActivityStatsEntries.CurrentYearDistance.ToString("F2") km</td>
+                            </tr>
+                            @if (SelectedActivity.ElevationRelevant)
+                            {
+                                <tr>
+                                    <td>Elevation Gain</td>
+                                    <td>@ActivityStatsEntries.TotalElevationGain</td>              
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <table class="table table-bordered mt-3">
+                        <thead class="table-info">
+                            <tr>
+                                <th colspan="2">📅 Current Year</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Activities</td>
+                                <td>@ActivityStatsEntries.CurrentYearActivities</td>
+                            </tr>
+                            <tr>
+                                <td>Distance</td>
+                                <td>@ActivityStatsEntries.CurrentYearDistance.ToString("F2") km</td>
+                            </tr>
+                            <tr>
+                                <td>Time</td>
+                                <td>@($"{(int)TimeSpan.FromSeconds(ActivityStatsEntries.CurrentYearTime).TotalHours}h {TimeSpan.FromSeconds(ActivityStatsEntries.CurrentYearTime).Minutes}min")</td>
+                            </tr>
+                            @if (SelectedActivity.ElevationRelevant)
+                            {
+                                <tr>
+                                    <td>Elevation Gain</td>
+                                    <td>@ActivityStatsEntries.CurrentYearElevationGain</td>              
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <table class="table table-bordered mt-3">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th colspan="2">📅 Weekly Averages</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Activities</td>
+                                <td>@ActivityStatsEntries.AvgWeeklyActivities</td>
+                            </tr>
+                            <tr>
+                                <td>Distance</td>
+                                <td>@ActivityStatsEntries.AvgWeeklyDistance.ToString("F2") km</td>
+                            </tr>
+                            <tr>
+                                <td>Time</td>
+                                <td>@($"{(int)TimeSpan.FromSeconds(ActivityStatsEntries.AvgWeeklyTime).TotalHours}h {TimeSpan.FromSeconds(ActivityStatsEntries.AvgWeeklyTime).Minutes}min")</td>
+                            </tr>
+                            @if (SelectedActivity.ElevationRelevant)
+                            {
+                                <tr>
+                                    <td>Elevation Gain</td>
+                                    <td>@ActivityStatsEntries.AvgWeeklyElevationGain</td>              
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
     }
 </div>
+
+<!-- TO DO -->
+<!-- Show spinner when loading and optimize so it doesnt load again activities/efforts when changing between tabs-->
 
 @code {
     [Parameter] public string? Username { get; set; }
@@ -222,10 +375,17 @@
     private UserProfileDto userProfile = new();
     private bool isEditable = false;
     private string userName = "";
-    private string activeTab = "activities";
     private int XPProgress => userProfile.LevelTotalXP == 0
         ? 0
         : (int)((double)userProfile.CurrentXP / userProfile.LevelTotalXP * 100);
+
+    private bool IsDropdownOpen = false;
+    private ActivityDto? SelectedActivity;
+    private List<ActivityDto> Activities = new();
+    private UserActivityStatsDto? ActivityStatsEntries;
+    private List<UserBestEffortsStatsDto>? BestEffortStatsEntries;
+    private enum UserTabType { Activities, Medals, Statistics }
+    private UserTabType SelectedUserTabType = UserTabType.Activities;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -233,13 +393,13 @@
         {
             await LoadInitialProfile();
 
-            if (activeTab == "activities")
+            if (SelectedUserTabType == UserTabType.Activities)
             {
                 await LoadMoreActivities();
             }
         }
 
-        if (activeTab == "activities" && hasMoreActivities && sentinel.Id != null && !observerInitialized)
+        if (SelectedUserTabType == UserTabType.Activities && hasMoreActivities && sentinel.Id != null && !observerInitialized)
         {
             try
             {
@@ -285,6 +445,61 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private async Task ToggleDropdown()
+    {
+        IsDropdownOpen = !IsDropdownOpen;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectActivity(ActivityDto activity)
+    {
+        IsDropdownOpen = false;
+        await OnActivitySelected(activity);
+    }
+
+    private async Task OnActivitySelected(ActivityDto activity)
+    {
+        if (SelectedActivity == activity)
+            return;
+
+        SelectedActivity = activity;
+        await LoadLeaderboardAsync();
+    }
+
+    private async Task LoadActivitiesAsync()
+    {
+        // Load activities with segments from API (combine or separate endpoints)
+        Activities = await ActivityService.GetActivitiesWithSegments() ?? new List<ActivityDto>();
+        if (Activities.Any())
+        {
+            SelectedActivity = Activities.First();
+            await LoadLeaderboardAsync();
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnTabTypeChanged(UserTabType type)
+    {
+        if (SelectedUserTabType != type)
+        {
+            SelectedUserTabType = type;
+            if (type == UserTabType.Statistics)
+            {
+               await LoadActivitiesAsync();
+            }
+        }
+    }
+
+    private async Task LoadLeaderboardAsync()
+    {
+        if (SelectedActivity == null) return;
+
+        var result = await LeaderboardService.GetUserStats(userName, SelectedActivity.Id);
+        BestEffortStatsEntries = result.BestEfforts;
+        ActivityStatsEntries = result.ActivityStats;
+        StateHasChanged();
+    }
+
     [JSInvokable]
     public async Task LoadMoreActivities()
     {
@@ -319,8 +534,6 @@
         }
     }
 
-
-
     private async Task HandleLogout()
     {
         await AuthService.LogoutAsync();
@@ -338,11 +551,6 @@
     {
         var parts = new[] { city, state, country }.Where(x => !string.IsNullOrWhiteSpace(x));
         return parts.Any() ? string.Join(", ", parts) : "Location not set";
-    }
-
-    private void SetTab(string tab)
-    {
-        activeTab = tab;
     }
 
     public void Dispose()

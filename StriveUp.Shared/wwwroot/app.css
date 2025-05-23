@@ -66,6 +66,76 @@ a, .btn-link {
         height: 30px;
     }
 
+.custom-select-wrapper {
+    position: relative;
+    width: auto;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.custom-select-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+    .custom-select-toggle img.activity-icon {
+        width: 28px;
+        height: 28px;
+        margin-right: 4px;
+    }
+
+
+
+
+.custom-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    margin-top: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    z-index: 1;
+}
+
+
+.custom-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+    .custom-select-option:hover {
+        background-color: #f0f0f0;
+    }
+
+    .custom-select-option.selected {
+        background-color: #e7f1ff;
+    }
+
+    .custom-select-option img.activity-icon {
+        width: 28px;
+        height: 28px;
+        margin-right: 4px;
+    }
+
+.arrow {
+    margin-left: auto;
+    font-size: 1.2rem;
+    color: #888;
+}
+
 .navbar {
     width: 100%;
     z-index: 1000;
@@ -83,11 +153,13 @@ a, .btn-link {
     color: inherit;
 }
 
+.navbar .nav-link.active {
+    color: #fff !important;
+}
 
-
-    .navbar .nav-link:hover {
-        color: #fff !important;
-    }
+.navbar .nav-link:hover {
+    color: #fff !important;
+}
 
 
 .container-full {
@@ -321,6 +393,21 @@ textarea.form-control {
     background-color: #f8f9fa !important;
 }
 
+.notification-badge {
+    background-color: #dc3545; /* Bootstrap danger color */
+    color: white;
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    top: 8px !important;
+    left: 27px !important;
+}
+
 /* Progress Bar Container Styling */
 .progress {
     height: 8px; /* Slightly thicker bar */
@@ -332,7 +419,7 @@ textarea.form-control {
 
 /* Progress Bar Fill Styling */
 .progress-bar {
-    transition: width 1.5s ease-in-out;
+    transition: width 1.25s ease-in-out;
     height: 100%; /* Fill the full height of the container */
     border-radius: 10px; /* Rounded corners to match the container */
 }
@@ -593,4 +680,6 @@ textarea.form-control {
         .navbar .nav-link.active .nav-slider {
             transform: scaleX(1);
         }
+
+
 }

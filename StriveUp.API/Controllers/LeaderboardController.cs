@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StriveUp.API.Interfaces;
+using StriveUp.Shared.DTOs.Leaderboard;
 using System.Security.Claims;
 
 namespace StriveUp.API.Controllers
@@ -43,6 +44,18 @@ namespace StriveUp.API.Controllers
 
             var levelsDto = await _leaderboardService.GetFollowersLevelLeaderboard(userId);
             return Ok(levelsDto);
+        }
+
+        [HttpGet("user-stats/{userName}/{activityId}")]
+        public async Task<IActionResult> GetUserStats(string userName, int activityId)
+        {
+            var (bestEfforts, activityStats) = await _leaderboardService.GetUserStats(userName, activityId);
+            var response = new UserStatsResponseDto
+            {
+                BestEfforts = bestEfforts,
+                ActivityStats = activityStats
+            };
+            return Ok(response);
         }
     }
 }

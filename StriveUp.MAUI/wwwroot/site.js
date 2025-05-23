@@ -261,6 +261,20 @@ window.launchConfetti = () => {
     }
 };
 
+window.animateCounter = (dotNetRef, target, duration) => {
+    let current = 0;
+    const increment = target / (duration / 16); // Roughly 60fps
+    const interval = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            current = target;
+            clearInterval(interval);
+        }
+        dotNetRef.invokeMethodAsync('UpdateAnimatedPercent', Math.round(current));
+    }, 16);
+};
+
+
 // lazy loading (infinite scroll)
 window.activityFeedObserver = null;
 

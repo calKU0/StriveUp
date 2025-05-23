@@ -4,6 +4,7 @@ using StriveUp.Infrastructure.Data;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Leaderboard;
 using StriveUp.Shared.Helpers;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace StriveUp.API.Services
@@ -128,6 +129,88 @@ namespace StriveUp.API.Services
                 .ToListAsync();
 
             return levels;
+        }
+
+        public async Task<(List<UserBestEffortsStatsDto>, UserActivityStatsDto)> GetUserStats(string userName, int activityId)
+        {
+            string userId = _context.Users.Where(u => u.UserName == userName).Select(u => u.Id).First();
+
+            // --- Best Efforts ---
+            var bestEfforts = await _context.BestEfforts
+                .Include(be => be.SegmentConfig)
+                .Include(be => be.UserActivity)
+                .Where(be => be.UserId == userId && be.SegmentConfig.ActivityId == activityId)
+                .ToListAsync();
+
+            var userBestEfforts = bestEfforts
+                .GroupBy(be => be.SegmentConfigId)
+                .Select(g => g.OrderBy(be => be.DurationSeconds).First())
+                .Select(be => new UserBestEffortsStatsDto
+                {
+                    SegmentName = be.SegmentConfig.Name,
+                    SegmentShortName = be.SegmentConfig.ShortName,
+                    TotalDuration = be.DurationSeconds,
+                    Speed = be.Speed,
+                    ActivityDate = be.UserActivity.DateEnd,
+                    ActivityId = be.UserActivityId
+                })
+                .ToList();
+
+            // --- Activity Stats ---
+            var now = DateTime.UtcNow;
+            var startOfYear = new DateTime(now.Year, 1, 1);
+
+            var userActivities = await _context.UserActivities
+                .Where(ua => ua.UserId == userId && ua.ActivityId == activityId)
+                .ToListAsync();
+
+            double totalDistance = userActivities.Sum(ua => ua.Distance) / 1000.0;
+            double totalTime = userActivities.Sum(ua => ua.DurationSeconds);
+            int totalActivities = userActivities.Count;
+            int totalElevationGain = userActivities.Sum(ua => ua.ElevationGain) ?? 0;
+
+            var currentYearActivities = userActivities.Where(ua => ua.DateEnd >= startOfYear).ToList();
+            double currentYearDistance = currentYearActivities.Sum(ua => ua.Distance) / 1000.0;
+            double currentYearTime = currentYearActivities.Sum(ua => ua.DurationSeconds);
+            int currentYearActivitiesCount = currentYearActivities.Count;
+            int currentYearElevationGain = currentYearActivities.Sum(ua => ua.ElevationGain) ?? 0;
+
+            // Weekly averages: group by ISO week + year
+            var weeklyGroups = userActivities
+                .Where(ua => ua.DateEnd != null)
+                .GroupBy(ua => (ISOWeek.GetYear(ua.DateEnd!), ISOWeek.GetWeekOfYear(ua.DateEnd!)))
+                .ToList();
+
+            double avgWeeklyDistance = weeklyGroups.Any()
+                ? weeklyGroups.Average(g => g.Sum(ua => ua.Distance)) / 1000.0
+                : 0;
+            double avgWeeklyTime = weeklyGroups.Any()
+                ? weeklyGroups.Average(g => g.Sum(ua => ua.DurationSeconds))
+                : 0;
+            double avgWeeklyActivities = weeklyGroups.Any()
+                ? weeklyGroups.Average(g => g.Count())
+                : 0;
+            int avgWeeklyElevationGain = weeklyGroups.Any()
+                ? Convert.ToInt32(weeklyGroups.Average(g => g.Sum(ua => ua.ElevationGain)))
+                : 0;
+
+            var statsDto = new UserActivityStatsDto
+            {
+                TotalDistance = totalDistance,
+                TotalTime = totalTime,
+                TotalActivities = totalActivities,
+                TotalElevationGain = totalElevationGain,
+                AvgWeeklyDistance = avgWeeklyDistance,
+                AvgWeeklyTime = avgWeeklyTime,
+                AvgWeeklyActivities = avgWeeklyActivities,
+                AvgWeeklyElevationGain = avgWeeklyElevationGain,
+                CurrentYearDistance = currentYearDistance,
+                CurrentYearTime = currentYearTime,
+                CurrentYearActivities = currentYearActivitiesCount,
+                CurrentYearElevationGain = currentYearElevationGain,
+            };
+
+            return (userBestEfforts, statsDto);
         }
 
         private async Task<List<string>> GetUserAndFollowersIdsAsync(string userId)
