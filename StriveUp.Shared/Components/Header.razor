@@ -6,7 +6,7 @@
     @if (showBackButton)
     {
         <div class="left-icons d-flex align-items-center">
-            <i class="fas fa-arrow-left text-dark" @onclick="BackButtonClick"></i>
+            <i class="fas fa-arrow-left text-dark icon-header" @onclick="BackButtonClick"></i>
         </div>
     }
 
@@ -28,7 +28,9 @@
         @if (showSettings)
         {
             <a href="/settings">
-                <i class="icon-header nav-link d-flex align-items-center justify-content-center fas fa-cog text-dark"></i>
+                <HeaderIcon>
+                        <i class="fas fa-cog text-dark icon-header"></i>
+                </HeaderIcon>
             </a>
         }
     </div>

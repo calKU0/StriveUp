@@ -2,100 +2,319 @@
 
 <!-- Usings -->
 @using StriveUp.Shared.DTOs.Activity
+@using StriveUp.Shared.DTOs.Leaderboard
 @using StriveUp.Shared.Helpers
 
 <!-- Injections -->
 @inject NavigationManager NavigationManager
 @inject IActivityService ActivityService
 @inject ILeaderboardService LeaderboardService
+@inject IPlatformService PlatformService;
 
+<PageTitle>Leaderboards</PageTitle>
 
 @if (IsLoading)
 {
-    <Spinner text="Loading..."></Spinner>
+    <Spinner text="Loading leaderboards..."></Spinner>
 }
 else 
 {
-    <!-- TO DO -->
-    <!-- ADD ICONS-->
-    <div class="container-fluid p-0 m-0 p-md-2 p-md-2">
+    <div class="container-fluid p-0 m-0 p-md-2 pt-1">
         <h1 class="d-md-block d-none">Leaderboards</h1>
-        <div class="tabs">
-            @foreach (var activity in Activities)
-            {
-                <button class="tab-button @(activity == SelectedActivity ? "active" : "")" @onclick="() => OnActivitySelected(activity)">
-                    @activity.Name
+
+        <!-- 1. Duration / Distance Toggle (Full Width Tabs) -->
+        <div class="tabs leaderboard-type-tabs row row-cols-3 g-0">
+            <div class="col">
+                <button class="tab-button w-100 @(SelectedLeaderboardType == LeaderboardType.Duration ? "active" : "")"
+                        @onclick="@(() => OnLeaderboardTypeChanged(LeaderboardType.Duration))">
+                    Duration
                 </button>
-            }
+                <button class="tab-button w-100 @(SelectedLeaderboardType == LeaderboardType.Distance ? "active" : "")"
+                        @onclick="@(() => OnLeaderboardTypeChanged(LeaderboardType.Distance))">
+                    Distance
+                </button>
+                <button class="tab-button w-100 @(SelectedLeaderboardType == LeaderboardType.Level ? "active" : "")"
+                        @onclick="@(() => OnLeaderboardTypeChanged(LeaderboardType.Level))">
+                    Level
+                </button>
+            </div>
         </div>
+
+        <!-- 2. Activity Select + Segment/Timeframe Tabs in same row -->
+        @if(SelectedLeaderboardType != LeaderboardType.Level)
+        {       
+            <div class="d-flex align-items-center gap-3 mb-3 mx-2">
+                <div class="custom-select-wrapper">
+                    <div class="custom-select-toggle" @onclick="ToggleDropdown">
+                        <img src="@ActivityUtils.GetActivityImageUrl(SelectedActivity?.Name, "dark")" class="activity-icon" />
+                        <span class="arrow">&#9662;</span>
+                    </div>
+                    @if (IsDropdownOpen)
+                    {
+                        <div class="custom-select-dropdown">
+                            @foreach (var activity in Activities)
+                            {
+                                <div class="custom-select-option @(activity == SelectedActivity ? "selected" : "")"
+                                     @onclick="() => SelectActivity(activity)">
+                                    <img src="@ActivityUtils.GetActivityImageUrl(activity.Name, "dark")" class="activity-icon" />
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>         
+
+                <!-- Segments -->
+                <div class="tabs segment-timeframe-tabs d-flex align-items-center gap-2 mt-3">
+                    @if (SelectedLeaderboardType == LeaderboardType.Duration && SelectedActivitySegments?.Count > 0)
+                    {
+                        @foreach (var segment in SelectedActivitySegments)
+                        {
+                            <button class="tab-button @(segment == SelectedSegment ? "active" : "")"
+                                    @onclick="() => OnSegmentSelected(segment)">
+                                @segment.Name
+                            </button>
+                        }
+                    }
+                    else if (SelectedLeaderboardType == LeaderboardType.Distance)
+                    {
+                        <button class="tab-button @(SelectedTimeframe == Timeframe.AllTime ? "active" : "")"
+                                @onclick="@(() => OnTimeframeChanged(Timeframe.AllTime))">
+                            All Time
+                        </button>
+                        <button class="tab-button @(SelectedTimeframe == Timeframe.Weekly ? "active" : "")"
+                                @onclick="@(() => OnTimeframeChanged(Timeframe.Weekly))">
+                            Weekly
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- 3. Leaderboard -->
 
         @if (SelectedActivity != null)
         {
-            <div class="tabs segments-tabs">
-                @foreach (var segment in SelectedActivitySegments)
-                {
-                     <button class="tab-button @(segment == SelectedSegment ? "active" : "")" @onclick="() => OnSegmentSelected(segment)">
-                        <span class="d-none d-sm-inline">@segment.Name</span>   <!-- Hide on xs, show on sm+ -->
-                        <span class="d-inline d-sm-none">@segment.ShortName</span> <!-- Show on xs only -->
-                    </button>
-                }
-            </div>
-
             <div class="leaderboard-list px-2">
-                @if (LeaderboardEntries is null)
+                @if (SelectedLeaderboardType == LeaderboardType.Duration)
                 {
-                    <Spinner></Spinner>
+                    if (LeaderboardEntries is null)
+                    {
+                        <Spinner></Spinner>
+                    }
+                    else if (LeaderboardEntries.Count == 0)
+                    {
+                        <!-- Modern empty leaderboard call-to-action -->
+                        <div class="text-center py-5 px-3 px-md-5">
+                            <h2 class="fw-semibold text-dark mb-2">Ready to take the lead?</h2>
+                            <p class="text-muted fs-5 mb-4">No one has made a move yet — kick things off and invite friends to join the race!</p>
+
+                            <div class="d-flex flex-column align-items-center gap-3">
+                                @if (!PlatformService.IsNativeApp())
+                                {
+                                    <a class="btn btn-primary btn-lg rounded-pill px-2 py-2 d-flex align-items-center gap-2 shadow-sm" href="/record">
+                                        <span class="fs-4">🥇</span>
+                                        <span class="fw-medium">Be the first to set the pace</span>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <div class="text-center">
+                                        <h5 class="text-primary fw-semibold">Get the app and start your race</h5>
+                                        <a href="https://play.google.com/store" target="_blank">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                                                 alt="Get it on Google Play"
+                                                 class="google-play-badge mt-2" style="max-width: 180px;">
+                                        </a>
+                                    </div>
+                                }
+
+                                <div class="mt-4 text-center">
+                                    <p class="text-muted mb-2">Want some competition?</p>
+                                    <a href="/search" class="btn btn-outline-dark btn-md rounded-pill px-4 py-2">
+                                        👥 Add friends to compare your stats
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>User</th>
+                                    <th>Duration</th>
+                                    <th>@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
+                                    <th class="d-none d-md-block">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var entry in LeaderboardEntries.Select((value, index) => new { value, index }))
+                                {
+                                    <tr class="@(entry.index < 3 ? "medal-row" : "")" @onclick="() => OnUserClicked(entry.value)">
+                                        <td>
+                                            @if (entry.index == 0)
+                                            {
+                                                <span class="medal gold">🥇</span>
+                                            }
+                                            else if (entry.index == 1)
+                                            {
+                                                <span class="medal silver">🥈</span>
+                                            }
+                                            else if (entry.index == 2)
+                                            {
+                                                <span class="medal bronze">🥉</span>
+                                            }
+                                            else
+                                            {
+                                                @(entry.index + 1)
+                                            }
+                                        </td>
+                                        <td class="user-cell">
+                                            <img class="avatar" src="@entry.value.UserAvatar" alt="Avatar" />
+                                            @entry.value.Username
+                                        </td>
+                                        <td>@TimeSpan.FromSeconds(entry.value.TotalDuration).ToString(@"mm\:ss")</td>
+                                        <td>@(ActivityUtils.GetSpeedOrPace(entry.value.Speed, SelectedActivity.MeasurementType))</td>
+                                        <td class="d-none d-md-table-cell">@entry.value.ActivityDate.ToShortDateString()</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="mt-4 text-center">
+                            <p class="text-muted">Want more competition?</p>
+                            <a href="/search" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                                👥 Add friends to compare your stats
+                            </a>
+                        </div>              
+                    }
                 }
-                else if (LeaderboardEntries.Count == 0)
+                else if (SelectedLeaderboardType == LeaderboardType.Distance)
                 {
-                    <p>No records found.</p>
+                    if (DistanceLeaderboardEntries is null)
+                    {
+                        <Spinner></Spinner>
+                    }
+                    else if (DistanceLeaderboardEntries.Count == 0)
+                    {
+                        <p>No distance records found.</p>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>User</th>
+                                    <th>Total Distance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var entry in DistanceLeaderboardEntries.Select((value, index) => new { value, index }))
+                                {
+                                    <tr class="@(entry.index < 3 ? "medal-row" : "")" @onclick="() => OnUserProfileClicked(entry.value.Username)">
+                                        <td>
+                                            @if (entry.index == 0)
+                                            {
+                                                <span class="medal gold">🥇</span>
+                                            }
+                                            else if (entry.index == 1)
+                                            {
+                                                <span class="medal silver">🥈</span>
+                                            }
+                                            else if (entry.index == 2)
+                                            {
+                                                <span class="medal bronze">🥉</span>
+                                            }
+                                            else
+                                            {
+                                                @(entry.index + 1)
+                                            }
+                                        </td>
+                                        <td class="user-cell">
+                                            <img class="avatar" src="@entry.value.UserAvatar" alt="Avatar" />
+                                            @entry.value.Username
+                                        </td>
+                                        <td>@entry.value.TotalDistance.ToString("0.##") km</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="mt-4 text-center">
+                            <p class="text-muted">Want more competition?</p>
+                            <a href="/search" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                                👥 Add friends to compare your stats
+                            </a>
+                        </div>              
+                    }
                 }
-                else
+                else if (SelectedLeaderboardType == LeaderboardType.Level)
                 {
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>User</th>
-                            <th>Duration</th>
-                            <th>@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
-                            <th>Date</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach (var entry in LeaderboardEntries.Select((value, index) => new { value, index }))
-                        {
-                            <tr class="@(entry.index < 3 ? "medal-row" : "")" @onclick="() => OnUserClicked(entry.value)">
-                                <td>
-                                    @if (entry.index == 0)
-                                    {
-                                        <span class="medal gold">🥇</span>
-                                    }
-                                    else if (entry.index == 1)
-                                    {
-                                        <span class="medal silver">🥈</span>
-                                    }
-                                    else if (entry.index == 2)
-                                    {
-                                        <span class="medal bronze">🥉</span>
-                                    }
-                                    else
-                                    {
-                                        @(entry.index + 1)
-                                    }
-                                </td>
-                                <td class="user-cell">
-                                    <img class="avatar" src="@entry.value.UserAvatar" alt="Avatar"/>
-                                    @entry.value.Username
-                                </td>
-                                <td>@TimeSpan.FromSeconds(entry.value.TotalDuration).ToString(@"mm\:ss")</td>
-                                <td>@(ActivityUtils.GetSpeedOrPace(entry.value.Speed, SelectedActivity.MeasurementType))</td>
-                                <td>@entry.value.ActivityDate.ToShortDateString()</td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
+                    if (LevelLeaderboardEntries is null)
+                    {
+                        <Spinner></Spinner>
+                    }
+                    else if (LevelLeaderboardEntries.Count == 0)
+                    {
+                        <p>No level data available.</p>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>User</th>
+                                    <th>Level</th>
+                                    <th>XP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var entry in LevelLeaderboardEntries.Select((value, index) => new { value, index }))
+                                {
+                                    <tr class="@(entry.index < 3 ? "medal-row" : "")" @onclick="() => OnUserProfileClicked(entry.value.Username)">
+                                        <td>
+                                            @if (entry.index == 0)
+                                            {
+                                                <span class="medal gold">🥇</span>
+                                            }
+                                            else if (entry.index == 1)
+                                            {
+                                                <span class="medal silver">🥈</span>
+                                            }
+                                            else if (entry.index == 2)
+                                            {
+                                                <span class="medal bronze">🥉</span>
+                                            }
+                                            else
+                                            {
+                                                @(entry.index + 1)
+                                            }
+                                        </td>
+                                        <td class="user-cell">
+                                            <img class="avatar" src="@entry.value.UserAvatar" alt="Avatar" />
+                                            @entry.value.Username
+                                        </td>
+                                        <td>@entry.value.Level</td>
+                                        <td>@entry.value.ExperiencePoints</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="mt-4 text-center">
+                            <p class="text-muted">Want more competition?</p>
+                            <a href="/search" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                                👥 Add friends to compare your stats
+                            </a>
+                        </div>
+                    }
                 }
+
             </div>
         }
     </div>
@@ -108,7 +327,17 @@ else
     private List<SegmentDto> SelectedActivitySegments = new();
     private SegmentDto? SelectedSegment;
 
+    private List<DistanceLeaderboardDto>? DistanceLeaderboardEntries;
     private List<LeaderboardDto>? LeaderboardEntries;
+    private List<LevelLeaderboardDto>? LevelLeaderboardEntries;
+
+    private enum LeaderboardType { Duration, Distance, Level }
+    private enum Timeframe { AllTime, Weekly, Monthly, Yearly }
+
+    private LeaderboardType SelectedLeaderboardType = LeaderboardType.Duration;
+    private Timeframe SelectedTimeframe = Timeframe.AllTime;
+
+    private bool IsDropdownOpen = false;
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
@@ -143,6 +372,40 @@ else
         }
     }
 
+    private async Task LoadLeaderboardAsync()
+    {
+        if (SelectedActivity == null)
+            return;
+
+        if (SelectedLeaderboardType == LeaderboardType.Duration)
+        {
+            if (SelectedSegment == null)
+                return;
+
+            LeaderboardEntries = await LeaderboardService.GetBestFollowersEfforts(SelectedSegment);
+        }
+        else if (SelectedLeaderboardType == LeaderboardType.Distance)
+        {
+            DistanceLeaderboardEntries = await LeaderboardService.GetFollowersDistanceLeaderboard(SelectedActivity.Id, SelectedTimeframe.ToString());
+        }
+        else if (SelectedLeaderboardType == LeaderboardType.Level)
+        {
+            LevelLeaderboardEntries = await LeaderboardService.GetFollowersLevelLeaderboard();
+        }
+    }
+
+    private async Task ToggleDropdown()
+    {
+        IsDropdownOpen = !IsDropdownOpen;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectActivity(ActivityDto activity)
+    {
+        IsDropdownOpen = false;
+        await OnActivitySelected(activity);
+    }
+
     private async Task OnActivitySelected(ActivityDto activity)
     {
         if (SelectedActivity == activity)
@@ -152,6 +415,8 @@ else
         SelectedActivitySegments = activity.Segments;
         SelectedSegment = SelectedActivitySegments.FirstOrDefault();
         LeaderboardEntries = null;
+        DistanceLeaderboardEntries = null;
+        LevelLeaderboardEntries = null;
         await LoadLeaderboardAsync();
     }
 
@@ -165,16 +430,35 @@ else
         await LoadLeaderboardAsync();
     }
 
-    private async Task LoadLeaderboardAsync()
-    {
-        if (SelectedActivity == null || SelectedSegment == null)
-            return;
-
-        LeaderboardEntries = await LeaderboardService.GetBestFollowersEfforts(SelectedSegment);
-    }
 
     private void OnUserClicked(LeaderboardDto entry)
     {
-        NavigationManager.NavigateTo($"/activity/{entry.ActivityId}");
+        if (entry?.ActivityId != null) NavigationManager.NavigateTo($"/activity/{entry.ActivityId}");
+    }
+
+    private void OnUserProfileClicked(string username)
+    {
+        if (username != null) NavigationManager.NavigateTo($"/profile/{username}");
+    }
+
+    private async Task OnLeaderboardTypeChanged(LeaderboardType type)
+    {
+        if (SelectedLeaderboardType != type)
+        {
+            SelectedLeaderboardType = type;
+            DistanceLeaderboardEntries = null;
+            LeaderboardEntries = null;
+            await LoadLeaderboardAsync();
+        }
+    }
+
+    private async Task OnTimeframeChanged(Timeframe timeframe)
+    {
+        if (SelectedTimeframe != timeframe)
+        {
+            SelectedTimeframe = timeframe;
+            DistanceLeaderboardEntries = null;
+            await LoadLeaderboardAsync();
+        }
     }
 }

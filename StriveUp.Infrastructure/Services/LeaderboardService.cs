@@ -1,6 +1,7 @@
 ﻿using GeolocatorPlugin.Abstractions;
 using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Leaderboard;
 using StriveUp.Shared.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -27,10 +28,17 @@ namespace StriveUp.Infrastructure.Services
             return result ?? new();
         }
 
-        public async Task<List<LeaderboardDto>> GetTopTimeSpentAsync()
+        public async Task<List<DistanceLeaderboardDto>> GetFollowersDistanceLeaderboard(int activityId, string Timeframe)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            var result = await _httpClient.GetFromJsonAsync<List<LeaderboardDto>>("leaderboard/top-time-spent");
+            var result = await _httpClient.GetFromJsonAsync<List<DistanceLeaderboardDto>>($"leaderboard/followers-distance/{activityId}/{Timeframe}");
+            return result ?? new();
+        }
+
+        public async Task<List<LevelLeaderboardDto>> GetFollowersLevelLeaderboard()
+        {
+            await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+            var result = await _httpClient.GetFromJsonAsync<List<LevelLeaderboardDto>>($"leaderboard/followers-level");
             return result ?? new();
         }
     }

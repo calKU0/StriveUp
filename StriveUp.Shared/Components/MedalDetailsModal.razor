@@ -108,24 +108,24 @@
         }
 
         // Reset progress state for the new medal
-        DisplayedProgress = 0;
-        AnimatedPercent = 0;
+            DisplayedProgress = 0;
+            AnimatedPercent = 0;
 
         // Animate the progress bar
         await Task.Delay(100); // Short delay to trigger animation cleanly
-        DisplayedProgress = Medal.ProgressPercent;
-        StateHasChanged();
-
-        int duration = 1500;
-        int delay = Medal.ProgressPercent > 0 ? duration / Medal.ProgressPercent : 0;
-
-        while (AnimatedPercent < Medal.ProgressPercent)
-        {
-            AnimatedPercent++;
+            DisplayedProgress = Medal.ProgressPercent;
             StateHasChanged();
-            await Task.Delay(delay);
+
+            int duration = 1500;
+            int delay = Medal.ProgressPercent > 0 ? duration / Medal.ProgressPercent : 0;
+
+            while (AnimatedPercent < Medal.ProgressPercent)
+            {
+                AnimatedPercent++;
+                StateHasChanged();
+                await Task.Delay(delay);
+            }
         }
-    }
 
     private async Task CloseModal()
     {

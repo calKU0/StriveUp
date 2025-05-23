@@ -1,8 +1,0 @@
-openssl req \
-  -newkey rsa:2048 \
-  -nodes \
-  -x509 \
-  -days 36500 \
-  -keyout cert.key \
-  -out cert.crt \
-  -addext "subjectAltName = DNS.1:localhost, IP.1:127.0.0.1, IP.2:10.0.2.2"

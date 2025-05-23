@@ -27,12 +27,22 @@ namespace StriveUp.API.Controllers
             return Ok(leaderboard);
         }
 
-        [HttpGet("top-time-spent")]
-        public async Task<IActionResult> GetTopTimeSpent()
+        [HttpGet("followers-distance/{activityId}/{timeframe}")]
+        public async Task<IActionResult> GetFollowersDistanceLeaderboard(int activityId, string timeframe)
         {
             var userId = GetUserId();
-            var leaderboard = await _leaderboardService.GetTopTimeSpentAsync(userId);
+
+            var leaderboard = await _leaderboardService.GetFollowersDistanceLeaderboard(userId, activityId, timeframe.ToLower());
             return Ok(leaderboard);
+        }
+
+        [HttpGet("followers-level")]
+        public async Task<IActionResult> GetFollowersLevel()
+        {
+            var userId = GetUserId();
+
+            var levelsDto = await _leaderboardService.GetFollowersLevelLeaderboard(userId);
+            return Ok(levelsDto);
         }
     }
 }

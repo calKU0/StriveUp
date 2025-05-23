@@ -44,6 +44,7 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appicon.svg" Color="#ff8000" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#ff8000" BaseSize="128,128" />
@@ -60,25 +61,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<AndroidResource Remove="Platforms\Android\Resources\raw\cert.key" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<MauiImage Remove="Resources\Images\running-woman.jpg" />
 		<MauiImage Remove="Resources\Images\StriveUp-logo.png" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Platforms\Android\Resources\mipmap\appicon.svg" />
-	  <None Remove="Platforms\Android\Resources\xml\network_security_config.xml" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <AndroidResource Include="Platforms\Android\Resources\mipmap\appicon.svg" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <MauiIcon Include="Resources\AppIcon\appicon.svg" />
 	</ItemGroup>
 
 	<ItemGroup>
