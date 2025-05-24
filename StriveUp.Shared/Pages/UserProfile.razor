@@ -21,10 +21,11 @@
 
 <PageTitle>Profile</PageTitle>
 
-<div class="container py-5">
+<div class="container-fluid p-0 m-0">
+  <div class="container-md px-0 py-4 px-md-4 py-md-5">
     @if (isLoading)
     {
-        <Spinner text="Loading profile. Please wait..."></Spinner>
+        <Spinner text="Loading profile."></Spinner>
     }
     else if (!string.IsNullOrWhiteSpace(errorMessage))
     {
@@ -153,7 +154,7 @@
                 }
                 else if (isActivitiesLoading)
                 {
-                    <Spinner isSmall="false"></Spinner>
+                    <Spinner></Spinner>
                 }
                 else
                 {   
@@ -190,10 +191,9 @@
         @if (SelectedUserTabType == UserTabType.Medals)
         {
             <div>
-                <h5 class="mb-3">Earned Medals</h5>
                 @if (userProfile.Medals?.Any() == true)
                 {
-                    <div class="row g-4">
+                    <div class="row g-2 g-md-3">
                         @for (int i = 0; i < userProfile.Medals.Count; i++)
                         {
                             var medal = userProfile.Medals[i];
@@ -220,141 +220,118 @@
         <!-- Best Efforts -->
         @if (SelectedUserTabType == UserTabType.Statistics)
         {
-            <div class="custom-select-wrapper">
-                <div class="custom-select-toggle" @onclick="ToggleDropdown">
-                    <img src="@ActivityUtils.GetActivityImageUrl(SelectedActivity?.Name, "dark")" class="activity-icon" />
-                    <span class="arrow">&#9662;</span>
-                </div>
-                @if (IsDropdownOpen)
-                {
-                    <div class="custom-select-dropdown">
-                        @foreach (var activity in Activities)
-                        {
-                            <div class="custom-select-option @(activity == SelectedActivity ? "selected" : "")"
-                                    @onclick="() => SelectActivity(activity)">
-                                <img src="@ActivityUtils.GetActivityImageUrl(activity.Name, "dark")" class="activity-icon" />
-                            </div>
-                        }
-                    </div>
-                }
-            </div>  
             @if (BestEffortStatsEntries != null && ActivityStatsEntries != null)
             {
-                <div class="table-responsive mt-4">
-                    <table class="table table-striped table-bordered">
-                        <thead class="table-dark">
-                            <tr>
-                                <th colspan="5">🏁 Best Efforts</th>
-                            </tr>
-                            <tr>
-                                <th>Segment</th>
-                                <th>@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var effort in BestEffortStatsEntries)
+                <div class="custom-select-wrapper px-2">
+                    <div class="custom-select-toggle" @onclick="ToggleDropdown">
+                        <img src="@ActivityUtils.GetActivityImageUrl(SelectedActivity?.Name, "dark")" class="activity-icon" />
+                        <span class="arrow">&#9662;</span>
+                    </div>
+                    @if (IsDropdownOpen)
+                    {
+                        <div class="custom-select-dropdown">
+                            @foreach (var activity in Activities)
                             {
-                                <tr>
-                                    <td class="d-none d-md-table-cell">@effort.SegmentName</td>
-                                    <td class="d-md-table-cell d-md-none">@effort.SegmentShortName</td>
-                                    <td>@ActivityUtils.GetSpeedOrPace(effort.Speed, SelectedActivity.MeasurementType)</td>
-                                    <td>@effort.ActivityDate.ToShortDateString()</td>
-                                </tr>
+                                <div class="custom-select-option @(activity == SelectedActivity ? "selected" : "")"
+                                        @onclick="() => SelectActivity(activity)">
+                                    <img src="@ActivityUtils.GetActivityImageUrl(activity.Name, "dark")" class="activity-icon" />
+                                </div>
                             }
-                        </tbody>
-                    </table>
+                        </div>
+                    }
+                </div>  
+                <!-- Stack all tables in one div to avoid spacing -->
+                <div class="d-grid gap-0 pt-3">
+                    @if(BestEffortStatsEntries.Any())
+                    {     
+                        <!-- Table 1 -->
+                        <div class="table-responsive">
+                            <table class="table table-borderless border-bottom w-100 mb-0">
+                                <thead class="table-header text-secondary small fw-normal">
+                                    <tr><th colspan="3" class="fw-bold">Best Efforts</th></tr>
+                                    <tr>
+                                        <th>Segment</th>
+                                        <th>@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var effort in BestEffortStatsEntries)
+                                    {
+                                        <tr @onclick="() => OnEffortClicked(effort)">
+                                            <td class="d-none d-md-table-cell">@effort.SegmentName</td>
+                                            <td class="d-md-table-cell d-md-none">@effort.SegmentShortName</td>
+                                            <td>@ActivityUtils.GetSpeedOrPace(effort.Speed, SelectedActivity.MeasurementType)</td>
+                                            <td>@effort.ActivityDate.ToShortDateString()</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
 
-                    <table class="table table-bordered mt-5">
-                        <thead class="table-dark">
-                            <tr>
-                                <th colspan="2">📊 All Time Stats</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Activities</td>
-                                <td>@ActivityStatsEntries.TotalActivities</td>
-                            </tr>
-                            <tr>
-                                <td>Time</td>
-                                <td>@($"{(int)TimeSpan.FromSeconds(ActivityStatsEntries.TotalTime).TotalHours}h {TimeSpan.FromSeconds(ActivityStatsEntries.TotalTime).Minutes}min")</td>
-                            </tr>
-                            <tr>
-                                <td>Distance</td>
-                                <td>@ActivityStatsEntries.CurrentYearDistance.ToString("F2") km</td>
-                            </tr>
-                            @if (SelectedActivity.ElevationRelevant)
-                            {
-                                <tr>
-                                    <td>Elevation Gain</td>
-                                    <td>@ActivityStatsEntries.TotalElevationGain</td>              
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    <!-- Table 2 -->
+                    <div class="table-responsive">
+                        <table class="table table-borderless border-bottom w-100 mb-0">
+                            <thead class="table-header text-secondary small fw-normal">
+                                <tr><th colspan="2" class="fw-bold">All Time Stats</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Activities</td><td>@ActivityStatsEntries.TotalActivities</td></tr>
+                                <tr><td>Time</td><td>@DateUtils.FormatDuration(ActivityStatsEntries.TotalTime)</td></tr>
+                                <tr><td>Distance</td><td>@ActivityStatsEntries.TotalDistance.ToString("F2") km</td></tr>
+                                @if (SelectedActivity.ElevationRelevant)
+                                {
+                                    <tr><td>Elevation Gain</td><td>@ActivityStatsEntries.TotalElevationGain</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <table class="table table-bordered mt-3">
-                        <thead class="table-info">
-                            <tr>
-                                <th colspan="2">📅 Current Year</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Activities</td>
-                                <td>@ActivityStatsEntries.CurrentYearActivities</td>
-                            </tr>
-                            <tr>
-                                <td>Distance</td>
-                                <td>@ActivityStatsEntries.CurrentYearDistance.ToString("F2") km</td>
-                            </tr>
-                            <tr>
-                                <td>Time</td>
-                                <td>@($"{(int)TimeSpan.FromSeconds(ActivityStatsEntries.CurrentYearTime).TotalHours}h {TimeSpan.FromSeconds(ActivityStatsEntries.CurrentYearTime).Minutes}min")</td>
-                            </tr>
-                            @if (SelectedActivity.ElevationRelevant)
-                            {
-                                <tr>
-                                    <td>Elevation Gain</td>
-                                    <td>@ActivityStatsEntries.CurrentYearElevationGain</td>              
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    <!-- Table 3 -->
+                    <div class="table-responsive">
+                        <table class="table table-borderless border-bottom w-100 mb-0">
+                            <thead class="table-header text-secondary small fw-normal">
+                                <tr><th colspan="2" class="fw-bold">Current Year</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Activities</td><td>@ActivityStatsEntries.CurrentYearActivities</td></tr>
+                                <tr><td>Distance</td><td>@ActivityStatsEntries.CurrentYearDistance.ToString("F2") km</td></tr>
+                                <tr><td>Time</td><td>@DateUtils.FormatDuration(ActivityStatsEntries.CurrentYearTime)</td></tr>
+                                @if (SelectedActivity.ElevationRelevant)
+                                {
+                                    <tr><td>Elevation Gain</td><td>@ActivityStatsEntries.CurrentYearElevationGain</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <table class="table table-bordered mt-3">
-                        <thead class="table-secondary">
-                            <tr>
-                                <th colspan="2">📅 Weekly Averages</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Activities</td>
-                                <td>@ActivityStatsEntries.AvgWeeklyActivities</td>
-                            </tr>
-                            <tr>
-                                <td>Distance</td>
-                                <td>@ActivityStatsEntries.AvgWeeklyDistance.ToString("F2") km</td>
-                            </tr>
-                            <tr>
-                                <td>Time</td>
-                                <td>@($"{(int)TimeSpan.FromSeconds(ActivityStatsEntries.AvgWeeklyTime).TotalHours}h {TimeSpan.FromSeconds(ActivityStatsEntries.AvgWeeklyTime).Minutes}min")</td>
-                            </tr>
-                            @if (SelectedActivity.ElevationRelevant)
-                            {
-                                <tr>
-                                    <td>Elevation Gain</td>
-                                    <td>@ActivityStatsEntries.AvgWeeklyElevationGain</td>              
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    <!-- Table 4 -->
+                    <div class="table-responsive">
+                        <table class="table table-borderless border-bottom w-100 mb-0">
+                            <thead class="table-header text-secondary small fw-normal">
+                                <tr><th colspan="2" class="fw-bold">Weekly Averages</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Activities</td><td>@ActivityStatsEntries.AvgWeeklyActivities</td></tr>
+                                <tr><td>Distance</td><td>@ActivityStatsEntries.AvgWeeklyDistance.ToString("F2") km</td></tr>
+                                <tr><td>Time</td><td>@DateUtils.FormatDuration(ActivityStatsEntries.AvgWeeklyTime)</td></tr>
+                                @if (SelectedActivity.ElevationRelevant)
+                                {
+                                    <tr><td>Elevation Gain</td><td>@ActivityStatsEntries.AvgWeeklyElevationGain</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+                }
+                else
+                {
+                    <Spinner></Spinner>
+                }
             }
-        }
     }
+    </div>
 </div>
 
 <!-- TO DO -->
@@ -483,20 +460,41 @@
         if (SelectedUserTabType != type)
         {
             SelectedUserTabType = type;
+
             if (type == UserTabType.Statistics)
             {
-               await LoadActivitiesAsync();
+                if (!Activities.Any())
+                {
+                    await LoadActivitiesAsync();
+                }
+
+                if (SelectedActivity != null && (BestEffortStatsEntries == null || ActivityStatsEntries == null))
+                {
+                    await LoadLeaderboardAsync();
+                }
             }
+
+            StateHasChanged();
         }
+    }
+
+    private void OnEffortClicked(UserBestEffortsStatsDto entry)
+    {
+        if (entry?.ActivityId != null) Navigation.NavigateTo($"/activity/{entry.ActivityId}");
     }
 
     private async Task LoadLeaderboardAsync()
     {
         if (SelectedActivity == null) return;
 
+        BestEffortStatsEntries = null;
+        ActivityStatsEntries = null;
+
         var result = await LeaderboardService.GetUserStats(userName, SelectedActivity.Id);
+
         BestEffortStatsEntries = result.BestEfforts;
         ActivityStatsEntries = result.ActivityStats;
+
         StateHasChanged();
     }
 

@@ -32,7 +32,17 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
 
     public async Task<(bool Success, JwtResponse Token)> LoginAsync(LoginRequest request)
     {
-        var user = await _userManager.FindByNameAsync(request.Username);
+        AppUser user = null;
+
+        if (IsValidEmail(request.Login))
+        {
+            user = await _userManager.FindByEmailAsync(request.Login);
+        }
+        else
+        {
+            user = await _userManager.FindByNameAsync(request.Login);
+        }
+
         if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
             return (false, null);
 
@@ -224,5 +234,19 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+    private bool IsValidEmail(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
 
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(input);
+            return addr.Address == input;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

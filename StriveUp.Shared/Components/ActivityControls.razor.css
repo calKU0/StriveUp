@@ -35,14 +35,19 @@
 
 /* Styling for the activity image */
 .activity-image {
-    width: 36px;
-    height: 36px;
-    margin-right: 15px;
+    width: 70px;
+    height: 70px;
 }
 
+.sensor-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 2rem;
+    cursor: pointer;
+}
 /* Make icon match the size of images */
 .activity-icon {
-    font-size: 36px; /* Match the size of the activity images */
+    font-size: 50px; /* Match the size of the activity images */
     cursor: pointer;
     transition: transform 0.3s ease;
 }

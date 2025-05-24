@@ -30,7 +30,7 @@ namespace StriveUp.Infrastructure.Services
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                var response = await _httpClient.GetFromJsonAsync<UserProfileDto>($"user/profile/{userName}");
+                var response = await _httpClient.GetFromJsonAsync<UserProfileDto>($"profile/{userName}");
 
                 if (response != null)
                 {
@@ -57,7 +57,7 @@ namespace StriveUp.Infrastructure.Services
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                var response = await _httpClient.PutAsJsonAsync("user/profile", profile);
+                var response = await _httpClient.PutAsJsonAsync("profile", profile);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -78,12 +78,12 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
-        public async Task<SimpleUserDto> GetSimpleUserData(string userId)
+        public async Task<SimpleUserDto> GetSimpleUserData(string userName)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                return await _httpClient.GetFromJsonAsync<SimpleUserDto>($"user/simpleData/{userId}");
+                return await _httpClient.GetFromJsonAsync<SimpleUserDto>($"profile/simpleData/{userName}");
             }
             catch
             {

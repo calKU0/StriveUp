@@ -71,7 +71,8 @@ else
                         {
                             <button class="tab-button @(segment == SelectedSegment ? "active" : "")"
                                     @onclick="() => OnSegmentSelected(segment)">
-                                @segment.Name
+                                <span class="d-none d-md-inline">@segment.Name</span>
+                                <span class="d-inline d-md-none">@segment.ShortName</span>
                             </button>
                         }
                     }

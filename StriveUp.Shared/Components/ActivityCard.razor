@@ -12,7 +12,7 @@
 @inject NavigationManager Navigation
 
 <div class="col-12 col-md-6 col-lg-4 activity-card" @onclick="OnCardClick">
-    <div class="card h-100 shadow rounded-4 border-0 bg-light-subtle transition hover-shadow">
+    <div class="card h-100 rounded-4 border-0 bg-light-subtle transition hover-shadow">
         <div class="card-body d-flex flex-column gap-3 p-4">
             <!-- User Info -->
             <div class="d-flex align-items-center gap-3">
@@ -38,7 +38,7 @@
             <!-- Stats Row -->
             <div class="d-flex justify-content-around text-center py-2 border-top border-bottom align-items-center">
                 <div>
-                    <span class="fw-semibold">@TimeSpan.FromSeconds(Activity.DurationSeconds).ToString(@"hh\:mm\:ss")</span><br />
+                    <span class="fw-semibold">@DateUtils.FormatDuration(Activity.DurationSeconds)</span><br />
                     <small class="text-muted">Duration</small>
                 </div>
                 @if (Activity.AvarageSpeed > 0)

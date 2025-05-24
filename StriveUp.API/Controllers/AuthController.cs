@@ -34,7 +34,6 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, new ErrorResponse { Message = "An error occurred during login." });
             }
         }
-
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {

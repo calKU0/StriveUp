@@ -29,9 +29,9 @@ else
             <EditForm Model="@loginModel" OnValidSubmit="HandleLogin"
             class="text-center align-items-center d-flex flex-column">
                 <div class="form-floating col-12 col-md-6 mb-3">
-                    <InputText class="form-control" @bind-Value="loginModel.Username"
+                    <InputText class="form-control" @bind-Value="loginModel.Login"
                     placeholder="email@domain.com" />
-                    <label for="floatingInput">Email</label>
+                    <label for="floatingInput">Email / Username</label>
                 </div>
                 <div class="form-floating col-12 col-md-6 mb-3">
                     <InputText class="form-control" @bind-Value="loginModel.Password" type="password"

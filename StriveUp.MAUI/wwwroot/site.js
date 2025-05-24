@@ -10,25 +10,25 @@ window.initializeMap = function initializeMap(lat, lng, accessToken) {
     try {
         mapboxgl.accessToken = accessToken;
 
-        mapboxMap = new mapboxgl.Map({
+        window.map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v12',
             center: [lng, lat],
             zoom: 17,
-            pitch: 60,
+            pitch: 45,
             bearing: 0,
             antialias: true
         });
-        mapboxMap.on('load', () => {
+        window.map.on('load', () => {
             userMarker = new mapboxgl.Marker({
                 element: createArrowMarker(), 
                 anchor: 'center',
             })
                 .setLngLat([lng, lat])
-                .addTo(mapboxMap);
+                .addTo(window.map);
 
             // Add empty route line source/layer
-            mapboxMap.addSource('route', {
+            window.map.addSource('route', {
                 type: 'geojson',
                 data: {
                     type: 'Feature',
@@ -38,7 +38,7 @@ window.initializeMap = function initializeMap(lat, lng, accessToken) {
                     }
                 }
             });
-            mapboxMap.addLayer({
+            window.map.addLayer({
                 id: 'routeLine',
                 type: 'line',
                 source: 'route',
@@ -57,6 +57,20 @@ window.initializeMap = function initializeMap(lat, lng, accessToken) {
     }
 }
 
+function resizeMap() {
+    const map = window.map;
+
+    if (map) {
+        // Resize map after layout
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                map.resize();
+            }, 50);
+        });
+    } else {
+        console.warn('Map or container not found');
+    }
+}
 function createArrowMarker() {
     const marker = document.createElement('div');
     marker.className = 'arrow-marker';
@@ -79,8 +93,8 @@ function updateMap(lat, lng, heading, shouldTrack) {
     if (shouldTrack) {
         route.push(lngLat);
 
-        if (mapboxMap.getSource('route')) {
-            mapboxMap.getSource('route').setData({
+        if (window.map.getSource('route')) {
+            window.map.getSource('route').setData({
                 type: 'Feature',
                 geometry: {
                     type: 'LineString',
@@ -90,17 +104,18 @@ function updateMap(lat, lng, heading, shouldTrack) {
         }
     }
 
-    mapboxMap.easeTo({
+    window.map.easeTo({
         center: lngLat,
         bearing: heading,
-        duration: 750
+        duration: 750,
+        easing: t => t  
     });
 }
 
 function clearRoute() {
     // Remove the route line from the map
-    if (mapboxMap.getSource('route')) {
-        mapboxMap.getSource('route').setData({
+    if (window.map.getSource('route')) {
+        window.map.getSource('route').setData({
             type: 'Feature',
             geometry: {
                 type: 'LineString',
@@ -109,12 +124,12 @@ function clearRoute() {
         });
     }
 
-    if (mapboxMap.getLayer('routeLine')) {
-        mapboxMap.removeLayer('routeLine');
+    if (window.map.getLayer('routeLine')) {
+        window.map.removeLayer('routeLine');
     }
 
-    if (mapboxMap.getSource('route')) {
-        mapboxMap.removeSource('route');
+    if (window.map.getSource('route')) {
+        window.map.removeSource('route');
     }
 
     route = [];

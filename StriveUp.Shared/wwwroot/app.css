@@ -29,6 +29,7 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 .content {
@@ -134,6 +135,10 @@ a, .btn-link {
     margin-left: auto;
     font-size: 1.2rem;
     color: #888;
+}
+
+.table-header{
+    background-color:#ddd
 }
 
 .navbar {
@@ -681,5 +686,21 @@ textarea.form-control {
             transform: scaleX(1);
         }
 
+    .card {
+        border-radius: 0rem;
+        box-shadow: 0 12px 0px rgba(0, 0, 0, 0.1);
+    }
 
+        .card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .icon-header {
+        padding: 0.25rem !important;
+    }
+
+    .notification-badge {
+        top: 4px !important;
+        left: 22px !important;
+    }
 }
