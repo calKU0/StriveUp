@@ -32,7 +32,7 @@
                     <div class="progress mt-2">
                         <div class="progress-bar @MedalUtils.GetProgressGradientClass(MedalDto.ProgressPercent)"
                              role="progressbar"
-                             style="width: @DisplayedProgress%"
+                             style="width: @(DisplayedProgress)%"
                              aria-valuenow="@DisplayedProgress"
                              aria-valuemin="0"
                              aria-valuemax="100">
@@ -72,29 +72,27 @@
             AnimatedPercent = 0;
             StateHasChanged();
 
-            await Task.Delay(100);
-
+            await Task.Yield(); // ensure initial 0% renders
             DisplayedProgress = MedalDto.ProgressPercent;
             StateHasChanged();
 
-            int duration = 1500;
-
-            int delay = MedalDto.ProgressPercent > 0 ? duration / MedalDto.ProgressPercent : 0;
-            while (AnimatedPercent < MedalDto.ProgressPercent)
-            {
-                AnimatedPercent++;
-                StateHasChanged();
-                await Task.Delay(delay);
-            }
+            await JS.InvokeVoidAsync("animateCounter", DotNetObjectReference.Create(this), MedalDto.ProgressPercent, 1250);
 
             if (MedalDto.ProgressPercent == 100)
             {
-                await Task.Delay(100);
+                await Task.Delay(1350); // wait for animation to finish
                 ShowProgressBar = false;
                 ShowRedeemButton = true;
                 StateHasChanged();
             }
         }
+    }
+
+    [JSInvokable]
+    public void UpdateAnimatedPercent(int percent)
+    {
+        AnimatedPercent = percent;
+        StateHasChanged();
     }
 
 

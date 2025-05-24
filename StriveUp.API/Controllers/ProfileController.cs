@@ -12,7 +12,7 @@ namespace StriveUp.API.Controllers
 {
     [ApiController]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    [Route("api/user/[controller]")]
+    [Route("api/[controller]")]
     public class ProfileController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -27,10 +27,6 @@ namespace StriveUp.API.Controllers
         [HttpGet("{userName}")]
         public async Task<ActionResult<UserProfileDto>> GetProfile(string userName)
         {
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(currentUserId))
-                return Unauthorized();
-
             try
             {
                 var user = await _context.Users
@@ -58,16 +54,12 @@ namespace StriveUp.API.Controllers
             }
         }
 
-        [HttpGet("simpleData/{userId}")]
-        public async Task<ActionResult<SimpleUserDto>> GetSimpleUserData(string userId)
+        [HttpGet("simpleData/{userName}")]
+        public async Task<ActionResult<SimpleUserDto>> GetSimpleUserData([FromRoute] string userName)
         {
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(currentUserId))
-                return Unauthorized();
-
             try
             {
-                var user = await _context.Users.Where(i => i.Id == userId).FirstOrDefaultAsync();
+                var user = await _context.Users.Where(i => i.UserName == userName).FirstOrDefaultAsync();
 
                 if (user == null)
                 {

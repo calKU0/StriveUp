@@ -7,30 +7,48 @@
 @inject IJSRuntime JSRuntime
 @inject IBleHeartRateService BleHeartRateService
 
-<div class="text-center my-3">
+<div class="text-center my-4">
     @if (!IsTracking && !IsPaused)
     {
-        <div class="mb-3 d-flex align-items-center justify-content-center gap-3">
-            <img src="@GetActivityImageUrl(SelectedActivity?.Id ?? 4, "dark")"
-                 alt="Activity Icon"
-                 class="activity-image"
-                 @onclick="() => ShowActivitySelect = true" />
+        <div class="mb-4 d-flex align-items-center justify-content-center gap-4">
+            <div class="position-relative">
+                <img src="@GetActivityImageUrl(SelectedActivity?.Id ?? 4, "dark")"
+                     alt="Activity Icon"
+                     class="activity-image rounded-circle shadow-lg border border-2 border-primary p-2"
+                     @onclick="() => ShowActivitySelect = true" />
+                <div class="text-muted small mt-2">Select Activity</div>
+            </div>
 
-            <i class="fas fa-heartbeat activity-icon" @onclick="() => ShowSensorSelect = true"></i>
+            <div class="position-relative">
+                <i class="sensor-icon fas fa-heartbeat text-danger shadow-lg rounded-circle p-3 bg-white border border-2"
+                   @onclick="() => ShowSensorSelect = true"></i>
+                <div class="text-muted small mt-2">Select Sensor</div>
+            </div>
         </div>
 
-        <button class="btn btn-warning btn-lg" @onclick="OnStartClick">Start Activity</button>
+        <button class="btn btn-warning btn-lg px-5 shadow-sm" @onclick="OnStartClick">
+            <i class="fas fa-play me-2"></i>Start Activity
+        </button>
     }
     else if (IsPaused)
     {
-        <button class="btn btn-success me-2" @onclick="OnResumeClick">Resume</button>
-        <button class="btn btn-danger" @onclick="OnFinishClick">Finish</button>
+        <div class="d-flex justify-content-center gap-3">
+            <button class="btn btn-success px-4 shadow-sm" @onclick="OnResumeClick">
+                <i class="fas fa-play-circle me-2"></i>Resume
+            </button>
+            <button class="btn btn-danger px-4 shadow-sm" @onclick="OnFinishClick">
+                <i class="fas fa-flag-checkered me-2"></i>Finish
+            </button>
+        </div>
     }
     else
     {
-        <button class="btn btn-danger btn-lg" @onclick="OnStopClick">Stop Activity</button>
+        <button class="btn btn-danger btn-lg px-5 shadow-sm" @onclick="OnStopClick">
+            <i class="fas fa-stop me-2"></i>Stop Activity
+        </button>
     }
 </div>
+
 
 <GenericSelectModal TItem="ActivityDto"
                     Show="@ShowActivitySelect"

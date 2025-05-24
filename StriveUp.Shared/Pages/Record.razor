@@ -5,9 +5,11 @@
 @using GeolocatorPlugin.Abstractions
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
+@using Shiny.Locations
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
 @using System.Diagnostics
+
 
 <!-- Injections -->
 @inject IJSRuntime JSRuntime
@@ -17,6 +19,8 @@
 @inject NavigationManager Navigation
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject IPlatformService PlatformService
+@inject Shiny.Locations.IGpsManager GpsManager
+@inject IGpsService GpsService
 @implements IDisposable
 
 <PageTitle>Record</PageTitle>
@@ -41,7 +45,7 @@
         <div class="slides">
             @if (!selectedActivity.Indoor)
             {
-                <div class="map-section">
+                <div class="map-section @(isTracking || isPaused ? "expanded" : "")">
                     <div id="map"></div>
                 </div>
             }
@@ -62,13 +66,13 @@
         </div>
         @if (isTracking || isPaused)
         {
-            <div class="slides" id="tracking-section">
+            <div class="slides tiles-slide" id="tracking-section">
                 <div class="tiles-wrapper p-2">
                     <!-- Info Tiles -->
                     <div class="row g-3">
                         @if(!selectedActivity.DistanceRelevant)
                         {
-                            <InfoTile Label="Distance" Value="@($"{Distance * 1000:F2} km")" IconClass="fas fa-route" />
+                            <InfoTile Label="Distance" Value="@($"{Distance:F2} km")" IconClass="fas fa-route" />
                             <!-- Conditional display of Speed or Pace -->
                             @if (selectedActivity.SpeedRelevant)
                             {
@@ -89,8 +93,6 @@
             </div>
         }
     }
-
-
 </div>
 
 <FinishModal Show="@showFinishModal"
@@ -131,16 +133,7 @@ OnDiscard="@DiscardActivity" />
     private const double smoothingAlpha = 0.2;
     private Location lastLocation;
     private DateTime resumeTime;
-    private IGeolocator locator = CrossGeolocator.Current;
-    private ListenerSettings listenerSettings = new ListenerSettings
-    {
-        AllowBackgroundUpdates = true,
-        ActivityType = ActivityType.Fitness,
-        DeferLocationUpdates = false,
-        ListenForSignificantChanges = false,
-        PauseLocationUpdatesAutomatically = false
-    };
-
+    private GpsRequest gpsSettigns = new GpsRequest(GpsBackgroundMode.Realtime, GpsAccuracy.Highest);
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = "Tracked via GPS";
@@ -168,64 +161,70 @@ OnDiscard="@DiscardActivity" />
 
         selectedActivity = availableActivities.FirstOrDefault();
 
-        locator.DesiredAccuracy = 1;
         mapToken = await SecurableService.GetMapboxTokenAsync();
+        GpsService.ReadingReceived += OnPositionChanged;
 
         if (!selectedActivity.Indoor)
         {
+            _ = RequestPermissionsAndStartGps();
             StartCompass();
-            _ = StartLocationTracking();
         }
     }  
 
-    private async Task StartLocationTracking()
+    private async Task RequestPermissionsAndStartGps()
     {
-        try
+        var status = await Permissions.RequestAsync<Permissions.LocationAlways>(); // request always for background
+        if (status == PermissionStatus.Granted)
         {
-            var status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
-            if (status != PermissionStatus.Granted)
+            // Optionally request Bluetooth if needed for HR device here
+            try
             {
-                isLoadingLocation = false;
-                return;
+                if (!GpsManager.IsListening())
+                {
+                    isLoadingLocation = true;
+                    await GpsManager.StartListener(gpsSettigns);
+                    Debug.WriteLine("Started listening");
+                }
             }
-
-            if (!locator.IsListening)
+            catch (Exception ex)
             {
-                locator.PositionChanged += OnPositionChanged;
-                await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 10, false, listenerSettings);
-            }  
+                Debug.WriteLine($"GPS Start Exception: {ex.Message}");
+            }
+            StateHasChanged();
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine("Location error: " + ex.Message);
             isLoadingLocation = false;
+            StateHasChanged();
+            // Handle denied permission scenario
         }
     }
 
-    private void OnPositionChanged(object sender, PositionEventArgs e)
+    private void OnPositionChanged(GpsReading reading)
     {
-        isLoadingLocation = false;
-        var location = new Location(e.Position.Latitude, e.Position.Longitude)
+        var location = new Location(reading.Position.Latitude, reading.Position.Longitude, reading.Timestamp)
         {
-            Timestamp = e.Position.Timestamp
+            Speed = reading.Speed,
+            Altitude = reading.Altitude,
         };
 
+        if (!mapInitialized)
+        {
+            isLoadingLocation = false;
+            StateHasChanged();
+            mapInitialized = true;
+            mapVisible = true;
+            _ = JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
+        }
+
         double distanceMoved = currentLocation != null ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers) : 0;
-        if (distanceMoved > 0.1 || e.Position.Accuracy > 5 && currentLocation != null)
+        if (reading.PositionAccuracy > 5 && currentLocation != null)
         {
             Console.WriteLine("Suspicious jump filtered: " + distanceMoved + " meters");
             return;
         }
 
         currentLocation = location;
-
-        if (!mapInitialized)
-        {
-            StateHasChanged();
-            mapInitialized = true;
-            mapVisible = true;
-            _ = JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
-        }
 
         _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
         StateHasChanged();
@@ -247,10 +246,11 @@ OnDiscard="@DiscardActivity" />
             if (timeDelta > 0)
             {
                 var deltaSpeed = (distanceDelta) / (timeDelta * 3600); // m/s
-                Speed = ApplyLowPassFilter(deltaSpeed);
-            }
 
-            Distance += Convert.ToInt32(Math.Round(distanceDelta / 1000.0));
+            }
+            Speed = location.Speed ?? 0;
+
+            Distance += (int)Math.Round(distanceDelta);
 
             if (lastLocation.Altitude.HasValue && location.Altitude.HasValue)
             {
@@ -309,17 +309,17 @@ OnDiscard="@DiscardActivity" />
         selectedActivity = activity;
         if (selectedActivity.Indoor)
         {
-            if (locator.IsListening)
+            mapInitialized = false;
+            if (GpsManager.IsListening())
             {
-                locator.PositionChanged -= OnPositionChanged;
-                await locator.StopListeningAsync();
+                _ = GpsManager.StopListener();
             }
             StopCompass();
         }
         else
         {
             StartCompass();
-            _ = StartLocationTracking();           
+            _ = RequestPermissionsAndStartGps();           
         }
         await InvokeAsync(() => StateHasChanged());
     }
@@ -372,6 +372,7 @@ OnDiscard="@DiscardActivity" />
 
         await JSRuntime.InvokeVoidAsync("scrollToTrackingSection");
         _ = Task.Run(() => UpdateDuration(durationCts.Token)); 
+        _ = JSRuntime.InvokeVoidAsync("resizeMap");
     }
 
 
@@ -391,12 +392,13 @@ OnDiscard="@DiscardActivity" />
         isTracking = false;
         isPaused = true;
         durationCts?.Cancel();
-        if (locator.IsListening)
+        if (GpsManager.IsListening())
         {
-            locator.PositionChanged -= OnPositionChanged;
-            await locator.StopListeningAsync();
+            await GpsManager.StopListener();
         }
+        _ = JSRuntime.InvokeVoidAsync("resizeMap");
         StateHasChanged();
+
     }
 
     private async Task ResumeTracking()
@@ -405,13 +407,13 @@ OnDiscard="@DiscardActivity" />
         showFinishModal = false;
         isTracking = true;
         durationCts = new CancellationTokenSource();
-        if (!locator.IsListening)
+        if (!GpsManager.IsListening())
         {
-            locator.PositionChanged += OnPositionChanged;
-            await locator.StartListeningAsync(TimeSpan.FromSeconds(1), 5, false, listenerSettings);
+            await GpsManager.StartListener(gpsSettigns);
         }
 
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
+        _ = JSRuntime.InvokeVoidAsync("resizeMap");
     }
 
     private void ShowFinishModal()
@@ -502,17 +504,16 @@ OnDiscard="@DiscardActivity" />
         {
             return;
         }
-        JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
         currentHeading = e.Reading.HeadingMagneticNorth;
+        JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
     }
 
 
     public void Dispose()
     {
-        // Unsubscribe when the component is disposed to avoid memory leaks
         StopCompass();
-        locator.PositionChanged -= OnPositionChanged;
-        locator.StopListeningAsync();
+        GpsService.ReadingReceived -= OnPositionChanged;
+        _ = GpsManager.StopListener();
     }
 
     private string GetSpeedOrPace()

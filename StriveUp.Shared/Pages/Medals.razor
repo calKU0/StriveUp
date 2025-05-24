@@ -60,7 +60,7 @@
                 @for (int i = 0; i < FilteredMedals.Count; i++)
                 {
                     var medal = FilteredMedals[i];
-                    <div class="col-6 col-sm-4 col-md-2 d-flex">
+                    <div class="col-6 col-sm-4 col-md-2 d-flex medal-drop-animation" style="animation-delay:@($"{i * 45}ms")">
                         <MedalCard @key="medal.Id"
                                    MedalDto="@medal"
                                    IsAchieved="IsMedalAchieved(medal)"

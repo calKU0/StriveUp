@@ -3,12 +3,12 @@
 
 <div class="native-header d-flex justify-content-between align-items-center px-3 py-2 @(isHeaderVisible ? "" : "hidden-header")">
     <!-- Left side: Back Button -->
-    @if (showBackButton)
-    {
-        <div class="left-icons d-flex align-items-center">
+    <div class="left-icons d-flex align-items-center">
+        @if (showBackButton)
+        {
             <i class="fas fa-arrow-left text-dark icon-header" @onclick="BackButtonClick"></i>
-        </div>
-    }
+        }
+    </div>
 
     <!-- Page Title -->
     <div class="page-title text-dark @(!showBackButton ? "" : "text-center")">
@@ -50,7 +50,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (PageTitle == "Tracking" || PageTitle == "Comments" || PageTitle == "Search" || PageTitle == "Notifications" || PageTitle == "Settings")
+        if (PageTitle == "Tracking" || PageTitle == "Comments" || PageTitle == "Search" || PageTitle == "Notifications" || PageTitle == "Settings" || PageTitle == "Record")
         {
             showBell = false;
             showSearch = false;

@@ -13,7 +13,7 @@
 }
 else
 {
-    <img src="@MapboxUtils.GetStaticMapUrl(Route, token, 400, Convert.ToInt32(Height.Replace("px","")))" alt="Route preview" class="map-container" />
+    <img src="@MapboxUtils.GetStaticMapUrl(Route, token, 400, Convert.ToInt32(Height.Replace("px","")))" alt="Route preview" class="map-container" loading="lazy"/>
 }
 
 @code {

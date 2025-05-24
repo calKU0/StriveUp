@@ -71,7 +71,8 @@ else
                         {
                             <button class="tab-button @(segment == SelectedSegment ? "active" : "")"
                                     @onclick="() => OnSegmentSelected(segment)">
-                                @segment.Name
+                                <span class="d-none d-md-inline">@segment.Name</span>
+                                <span class="d-inline d-md-none">@segment.ShortName</span>
                             </button>
                         }
                     }
@@ -91,7 +92,6 @@ else
         }
 
         <!-- 3. Leaderboard -->
-
         @if (SelectedActivity != null)
         {
             <div class="leaderboard-list px-2">
@@ -106,10 +106,10 @@ else
                         <!-- Modern empty leaderboard call-to-action -->
                         <div class="text-center py-5 px-3 px-md-5">
                             <h2 class="fw-semibold text-dark mb-2">Ready to take the lead?</h2>
-                            <p class="text-muted fs-5 mb-4">No one has made a move yet — kick things off and invite friends to join the race!</p>
+                            <p class="text-muted fs-4 mb-4">No one has made a move yet — kick things off and invite friends to join the race!</p>
 
                             <div class="d-flex flex-column align-items-center gap-3">
-                                @if (!PlatformService.IsNativeApp())
+                                @if (PlatformService.IsNativeApp())
                                 {
                                     <a class="btn btn-primary btn-lg rounded-pill px-2 py-2 d-flex align-items-center gap-2 shadow-sm" href="/record">
                                         <span class="fs-4">🥇</span>

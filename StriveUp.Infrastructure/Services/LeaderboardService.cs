@@ -41,5 +41,12 @@ namespace StriveUp.Infrastructure.Services
             var result = await _httpClient.GetFromJsonAsync<List<LevelLeaderboardDto>>($"leaderboard/followers-level");
             return result ?? new();
         }
+
+        public async Task<UserStatsResponseDto> GetUserStats(string userName, int activityId)
+        {
+            await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+            var result = await _httpClient.GetFromJsonAsync<UserStatsResponseDto>($"leaderboard/user-stats/{userName}/{activityId}");
+            return result;
+        }
     }
 }

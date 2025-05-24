@@ -13,6 +13,6 @@ namespace StriveUp.Shared.Interfaces
     {
         Task<(bool Success, ErrorResponse? Error, UserProfileDto profile)> GetProfile(string userName);
         Task<(bool Success, ErrorResponse? Error)> EditProfile(EditUserProfileDto profile);
-        Task<SimpleUserDto> GetSimpleUserData(string userId);
+        Task<SimpleUserDto> GetSimpleUserData(string userName);
     }
 }

@@ -4,6 +4,7 @@
 @inject IMedalStateService MedalState
 @inject IProfileService ProfileService
 @inject NavigationManager Navigation
+@inject ICustomAuthStateProvider AuthStateProvider
 
 
 <div class="d-block d-md-none">
@@ -34,7 +35,7 @@
                 </NavLink>
                 @if (PlatformService.IsNativeApp())
                 {
-                    <NavLink class="nav-link me-3 d-flex flex-column align-items-center justify-content-center" href="tracking">
+                    <NavLink class="nav-link me-3 d-flex flex-column align-items-center justify-content-center" href="record">
                         <div class="d-flex justify-content-center align-items-center" style="height: 24px;">
                             <i class="fas fa-running fa-lg"></i>
                         </div>
@@ -66,7 +67,7 @@
             <div class="d-flex align-items-center">
                 <SearchIcon Class="nav-link d-flex align-items-center justify-content-center"></SearchIcon>
                 <div class="d-flex align-items-center position-relative">
-                    <BellIcon></BellIcon>
+                <BellIcon></BellIcon>
                 </div>
                 <NavLink href="/settings"><i class="icon-header nav-link d-flex align-items-center justify-content-center fas fa-cog text-dark"></i></NavLink>
                 <NavLink class="nav-link d-flex flex-column align-items-center" href="profile">
@@ -98,6 +99,7 @@
                 </NavLink>
             }
 
+
             <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="medals">
                 <span class="nav-slider"></span>
                 <div style="height: 24px; position: relative;">
@@ -113,6 +115,17 @@
                 <small class="mt-1">Medals</small>
             </NavLink>
 
+            @if (PlatformService.IsNativeApp())
+            {
+                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="record">
+                    <span class="nav-slider"></span>
+                    <div style="height: 24px;" class="d-flex align-items-center justify-content-center">
+                        <i class="bi bi-record2" style="font-size: 2.25rem; line-height: 1; vertical-align: middle;"></i>
+                    </div>
+                    <small class="mt-1">Record</small>
+                </NavLink>
+            }
+
             <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="leaderboards">
                 <span class="nav-slider"></span>
                 <div style="height: 24px;">
@@ -120,17 +133,6 @@
                 </div>
                 <small class="mt-1">Top</small>
             </NavLink>
-
-            @if (PlatformService.IsNativeApp())
-            {
-                <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="tracking">
-                    <span class="nav-slider"></span>
-                    <div style="height: 24px;">
-                        <i class="fas fa-running fa-lg"></i>
-                    </div>
-                    <small class="mt-1">Activity</small>
-                </NavLink>
-            }
 
             <NavLink class="nav-link d-flex flex-column align-items-center justify-content-center position-relative" href="profile">
                 <span class="nav-slider" style="top:-5px"></span>
@@ -148,11 +150,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var user = await ProfileService.GetSimpleUserData(ClaimTypes.Name);
-        if (user != null)
-        {
-            userAvatarUrl = user.Avatar ?? "images/icons/user.png";
-        }
         MedalState.OnChange += StateHasChanged;
         var count = await MedalService.GetMedalsToClaimCountAsync();
         MedalState.SetMedalsCount(count);
@@ -160,6 +157,31 @@
 
         pageTitle = GetPageName();
         await LoadMedalsCount();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+                var currentUser = authState.User;
+                var userName = currentUser.FindFirst(ClaimTypes.Name)?.Value;
+
+                var user = await ProfileService.GetSimpleUserData(userName);
+                if (user != null)
+                {
+                    userAvatarUrl = user.Avatar ?? "images/icons/user.png";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            StateHasChanged();
+        }
     }
 
 
@@ -187,7 +209,7 @@
     {
         pageTitle = GetPageName();
 
-        if (PlatformService.IsNativeApp() && (pageTitle == "Login " || pageTitle == "Register" || pageTitle == "Tracking" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Settings"))
+        if (PlatformService.IsNativeApp() && (pageTitle == "Login " || pageTitle == "Register" || pageTitle == "Record" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Settings"))
         {
             return true;
         }
