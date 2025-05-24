@@ -255,7 +255,19 @@
                         </div>
                     }
                 </div>
-
+                <div class="chart-stats-container mt-3">
+                    @if (activity.Splits?.Any() == true)
+                    {
+                        <div class="mb-4">
+                            <h5 class="fw-bold border-bottom border-2 pb-1">
+                                <i class="bi bi-bar-chart-line me-2"></i>Splits
+                            </h5>
+                            <div class="d-flex position-relative">
+                                <canvas id="splitChart" style="height: 250px;"></canvas>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     }
@@ -300,6 +312,7 @@
     {
         try
         {
+            var measurement = activityConfig.MeasurementType;
             if (activity.SpeedData?.Any() == true)
             {
                 var speedLabels = activity.SpeedData
@@ -351,6 +364,22 @@
                 var hrValues = activity.HrData.Select(d => d.HearthRateValue).ToArray();
 
                 await JS.InvokeVoidAsync("renderLineChartById", "hrChart", hrLabels, hrValues, "Heart Rate (bpm)", "hr");
+            }
+
+            if (activity.Splits?.Any() == true)
+            {
+                var labels = activity.Splits.Select(s => $"{(s.DistanceMeters / 1000):0.##}km").ToArray();
+
+
+                // Pace in seconds per km for chart bar size; use total seconds if pace exists, else large number
+                var speedValues = activity.Splits.Select(s => s.AvgSpeed);
+
+                var distances = activity.Splits.Select(s => s.DistanceMeters).ToArray();
+                var hrValues = activity.Splits.Select(s => s.AvgHr ?? 0).ToArray();
+                var elevationValues = activity.Splits.Select(s => s.ElevationGain ?? 0).ToArray();
+
+                await JS.InvokeVoidAsync("renderSplitChart", "splitChart", speedValues.ToArray(), labels, hrValues.ToArray(), elevationValues.ToArray(), measurement);
+
             }
 
         }

@@ -29,6 +29,7 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<UserSynchro> UserSynchros { get; set; }
         public DbSet<BestEffort> BestEfforts { get; set; }
         public DbSet<SegmentConfig> SegmentConfigs { get; set; }
+        public DbSet<ActivitySplit> ActivitySplits { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

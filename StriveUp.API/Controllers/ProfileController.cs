@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StriveUp.Infrastructure.Data;
-using StriveUp.Shared.DTOs.Activity;
-using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Profile;
 using System.Security.Claims;
 
@@ -77,7 +75,6 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
         [HttpPut]
         public async Task<ActionResult> UpdateProfile([FromBody] EditUserProfileDto profile)
         {
@@ -98,7 +95,6 @@ namespace StriveUp.API.Controllers
                 }
 
                 _mapper.Map(profile, user);
-
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
 
@@ -111,5 +107,4 @@ namespace StriveUp.API.Controllers
             }
         }
     }
-
 }

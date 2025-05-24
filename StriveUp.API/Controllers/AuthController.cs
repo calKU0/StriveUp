@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StriveUp.API.Interfaces;
-using StriveUp.Infrastructure.Identity;
 using StriveUp.Shared.DTOs;
 
 namespace StriveUp.API.Controllers
@@ -34,6 +33,7 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, new ErrorResponse { Message = "An error occurred during login." });
             }
         }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
@@ -65,7 +65,6 @@ namespace StriveUp.API.Controllers
             return Ok(token);
         }
 
-
         [HttpGet("google-login")]
         public IActionResult GoogleLogin(string returnUrl = "https://localhost:7153/login")
         {
@@ -93,6 +92,5 @@ namespace StriveUp.API.Controllers
             var redirectUrl = $"{returnUrl}#access_token={jwt.Token}&refresh_token={jwt.RefreshToken}";
             return Redirect(redirectUrl);
         }
-
     }
 }

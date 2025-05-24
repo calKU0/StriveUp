@@ -63,6 +63,7 @@ namespace StriveUp.Infrastructure.Models
         public List<ActivityHr>? HrData { get; set; }
         public List<ActivitySpeed>? SpeedData { get; set; }
         public List<ActivityElevation>? ElevationData { get; set; }
+        public List<ActivitySplit>? Splits { get; set; }
 
         //[NotMapped]
         //public List<string>? ImageUrls { get; set; }

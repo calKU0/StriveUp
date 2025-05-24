@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using StriveUp.Infrastructure.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -51,6 +49,7 @@ namespace StriveUp.Infrastructure.Identity
         [Required]
         [MaxLength(20)]
         public string Gender { get; set; } = "Not Specified";
+
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
 
@@ -65,6 +64,7 @@ namespace StriveUp.Infrastructure.Identity
 
         // Links
         public ICollection<UserActivity>? UserActivities { get; set; }
+
         public ICollection<MedalEarned>? MedalsEarned { get; set; }
         public ICollection<UserFollower>? Followers { get; set; }
         public ICollection<UserFollower>? Following { get; set; }
