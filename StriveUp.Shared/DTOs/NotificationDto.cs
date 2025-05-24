@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StriveUp.Shared.DTOs
+﻿namespace StriveUp.Shared.DTOs
 {
     public class NotificationDto
     {
@@ -20,5 +14,4 @@ namespace StriveUp.Shared.DTOs
         public string? ActorAvatar { get; set; }
         public string RedirectUrl { get; set; }
     }
-
 }

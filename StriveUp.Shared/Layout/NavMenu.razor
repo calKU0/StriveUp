@@ -151,8 +151,6 @@
     protected override async Task OnInitializedAsync()
     {
         MedalState.OnChange += StateHasChanged;
-        var count = await MedalService.GetMedalsToClaimCountAsync();
-        MedalState.SetMedalsCount(count);
         Navigation.LocationChanged += OnLocationChanged;
 
         pageTitle = GetPageName();
@@ -165,6 +163,8 @@
         {
             try
             {
+                var count = await MedalService.GetMedalsToClaimCountAsync();
+                MedalState.SetMedalsCount(count);
                 var authState = await AuthStateProvider.GetAuthenticationStateAsync();
 
                 var currentUser = authState.User;
@@ -180,7 +180,10 @@
             {
                 Console.WriteLine(ex);
             }
-            StateHasChanged();
+            finally
+            {
+                StateHasChanged();
+            }
         }
     }
 

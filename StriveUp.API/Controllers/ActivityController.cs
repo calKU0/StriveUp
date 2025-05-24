@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Data;
+using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Activity;
 using System.Security.Claims;
-using StriveUp.Infrastructure.Identity;
-using StriveUp.API.Interfaces;
 
 namespace StriveUp.API.Controllers
 {
@@ -110,8 +110,7 @@ namespace StriveUp.API.Controllers
                     userActivity.ElevationGain = Convert.ToInt32(gain);
                 }
 
-                var activityConfig = await _context.ActivityConfig
-                    .FirstOrDefaultAsync(ac => ac.ActivityId == dto.ActivityId);
+                var activityConfig = await _context.ActivityConfig.FirstOrDefaultAsync(ac => ac.ActivityId == dto.ActivityId);
 
                 if (activityConfig != null)
                 {
@@ -121,13 +120,21 @@ namespace StriveUp.API.Controllers
                     user.CurrentXP += xpReward;
                 }
 
+                var segments = await _context.SegmentConfigs.Where(s => s.ActivityId == userActivity.ActivityId).ToListAsync();
+                var cumulativeDistances = ComputeCumulativeDistances(userActivity.Route);
+                var splits = ComputeActivitySplits(
+                    userActivity.Route,
+                    userActivity.HrData,
+                    userActivity.SpeedData,
+                    userActivity.ElevationData,
+                    cumulativeDistances,
+                    activityConfig.MeasurementType
+                );
 
+                userActivity.Splits = splits;
                 _context.UserActivities.Add(userActivity);
 
                 await _context.SaveChangesAsync();
-
-                var segments = await _context.SegmentConfigs.Where(s => s.ActivityId == userActivity.Activity.Id).ToListAsync();
-                var cumulativeDistances = ComputeCumulativeDistances(userActivity.Route);
 
                 foreach (var segment in segments)
                 {
@@ -269,7 +276,6 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
         [HttpGet("{id:int}")]
         public async Task<ActionResult<UserActivityDto>> GetActivityById(int id)
         {
@@ -289,6 +295,7 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.HrData)
                     .Include(ua => ua.SpeedData)
                     .Include(ua => ua.ElevationData)
+                    .Include(ua => ua.Splits)
                     .FirstOrDefaultAsync();
 
                 if (activity == null)
@@ -435,7 +442,6 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
         [HttpPost("comment/{activityId}")]
         public async Task<IActionResult> AddComment(int activityId, AddCommentDto dto)
         {
@@ -493,7 +499,6 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
         [HttpGet("activityComments/{activityId}")]
         public async Task<ActionResult<IEnumerable<ActivityCommentDto>>> GetActivityComments(int activityId)
         {
@@ -535,43 +540,51 @@ namespace StriveUp.API.Controllers
             if (totalRouteDistanceMeters < targetDistanceMeters)
                 return null;
 
-
             double bestDuration = double.MaxValue;
             BestEffort? bestSegment = null;
-
-            for (int startIndex = 0; startIndex < route.Count - 1; startIndex++)
+            try
             {
-                for (int endIndex = startIndex + 1; endIndex < route.Count; endIndex++)
+                for (int startIndex = 0; startIndex < route.Count - 1; startIndex++)
                 {
-                    double segmentDistance = cumulativeDistances[endIndex] - cumulativeDistances[startIndex];
-
-                    if (segmentDistance >= targetDistanceMeters)
+                    for (int endIndex = startIndex + 1; endIndex < route.Count; endIndex++)
                     {
-                        var duration = (route[endIndex].Timestamp - route[startIndex].Timestamp).TotalSeconds;
-
-                        if (duration > 0 && duration < bestDuration)
+                        if (endIndex < cumulativeDistances.Length && startIndex < cumulativeDistances.Length)
                         {
-                            bestDuration = duration;
-                            bestSegment = new BestEffort
-                            {
-                                SegmentConfigId = segmentId,
-                                UserId = userId,
-                                UserActivityId = activityId,
-                                ActivityDate = activityDate,
-                                DurationSeconds = duration,
-                            };
-                        }
-                        break;
-                    }
+                            double segmentDistance = cumulativeDistances[endIndex] - cumulativeDistances[startIndex];
 
-                    if (segmentDistance > totalRouteDistanceMeters)
-                        break;
+                            if (segmentDistance >= targetDistanceMeters)
+                            {
+                                var duration = (route[endIndex].Timestamp - route[startIndex].Timestamp).TotalSeconds;
+
+                                if (duration > 0 && duration < bestDuration)
+                                {
+                                    bestDuration = duration;
+                                    bestSegment = new BestEffort
+                                    {
+                                        SegmentConfigId = segmentId,
+                                        UserId = userId,
+                                        UserActivityId = activityId,
+                                        ActivityDate = activityDate,
+                                        DurationSeconds = duration,
+                                    };
+                                }
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("ASDASDASd");
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
 
             return bestSegment;
         }
-
 
         private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
         {
@@ -588,6 +601,7 @@ namespace StriveUp.API.Controllers
         }
 
         private static double DegreesToRadians(double deg) => deg * (Math.PI / 180);
+
         private double[] ComputeCumulativeDistances(List<GeoPoint> route)
         {
             var cumulativeDistances = new double[route.Count];
@@ -600,5 +614,176 @@ namespace StriveUp.API.Controllers
 
             return cumulativeDistances;
         }
+
+        private List<ActivitySplit> ComputeActivitySplits(
+      List<GeoPoint> route,
+      List<ActivityHr>? hrData,
+      List<ActivitySpeed>? speedData,
+      List<ActivityElevation>? elevationData,
+      double[] cumulativeDistances,
+      string measurementType)
+        {
+            // Work on a copy so original route isn't mutated
+            var localRoute = route.ToList();
+
+            var splits = new List<ActivitySplit>();
+            double splitDistance = 1000; // meters
+            int currentSplit = 1;
+
+            int lastIndex = 0;
+            double distanceSinceLastSplit = 0;
+
+            for (int i = 1; i < localRoute.Count; i++)
+            {
+                double segmentDistance = cumulativeDistances[i] - cumulativeDistances[i - 1];
+                distanceSinceLastSplit += segmentDistance;
+
+                if (distanceSinceLastSplit >= splitDistance)
+                {
+                    double overshoot = distanceSinceLastSplit - splitDistance;
+                    double needed = segmentDistance - overshoot;
+                    double ratio = needed / segmentDistance;
+
+                    GeoPoint splitPoint = InterpolatePoint(localRoute[i - 1], localRoute[i], ratio);
+
+                    DateTime splitStartTime = localRoute[lastIndex].Timestamp;
+                    DateTime splitEndTime = splitPoint.Timestamp;
+
+                    double distanceMeters = splitDistance;
+                    double durationSeconds = (splitEndTime - splitStartTime).TotalSeconds;
+
+                    double avgSpeed = durationSeconds > 0 ? (distanceMeters / durationSeconds) : 0;
+
+                    var hrSplit = hrData?
+                        .Where(hr => hr.TimeStamp >= splitStartTime && hr.TimeStamp <= splitEndTime)
+                        .Select(hr => hr.HearthRateValue)
+                        .ToList();
+
+                    var elevationSplit = elevationData?
+                        .Where(e => e.Timestamp >= splitStartTime && e.Timestamp <= splitEndTime)
+                        .ToList();
+
+                    int? avgHr = hrSplit?.Count > 0 ? (int?)Math.Round(hrSplit.Average()) : null;
+
+                    int? elevationGain = null;
+                    if (elevationSplit != null && elevationSplit.Count > 1)
+                    {
+                        double gain = 0;
+                        for (int j = 1; j < elevationSplit.Count; j++)
+                        {
+                            var delta = elevationSplit[j].ElevationValue - elevationSplit[j - 1].ElevationValue;
+                            if (delta > 0) gain += delta;
+                        }
+                        elevationGain = (int)Math.Round(gain);
+                    }
+
+                    splits.Add(new ActivitySplit
+                    {
+                        SplitNumber = currentSplit++,
+                        DistanceMeters = distanceMeters,
+                        AvgSpeed = avgSpeed,
+                        AvgHr = avgHr,
+                        ElevationGain = elevationGain
+                    });
+
+                    // Insert into localRoute, NOT original route
+                    localRoute.Insert(i, splitPoint);
+                    cumulativeDistances = RecalculateCumulativeDistances(localRoute);
+
+                    lastIndex = i;
+                    distanceSinceLastSplit = 0;
+                }
+            }
+
+            // After the loop, check for leftover distance and add a final split if > 0
+            double leftoverDistance = cumulativeDistances.Last() - cumulativeDistances[lastIndex];
+            if (leftoverDistance > 0)
+            {
+                DateTime splitStartTime = localRoute[lastIndex].Timestamp;
+                DateTime splitEndTime = localRoute.Last().Timestamp;
+
+                double distanceMeters = leftoverDistance;
+                double durationSeconds = (splitEndTime - splitStartTime).TotalSeconds;
+
+                double avgSpeed = durationSeconds > 0 ? (distanceMeters / durationSeconds) : 0;
+
+                var hrSplit = hrData?
+                    .Where(hr => hr.TimeStamp >= splitStartTime && hr.TimeStamp <= splitEndTime)
+                    .Select(hr => hr.HearthRateValue)
+                    .ToList();
+
+                var elevationSplit = elevationData?
+                    .Where(e => e.Timestamp >= splitStartTime && e.Timestamp <= splitEndTime)
+                    .ToList();
+
+                int? avgHr = hrSplit?.Count > 0 ? (int?)Math.Round(hrSplit.Average()) : null;
+
+                int? elevationGain = null;
+                if (elevationSplit != null && elevationSplit.Count > 1)
+                {
+                    double gain = 0;
+                    for (int j = 1; j < elevationSplit.Count; j++)
+                    {
+                        var delta = elevationSplit[j].ElevationValue - elevationSplit[j - 1].ElevationValue;
+                        if (delta > 0) gain += delta;
+                    }
+                    elevationGain = (int)Math.Round(gain);
+                }
+
+                splits.Add(new ActivitySplit
+                {
+                    SplitNumber = currentSplit++,
+                    DistanceMeters = distanceMeters,
+                    AvgSpeed = avgSpeed,
+                    AvgHr = avgHr,
+                    ElevationGain = elevationGain
+                });
+            }
+
+            return splits;
+        }
+
+        private GeoPoint InterpolatePoint(GeoPoint start, GeoPoint end, double ratio)
+        {
+            return new GeoPoint
+            {
+                Latitude = start.Latitude + (end.Latitude - start.Latitude) * ratio,
+                Longitude = start.Longitude + (end.Longitude - start.Longitude) * ratio,
+                Timestamp = start.Timestamp + TimeSpan.FromTicks((long)((end.Timestamp - start.Timestamp).Ticks * ratio))
+            };
+        }
+
+        // Helper to recalc cumulative distances after insertion
+        private double[] RecalculateCumulativeDistances(List<GeoPoint> route)
+        {
+            double[] cumulativeDistances = new double[route.Count];
+            cumulativeDistances[0] = 0;
+
+            for (int i = 1; i < route.Count; i++)
+            {
+                cumulativeDistances[i] = cumulativeDistances[i - 1] + DistanceBetween(route[i - 1], route[i]);
+            }
+
+            return cumulativeDistances;
+        }
+
+        // Assuming you have a method like this for distance in meters between two GPS points
+        private double DistanceBetween(GeoPoint p1, GeoPoint p2)
+        {
+            // Use Haversine formula or any distance calculation between lat/lon points
+            var R = 6371000; // Radius of Earth in meters
+            var lat1 = ToRadians(p1.Latitude);
+            var lat2 = ToRadians(p2.Latitude);
+            var deltaLat = ToRadians(p2.Latitude - p1.Latitude);
+            var deltaLon = ToRadians(p2.Longitude - p1.Longitude);
+
+            var a = Math.Sin(deltaLat / 2) * Math.Sin(deltaLat / 2) +
+                    Math.Cos(lat1) * Math.Cos(lat2) *
+                    Math.Sin(deltaLon / 2) * Math.Sin(deltaLon / 2);
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
+        }
+
+        private double ToRadians(double degrees) => degrees * Math.PI / 180;
     }
 }

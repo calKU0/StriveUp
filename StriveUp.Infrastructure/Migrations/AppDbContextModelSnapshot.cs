@@ -486,6 +486,39 @@ namespace StriveUp.Infrastructure.Migrations
                     b.ToTable("ActivitySpeeds");
                 });
 
+            modelBuilder.Entity("StriveUp.Infrastructure.Models.ActivitySplit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AvgHr")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("AvgSpeed")
+                        .HasColumnType("float");
+
+                    b.Property<double>("DistanceMeters")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("ElevationGain")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SplitNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserActivityId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserActivityId");
+
+                    b.ToTable("ActivitySplits");
+                });
+
             modelBuilder.Entity("StriveUp.Infrastructure.Models.BestEffort", b =>
                 {
                     b.Property<int>("Id")
@@ -1023,6 +1056,17 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("UserActivity");
                 });
 
+            modelBuilder.Entity("StriveUp.Infrastructure.Models.ActivitySplit", b =>
+                {
+                    b.HasOne("StriveUp.Infrastructure.Models.UserActivity", "UserActivity")
+                        .WithMany("Splits")
+                        .HasForeignKey("UserActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserActivity");
+                });
+
             modelBuilder.Entity("StriveUp.Infrastructure.Models.BestEffort", b =>
                 {
                     b.HasOne("StriveUp.Infrastructure.Models.SegmentConfig", "SegmentConfig")
@@ -1224,6 +1268,8 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("Route");
 
                     b.Navigation("SpeedData");
+
+                    b.Navigation("Splits");
                 });
 #pragma warning restore 612, 618
         }

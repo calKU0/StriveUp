@@ -1,16 +1,8 @@
-﻿using StriveUp.Shared.DTOs.Profile;
+﻿using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Profile;
 using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http.Headers;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Net.Http;
-using StriveUp.Infrastructure.Extensions;
 
 namespace StriveUp.Infrastructure.Services
 {
@@ -66,7 +58,6 @@ namespace StriveUp.Infrastructure.Services
 
                 var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
                 return (false, errorResponse);
-
             }
             catch (Exception ex)
             {

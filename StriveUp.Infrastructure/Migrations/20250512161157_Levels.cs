@@ -88,7 +88,6 @@ namespace StriveUp.Infrastructure.Migrations
                 onDelete: ReferentialAction.Cascade);
         }
 
-
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {

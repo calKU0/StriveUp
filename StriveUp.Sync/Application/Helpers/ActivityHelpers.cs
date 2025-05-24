@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StriveUp.Sync.Application.Helpers
+﻿namespace StriveUp.Sync.Application.Helpers
 {
     public static class ActivityHelpers
     {
@@ -20,6 +14,7 @@ namespace StriveUp.Sync.Application.Helpers
                 _ => 7
             };
         }
+
         public static int MapFitbitActivityType(int activityType)
         {
             return activityType switch

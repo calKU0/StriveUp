@@ -1,5 +1,4 @@
 ﻿using Blazored.LocalStorage;
-using Microsoft.JSInterop;
 using StriveUp.Shared.Interfaces;
 
 namespace StriveUp.Web.Services
@@ -57,10 +56,10 @@ namespace StriveUp.Web.Services
             }
             catch (InvalidOperationException)
             {
-
             }
             return string.Empty;
         }
+
         public async Task ClearRefreshToken() => await _localStorage.RemoveItemAsync(RefreshTokenKey);
     }
 }

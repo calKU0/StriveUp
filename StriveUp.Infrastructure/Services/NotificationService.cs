@@ -42,5 +42,4 @@ namespace StriveUp.Infrastructure.Services
             await _httpClient.PostAsync($"notifications/read/{id}", null);
         }
     }
-
 }

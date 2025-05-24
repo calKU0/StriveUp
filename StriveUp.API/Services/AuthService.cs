@@ -1,10 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
@@ -67,7 +62,6 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
             {
                 return (IdentityResult.Failed(new IdentityError { Description = "Passwords do not match." }), null);
             }
-
 
             if (!string.IsNullOrEmpty(request.AvatarBase64))
             {
@@ -139,7 +133,6 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
                     Email = email,
                     FirstName = externalUser.FindFirstValue(ClaimTypes.GivenName) ?? userName,
                     LastName = externalUser.FindFirstValue(ClaimTypes.Surname) ?? "",
-
                 };
                 var token = GenerateJwtToken(user);
                 var refreshToken = GenerateRefreshToken();
@@ -156,7 +149,6 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
         }
         catch
         {
-
         }
         return (false, null);
     }
@@ -204,7 +196,6 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
         await _signInManager.SignOutAsync();
     }
 
-
     private string GenerateRefreshToken()
     {
         var randomBytes = new byte[64];
@@ -234,6 +225,7 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
     private bool IsValidEmail(string input)
     {
         if (string.IsNullOrWhiteSpace(input))

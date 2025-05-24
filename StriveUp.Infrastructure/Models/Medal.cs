@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using StriveUp.Infrastructure.Data;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace StriveUp.Infrastructure.Models
 {
@@ -21,7 +15,7 @@ namespace StriveUp.Infrastructure.Models
         public string? Description { get; set; }
 
         [Required]
-        public int TargetValue { get; set; } 
+        public int TargetValue { get; set; }
 
         [Required]
         public int Level { get; set; }

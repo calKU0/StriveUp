@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using StriveUp.Sync.Application.Converters;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-
-using System.Text.Json.Serialization;
-using StriveUp.Sync.Application.Converters;
 
 namespace StriveUp.Sync.Application.Models
 {

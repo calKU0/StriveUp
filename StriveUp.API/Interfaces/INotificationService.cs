@@ -1,5 +1,4 @@
-﻿using StriveUp.Infrastructure.Models;
-using StriveUp.Shared.DTOs;
+﻿using StriveUp.Shared.DTOs;
 
 namespace StriveUp.API.Interfaces
 {

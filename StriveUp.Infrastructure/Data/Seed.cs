@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using StriveUp.Infrastructure.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using StriveUp.Infrastructure.Identity;
+using StriveUp.Infrastructure.Models;
 
 namespace StriveUp.Infrastructure.Data
 {
@@ -43,7 +40,6 @@ namespace StriveUp.Infrastructure.Data
                 Console.WriteLine("User is already an admin.");
             }
         }
-
 
         public static async Task SeedData(AppDbContext context)
         {
@@ -179,7 +175,6 @@ namespace StriveUp.Infrastructure.Data
                 context.SegmentConfigs.AddRange(configs);
                 await context.SaveChangesAsync();
             }
-
 
             if (!context.Medals.Any())
             {

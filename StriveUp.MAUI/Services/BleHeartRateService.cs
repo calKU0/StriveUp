@@ -1,15 +1,8 @@
-﻿using Plugin.BLE.Abstractions.Contracts;
+﻿using Plugin.BLE;
 using Plugin.BLE.Abstractions;
-using Plugin.BLE;
-using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Plugin.BLE.Abstractions.Contracts;
 using StriveUp.Shared.DTOs;
-using System.Diagnostics;
-
+using StriveUp.Shared.Interfaces;
 
 namespace StriveUp.MAUI.Services
 {
@@ -22,6 +15,7 @@ namespace StriveUp.MAUI.Services
         private DateTime _lastHeartRateUpdate = DateTime.MinValue;
 
         public event Action<int> OnHeartRateChanged;
+
         public bool IsConnected => _device?.State == DeviceState.Connected;
 
         private readonly Guid HR_SERVICE_UUID = Guid.Parse("0000180D-0000-1000-8000-00805f9b34fb");
@@ -45,7 +39,6 @@ namespace StriveUp.MAUI.Services
                     Name = bleDevice.Name,
                     Id = bleDevice.Id.ToString(),
                 });
-                
             }
 
             return availableDevices;
@@ -81,7 +74,6 @@ namespace StriveUp.MAUI.Services
             return true;
         }
 
-
         public async Task DisconnectAsync()
         {
             if (_device != null && IsConnected)
@@ -106,5 +98,4 @@ namespace StriveUp.MAUI.Services
             }
         }
     }
-
 }

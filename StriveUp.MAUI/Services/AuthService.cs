@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using StriveUp.Infrastructure.Services;
-using StriveUp.Shared.DTOs;
+﻿using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace StriveUp.MAUI.Services

@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Data;
-using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Leaderboard;
 using StriveUp.Shared.Helpers;
 using System.Globalization;
-using System.Security.Claims;
 
 namespace StriveUp.API.Services
 {

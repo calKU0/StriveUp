@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 
 namespace StriveUp.Infrastructure.Data
 {
@@ -15,7 +14,7 @@ namespace StriveUp.Infrastructure.Data
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnectionString"),options => options.EnableRetryOnFailure());
+            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnectionString"), options => options.EnableRetryOnFailure());
 
             return new AppDbContext(optionsBuilder.Options);
         }

@@ -22,7 +22,6 @@
     animation: dash 1.5s ease-in-out infinite;
 }
 
-
 @keyframes rotate {
     100% {
         transform: rotate(360deg);

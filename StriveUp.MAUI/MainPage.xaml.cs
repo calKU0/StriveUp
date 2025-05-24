@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace StriveUp.MAUI
+﻿namespace StriveUp.MAUI
 {
     public partial class MainPage : ContentPage
     {
@@ -8,6 +6,5 @@ namespace StriveUp.MAUI
         {
             InitializeComponent();
         }
-
     }
 }

@@ -1,12 +1,13 @@
 ﻿#if ANDROID
+
 using AndroidX.Core.App;
 using Resource = Microsoft.Maui.Controls.Resource;
+
 #endif
+
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Locations;
-using System;
-using System.Threading.Tasks;
 using StriveUp.Shared.Interfaces;
 
 namespace StriveUp.MAUI
@@ -27,7 +28,9 @@ namespace StriveUp.MAUI
             return Task.CompletedTask;
         }
     }
+
 #if ANDROID
+
     public partial class MyGpsDelegate : IAndroidForegroundServiceDelegate
     {
         public void Configure(NotificationCompat.Builder builder)
@@ -38,6 +41,6 @@ namespace StriveUp.MAUI
                 .SetSmallIcon(Resource.Mipmap.appicon_foreground);
         }
     }
+
 #endif
 }
-

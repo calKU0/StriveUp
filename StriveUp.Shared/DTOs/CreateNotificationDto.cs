@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace StriveUp.Shared.DTOs
 {
@@ -13,6 +8,7 @@ namespace StriveUp.Shared.DTOs
         public string UserId { get; set; }
 
         public string ActorId { get; set; }
+
         [Required]
         [MaxLength(50)]
         public string Title { get; set; }
@@ -27,5 +23,4 @@ namespace StriveUp.Shared.DTOs
 
         public string? RedirectUrl { get; set; }
     }
-
 }

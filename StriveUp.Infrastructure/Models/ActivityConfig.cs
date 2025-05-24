@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace StriveUp.Infrastructure.Models
 {
@@ -12,10 +7,10 @@ namespace StriveUp.Infrastructure.Models
         [Key]
         public int Id { get; set; }
 
-        public required string MeasurementType { get; set; }
+        public string MeasurementType { get; set; }
 
         [Required]
-        public required string DefaultDistanceUnit { get; set; } = "km";
+        public string DefaultDistanceUnit { get; set; } = "km";
 
         public bool UseHeartRate { get; set; } = true;
 
@@ -32,7 +27,7 @@ namespace StriveUp.Infrastructure.Models
 
         // Foreign key relationship
         public int ActivityId { get; set; }
+
         public Activity Activity { get; set; } = null!;
     }
-
 }

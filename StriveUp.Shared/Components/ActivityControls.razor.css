@@ -11,14 +11,13 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-
     /* State when dropdown is visible */
-.dropdown-menu.show {
-    max-height: 300px; /* Adjust to the approximate size of your content */
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
+    .dropdown-menu.show {
+        max-height: 300px; /* Adjust to the approximate size of your content */
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
 
 /* Styling for each dropdown item */
 .dropdown-item {

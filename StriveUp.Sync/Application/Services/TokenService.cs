@@ -3,13 +3,7 @@ using Microsoft.Extensions.Logging;
 using StriveUp.Shared.DTOs;
 using StriveUp.Sync.Application.Interfaces;
 using StriveUp.Sync.Application.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace StriveUp.Sync.Application.Services
 {
@@ -91,6 +85,5 @@ namespace StriveUp.Sync.Application.Services
                 IsNewToken = true
             };
         }
-
     }
 }

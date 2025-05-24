@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StriveUp.Shared.Helpers
+﻿namespace StriveUp.Shared.Helpers
 {
     public static class MedalUtils
     {
-        public  static string GetProgressGradientClass(int progress)
+        public static string GetProgressGradientClass(int progress)
         {
             if (progress >= 100)
                 return "progress-100";

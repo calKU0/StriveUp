@@ -51,8 +51,8 @@
             .addTo(map);
     });
 
-    window[mapId] = map; 
-    return map; 
+    window[mapId] = map;
+    return map;
 }
 
 export function resizeMap(mapId) {
@@ -72,4 +72,3 @@ export function resizeMap(mapId) {
         }, 10); // 10ms interval
     }
 }
-

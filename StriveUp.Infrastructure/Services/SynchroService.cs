@@ -1,9 +1,9 @@
-﻿using StriveUp.Infrastructure.Extensions;
+﻿using Microsoft.Extensions.Options;
+using StriveUp.Infrastructure.Data.Settings;
+using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Net.Http.Json;
-using Microsoft.Extensions.Options;
-using StriveUp.Infrastructure.Data.Settings;
 
 namespace StriveUp.Infrastructure.Services
 {
@@ -45,6 +45,7 @@ namespace StriveUp.Infrastructure.Services
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
             return await _httpClient.DeleteAsync($"synchro/deleteUserSynchro/{id}");
         }
+
         public string GetOAuthUrl(string provider)
         {
             string authUrl = string.Empty;

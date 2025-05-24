@@ -1,4 +1,126 @@
-﻿window.renderLineChartById = (id, labels, data, label, chartType) => {
+﻿function renderSplitChart(canvasId, speedValues, labels, hrValues, elevationValues, measurement) {
+    const tryRender = () => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
+            setTimeout(tryRender, 100);
+            return;
+        }
+
+        if (window[canvasId + "Instance"]) {
+            window[canvasId + "Instance"].destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
+
+        // Convert speed (m/s) to pace (seconds per km) or speed (km/h)
+        let mainData;
+        let labelMain;
+        if (measurement === "pace") {
+            mainData = speedValues.map(s => s > 0 ? 1000 / s : 0); // pace in seconds/km
+            labelMain = "Pace (min/km)";
+        } else {
+            mainData = speedValues.map(s => s * 3.6);
+            labelMain = "Speed (km/h)";
+        }
+
+        window[canvasId + "Instance"] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: labelMain,
+                        data: mainData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderWidth: 1,
+                        maxBarThickness: 30,
+                        borderRadius: 4,
+                    },
+                ],
+            },
+            options: {
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                elements: {
+                    bar: {
+                        maxBarThickness: 30,
+                        borderRadius: 4,
+                    }
+                },
+                scales: {
+                    x: {
+                        max: Math.max(...mainData) * 1.4,
+                        beginAtZero: true,
+                        grace: '10%',
+                        title: {
+                            display: true,
+                            text: measurement === "pace" ? 'Pace (min/km)' : 'Speed (km/h)',
+                        },
+                        ticks: {
+                            callback: function (value) {
+                                if (measurement === "pace") {
+                                    const minutes = Math.floor(value / 60);
+                                    const seconds = Math.round(value % 60);
+                                    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                                } else {
+                                    return value.toFixed(1);
+                                }
+                            }
+                        }
+                    },
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const datasetLabel = context.dataset.label || '';
+                                const value = context.parsed.x;
+                                if (datasetLabel === labelMain) {
+                                    if (measurement === "pace") {
+                                        if (value <= 0) return `${datasetLabel}: N/A`;
+                                        const minutes = Math.floor(value / 60);
+                                        const seconds = Math.round(value % 60);
+                                        return `${datasetLabel}: ${minutes}:${seconds < 10 ? '0' : ''}${seconds} min/km`;
+                                    } else {
+                                        return `${datasetLabel}: ${value.toFixed(2)} km/h`;
+                                    }
+                                }
+                                return `${datasetLabel}: ${value}`;
+                            }
+                        }
+                    }
+                }
+            },        
+        });
+    };
+
+    tryRender();
+}
+
+function fillSplitStatsTable(labels, hrValues, elevationValues) {
+    const tbody = document.querySelector('#splitStats tbody');
+    tbody.innerHTML = ''; // clear previous
+
+    for (let i = 0; i < labels.length; i++) {
+        const tr = document.createElement('tr');
+        const splitCell = document.createElement('td');
+        splitCell.textContent = labels[i];
+
+        const hrCell = document.createElement('td');
+        hrCell.textContent = hrValues[i] ?? 'N/A';
+
+        const elevCell = document.createElement('td');
+        elevCell.textContent = elevationValues[i] ?? 'N/A';
+
+        tr.appendChild(splitCell);
+        tr.appendChild(hrCell);
+        tr.appendChild(elevCell);
+
+        tbody.appendChild(tr);
+    }
+}
+
+window.renderLineChartById = (id, labels, data, label, chartType) => {
     const tryRender = () => {
         const canvas = document.getElementById(id);
         if (!canvas) {
@@ -116,7 +238,6 @@ window.animateCounter = (dotNetRef, target, duration) => {
     }, 16);
 };
 
-
 window.launchConfetti = () => {
     if (window.confetti) {
         // Create a canvas if not already
@@ -169,7 +290,6 @@ window.initIntersectionObserver = (element, dotNetHelper) => {
 
     window.activityFeedObserver.observe(element);
 };
-
 
 window.triggerFileInputClick = function () {
     var fileInput = document.getElementById("fileInput");

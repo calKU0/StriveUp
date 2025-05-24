@@ -1,11 +1,4 @@
-﻿using StriveUp.Shared.DTOs.Leaderboard;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StriveUp.Shared.DTOs.Leaderboard
+﻿namespace StriveUp.Shared.DTOs.Leaderboard
 {
     public class UserBestEffortsStatsDto
     {

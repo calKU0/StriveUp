@@ -1,13 +1,8 @@
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.Interfaces;
 using StriveUp.Web.Components;
 using StriveUp.Web.Services;
-using System.Net;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +34,6 @@ builder.Services.AddHttpClient("ApiClient", (client) =>
 //    // (opcjonalnie) nas³uchiwanie HTTP i przekierowanie do HTTPS
 //    options.Listen(IPAddress.Any, 80);
 //});
-
 
 var app = builder.Build();
 

@@ -1,8 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Shiny;
-using Shiny.Locations;
-using System;
-using System.Threading.Tasks;
+﻿using Shiny.Locations;
 
 namespace StriveUp.Infrastructure.Services
 {
@@ -12,7 +8,6 @@ namespace StriveUp.Infrastructure.Services
 
         public MyGpsDelegate()
         {
-
         }
 
         Task IGpsDelegate.OnReading(GpsReading reading)
@@ -29,6 +24,4 @@ namespace StriveUp.Infrastructure.Services
         //        .SetSmallIcon(Resource.Mipmap.appicon);
         //}
     }
-
 }
-
