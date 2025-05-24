@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using StriveUp.Infrastructure.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using StriveUp.Infrastructure.Identity;
 
 namespace StriveUp.Infrastructure.Models
 {
@@ -13,16 +8,21 @@ namespace StriveUp.Infrastructure.Models
     {
         [Required]
         public int Id { get; set; }
+
         [Required]
         public string UserId { get; set; }
+
         [Required]
         [ForeignKey("UserId")]
         public AppUser User { get; set; }
+
         [Required]
         public int SynchroId { get; set; }
+
         [Required]
         [ForeignKey("SynchroId")]
         public SynchroProvider SynchroProvider { get; set; }
+
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? TokenExpiresAt { get; set; }

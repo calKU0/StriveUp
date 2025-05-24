@@ -4,17 +4,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using StriveUp.API.Models;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Data.Settings;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Security.Claims;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using StriveUp.API.Models;
 
 namespace StriveUp.API.Controllers
 {
@@ -70,8 +67,6 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
-
 
         [HttpGet("userSynchros")]
         public async Task<ActionResult<UserSynchroDto>> GetUserSynchros()

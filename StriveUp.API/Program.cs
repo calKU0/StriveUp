@@ -1,16 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Plugin.BLE.Abstractions.Contracts;
 using StriveUp.API.Interfaces;
 using StriveUp.API.Mapping;
 using StriveUp.API.Services;
 using StriveUp.Infrastructure.Data;
-using StriveUp.Infrastructure.Data.Settings;
 using StriveUp.Infrastructure.Extensions;
 using System.Text;
 

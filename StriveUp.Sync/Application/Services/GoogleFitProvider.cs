@@ -4,14 +4,9 @@ using StriveUp.Shared.DTOs.Activity;
 using StriveUp.Sync.Application.Helpers;
 using StriveUp.Sync.Application.Interfaces;
 using StriveUp.Sync.Application.Models;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace StriveUp.Sync.Application.Services
 {
@@ -36,7 +31,7 @@ namespace StriveUp.Sync.Application.Services
             _logger = logger;
         }
 
-        public async Task<List<CreateUserActivityDto>> GetUserActivitiesAsync(UserSynchroDto userSynchro , string token)
+        public async Task<List<CreateUserActivityDto>> GetUserActivitiesAsync(UserSynchroDto userSynchro, string token)
         {
             var result = new List<CreateUserActivityDto>();
 

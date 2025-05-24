@@ -15,6 +15,7 @@ namespace StriveUp.API.Controllers
         {
             _securableService = securableService;
         }
+
         [HttpGet("mapboxToken")]
         public async Task<ActionResult<string>> GetMapboxToken()
         {

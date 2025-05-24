@@ -1,7 +1,6 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using StriveUp.Sync.Application.Interfaces;
-using System;
 
 namespace StriveUp.Sync
 {
@@ -15,7 +14,6 @@ namespace StriveUp.Sync
             _logger = loggerFactory.CreateLogger<SyncFunction>();
             _userSyncService = userSyncService;
         }
-
 
         [Function("UserSyncFunction")]
         public async Task Run([TimerTrigger("0 */1 * * * *")] TimerInfo myTimer)

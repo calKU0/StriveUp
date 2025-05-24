@@ -3,6 +3,7 @@
     cursor: pointer;
     transition: transform 0.2s ease;
 }
+
     .activity-card:hover {
         transform: translateY(-3px);
     }

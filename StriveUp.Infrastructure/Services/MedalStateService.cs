@@ -1,9 +1,4 @@
 ﻿using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StriveUp.Infrastructure.Services
 {
@@ -27,6 +22,7 @@ namespace StriveUp.Infrastructure.Services
                 NotifyStateChanged();
             }
         }
+
         public void IncrementMedalsCount()
         {
             if (MedalsToClaim > 0)
@@ -38,5 +34,4 @@ namespace StriveUp.Infrastructure.Services
 
         private void NotifyStateChanged() => OnChange?.Invoke();
     }
-
 }

@@ -57,8 +57,8 @@
     //    .setLngLat(coords[0])
     //    .addTo(map);
 
-    window[mapId] = map; 
-    return map; 
+    window[mapId] = map;
+    return map;
 }
 
 export function resizeMap(mapId) {
@@ -88,4 +88,3 @@ function createCustomMarker(iconUrl) {
     img.style.transform = 'translate(-50%, -100%)';
     return img;
 }
-

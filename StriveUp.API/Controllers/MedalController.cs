@@ -6,9 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Models;
-using StriveUp.Infrastructure.Services;
 using StriveUp.Shared.DTOs;
-using System.Diagnostics;
 using System.Security.Claims;
 
 namespace StriveUp.API.Controllers
@@ -40,7 +38,7 @@ namespace StriveUp.API.Controllers
                     .Where(ua => ua.UserId == userId).ToListAsync();
 
                 var medals = await _context.Medals
-                    .ProjectTo<MedalDto>(_mapper.ConfigurationProvider) 
+                    .ProjectTo<MedalDto>(_mapper.ConfigurationProvider)
                     .ToListAsync();
 
                 foreach (var medal in medals)
@@ -92,7 +90,6 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
 
         [HttpGet("medalsToClaimCount")]
         public async Task<ActionResult<int>> GetMedalsToClaimCount()
@@ -152,7 +149,6 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
         [HttpPost("claim/{id:int}")]
         public async Task<ActionResult<MedalDto>> ClaimMedal(int id)
         {
@@ -181,7 +177,6 @@ namespace StriveUp.API.Controllers
 
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
-
                 if (user == null)
                     return NotFound("User not found.");
 
@@ -208,7 +203,6 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
 
         private (int ProgressPercent, int DistanceToEarn) CalculateMedalProgressAndDistance(MedalDto medal, List<UserActivity> activities)
         {
@@ -251,6 +245,5 @@ namespace StriveUp.API.Controllers
 
             return (progress, remaining);
         }
-
     }
 }

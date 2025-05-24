@@ -1,13 +1,7 @@
 ﻿using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StriveUp.Infrastructure.Services
 {
@@ -15,6 +9,7 @@ namespace StriveUp.Infrastructure.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ITokenStorageService _tokenStorage;
+
         public FollowService(IHttpClientFactory httpClientFactory, ITokenStorageService tokenStorage)
         {
             _httpClient = httpClientFactory.CreateClient("ApiClient");
@@ -40,5 +35,4 @@ namespace StriveUp.Infrastructure.Services
             await _httpClient.DeleteAsync($"follow/{followedId}/unfollow");
         }
     }
-
 }

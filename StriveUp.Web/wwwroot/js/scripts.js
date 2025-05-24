@@ -116,7 +116,6 @@ window.animateCounter = (dotNetRef, target, duration) => {
     }, 16);
 };
 
-
 window.launchConfetti = () => {
     if (window.confetti) {
         // Create a canvas if not already
@@ -169,7 +168,6 @@ window.initIntersectionObserver = (element, dotNetHelper) => {
 
     window.activityFeedObserver.observe(element);
 };
-
 
 window.triggerFileInputClick = function () {
     var fileInput = document.getElementById("fileInput");

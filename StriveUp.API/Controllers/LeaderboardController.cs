@@ -14,6 +14,7 @@ namespace StriveUp.API.Controllers
         private readonly ILeaderboardService _leaderboardService;
 
         private string GetUserId() => User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         public LeaderboardController(ILeaderboardService leaderboardService)
         {
             _leaderboardService = leaderboardService;

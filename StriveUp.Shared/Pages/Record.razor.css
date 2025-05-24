@@ -15,16 +15,15 @@
         height: 100vh;
     }
 
-
 .map-section {
     height: 62vh;
     width: 100%;
 }
 
-.map-section.expanded {
-    height: 70vh;
-    width: 100%;
-}
+    .map-section.expanded {
+        height: 70vh;
+        width: 100%;
+    }
 
 .map-visible .map-section {
     display: block;

@@ -1,12 +1,5 @@
 ﻿using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using StriveUp.Shared.DTOs.Activity;
 
 namespace StriveUp.Shared.Helpers
 {
@@ -73,5 +66,4 @@ namespace StriveUp.Shared.Helpers
             return measurementType == "pace" ? "Pace" : "Speed";
         }
     }
-
 }

@@ -1,15 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.WebUtilities;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
 
 namespace StriveUp.Infrastructure.Extensions
 {
@@ -48,7 +43,6 @@ namespace StriveUp.Infrastructure.Extensions
             return new AuthenticationState(_currentUser);
         }
 
-
         public async Task NotifyUserAuthentication(JwtResponse jwt)
         {
             try
@@ -81,7 +75,6 @@ namespace StriveUp.Infrastructure.Extensions
                 _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
             }
         }
-
 
         // Helper method to parse claims from JWT
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
@@ -134,6 +127,5 @@ namespace StriveUp.Infrastructure.Extensions
                 return null;
             }
         }
-
     }
 }

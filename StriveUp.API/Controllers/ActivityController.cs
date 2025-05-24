@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Data;
+using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Activity;
 using System.Security.Claims;
-using StriveUp.Infrastructure.Identity;
-using StriveUp.API.Interfaces;
 
 namespace StriveUp.API.Controllers
 {
@@ -120,7 +120,6 @@ namespace StriveUp.API.Controllers
                         : Convert.ToInt32(Math.Round(userActivity.DurationSeconds / 60));
                     user.CurrentXP += xpReward;
                 }
-
 
                 _context.UserActivities.Add(userActivity);
 
@@ -268,7 +267,6 @@ namespace StriveUp.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<UserActivityDto>> GetActivityById(int id)
@@ -435,7 +433,6 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
         [HttpPost("comment/{activityId}")]
         public async Task<IActionResult> AddComment(int activityId, AddCommentDto dto)
         {
@@ -493,7 +490,6 @@ namespace StriveUp.API.Controllers
             }
         }
 
-
         [HttpGet("activityComments/{activityId}")]
         public async Task<ActionResult<IEnumerable<ActivityCommentDto>>> GetActivityComments(int activityId)
         {
@@ -535,7 +531,6 @@ namespace StriveUp.API.Controllers
             if (totalRouteDistanceMeters < targetDistanceMeters)
                 return null;
 
-
             double bestDuration = double.MaxValue;
             BestEffort? bestSegment = null;
 
@@ -572,7 +567,6 @@ namespace StriveUp.API.Controllers
             return bestSegment;
         }
 
-
         private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
         {
             const double R = 6371000; // Earth radius in meters
@@ -588,6 +582,7 @@ namespace StriveUp.API.Controllers
         }
 
         private static double DegreesToRadians(double deg) => deg * (Math.PI / 180);
+
         private double[] ComputeCumulativeDistances(List<GeoPoint> route)
         {
             var cumulativeDistances = new double[route.Count];

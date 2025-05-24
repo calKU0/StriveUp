@@ -1,7 +1,6 @@
-﻿using System.Globalization;
-using Microsoft.Maui.Devices.Sensors;
+﻿using StriveUp.Shared.DTOs;
+using System.Globalization;
 using System.Text;
-using StriveUp.Shared.DTOs;
 
 namespace StriveUp.Shared.Helpers
 {
@@ -31,7 +30,6 @@ namespace StriveUp.Shared.Helpers
 
             return $"https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/{overlay}/auto/{width}x{height}?padding={padding}&access_token={token}";
         }
-
 
         public static string Encode(IEnumerable<GeoPointDto> points)
         {

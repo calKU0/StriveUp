@@ -1,7 +1,6 @@
 ﻿using Android.App;
 using Android.Content.PM;
 using Android.OS;
-using Microsoft.Maui.ApplicationModel;
 
 namespace StriveUp.MAUI;
 
@@ -23,9 +22,8 @@ public class MainActivity : MauiAppCompatActivity
             Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#ff8000"));
         }
 
-
 #if DEBUG
         Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
 #endif
-    }  
+    }
 }

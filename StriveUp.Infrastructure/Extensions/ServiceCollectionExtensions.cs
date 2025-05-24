@@ -8,11 +8,6 @@ using StriveUp.Infrastructure.Data.Settings;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Services;
 using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StriveUp.Infrastructure.Extensions
 {
@@ -22,7 +17,6 @@ namespace StriveUp.Infrastructure.Extensions
         {
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(config.GetConnectionString("DefaultConnectionString")));
-
 
             services.AddScoped<IImageService, ImageService>();
             services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));

@@ -6,5 +6,4 @@ namespace StriveUp.Web.Services
     {
         public bool IsNativeApp() => false;
     }
-
 }

@@ -1,10 +1,4 @@
 ﻿using StriveUp.Shared.DTOs.Activity;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StriveUp.Shared.DTOs
 {
@@ -15,8 +9,10 @@ namespace StriveUp.Shared.DTOs
         public string ActivityName { get; set; }
         public string Title { get; set; }
         public string? Description { get; set; }
+
         //public List<string>? ImageUrls { get; set; }
         public double DurationSeconds { get; set; }
+
         public int Distance { get; set; }
         public DateTime DateStart { get; set; }
         public DateTime DateEnd { get; set; }

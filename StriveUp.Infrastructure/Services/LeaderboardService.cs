@@ -1,14 +1,8 @@
-﻿using GeolocatorPlugin.Abstractions;
-using StriveUp.Infrastructure.Extensions;
+﻿using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Leaderboard;
 using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StriveUp.Infrastructure.Services
 {
@@ -16,11 +10,13 @@ namespace StriveUp.Infrastructure.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ITokenStorageService _tokenStorage;
+
         public LeaderboardService(ITokenStorageService tokenStorage, IHttpClientFactory httpClient)
         {
             _tokenStorage = tokenStorage;
             _httpClient = httpClient.CreateClient("ApiClient");
         }
+
         public async Task<List<LeaderboardDto>> GetBestFollowersEfforts(SegmentDto segmentDto)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Identity;
-using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using System.Security.Claims;
 

@@ -1,10 +1,5 @@
 ﻿using StriveUp.Infrastructure.Identity;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StriveUp.Infrastructure.Models
 {
@@ -14,10 +9,12 @@ namespace StriveUp.Infrastructure.Models
 
         [Required]
         public string UserId { get; set; }
+
         public AppUser User { get; set; }
 
         [Required]
         public int UserActivityId { get; set; }
+
         public UserActivity UserActivity { get; set; }
 
         [Required]
@@ -33,6 +30,4 @@ namespace StriveUp.Infrastructure.Models
 
         public double Speed => SegmentConfig.DistanceMeters / DurationSeconds;
     }
-
-
 }

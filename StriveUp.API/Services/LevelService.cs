@@ -42,6 +42,5 @@ namespace StriveUp.API.Services
                 await _notificationService.CreateNotificationAsync(notifDto);
             }
         }
-
     }
 }

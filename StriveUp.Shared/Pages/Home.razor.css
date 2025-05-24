@@ -3,7 +3,6 @@
     overflow-y: auto;
     height: 100vh;
     margin-top: -65px;
-
     /* Hide scrollbar for Chrome, Safari and Opera */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE 10+ */
@@ -71,8 +70,6 @@
     position: relative;
     z-index: 10;
 }
-
-
 
 .hero-section {
     background: url('/images/running-woman.jpg') center/cover no-repeat;

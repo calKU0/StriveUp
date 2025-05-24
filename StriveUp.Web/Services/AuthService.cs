@@ -1,11 +1,6 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
-using Newtonsoft.Json.Linq;
-using StriveUp.Shared.DTOs;
+﻿using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using static System.Net.WebRequestMethods;
 
 namespace StriveUp.Web.Services
 {
@@ -38,7 +33,7 @@ namespace StriveUp.Web.Services
 
                 return (true, null);
             }
-            catch (Exception  ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex);
                 return (false, $"Unexpected error: {ex.Message}");
@@ -96,11 +91,11 @@ namespace StriveUp.Web.Services
                 return (false, $"Unexpected error: {ex.Message}");
             }
         }
+
         private class ErrorResponse
         {
             public string? Message { get; set; }
             public List<string>? Errors { get; set; }
         }
     }
-
 }

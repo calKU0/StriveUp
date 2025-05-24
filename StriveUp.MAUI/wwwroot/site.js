@@ -21,7 +21,7 @@ window.initializeMap = function initializeMap(lat, lng, accessToken) {
         });
         window.map.on('load', () => {
             userMarker = new mapboxgl.Marker({
-                element: createArrowMarker(), 
+                element: createArrowMarker(),
                 anchor: 'center',
             })
                 .setLngLat([lng, lat])
@@ -108,7 +108,7 @@ function updateMap(lat, lng, heading, shouldTrack) {
         center: lngLat,
         bearing: heading,
         duration: 750,
-        easing: t => t  
+        easing: t => t
     });
 }
 
@@ -119,7 +119,7 @@ function clearRoute() {
             type: 'Feature',
             geometry: {
                 type: 'LineString',
-                coordinates: [] 
+                coordinates: []
             }
         });
     }
@@ -135,14 +135,12 @@ function clearRoute() {
     route = [];
 }
 
-
 function scrollToTrackingSection() {
     const section = document.getElementById("tracking-section");
     if (section) {
         section.scrollIntoView({ behavior: "smooth" });
     }
 }
-
 
 window.renderLineChartById = (id, labels, data, label, chartType) => {
     const tryRender = () => {
@@ -289,7 +287,6 @@ window.animateCounter = (dotNetRef, target, duration) => {
     }, 16);
 };
 
-
 // lazy loading (infinite scroll)
 window.activityFeedObserver = null;
 
@@ -364,4 +361,3 @@ window.getTimeAgo = function (utcDateString) {
     const daysAgo = Math.floor(hoursAgo / 24);
     return `${daysAgo}d ago`;
 };
-

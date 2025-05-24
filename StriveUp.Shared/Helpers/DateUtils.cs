@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StriveUp.Shared.Helpers
+﻿namespace StriveUp.Shared.Helpers
 {
     public static class DateUtils
     {
@@ -13,6 +7,7 @@ namespace StriveUp.Shared.Helpers
             var diff = (7 + (dt.DayOfWeek - DayOfWeek.Monday)) % 7;
             return dt.Date.AddDays(-1 * diff);
         }
+
         public static string FormatDuration(double durationSeconds)
         {
             var duration = TimeSpan.FromSeconds(durationSeconds);

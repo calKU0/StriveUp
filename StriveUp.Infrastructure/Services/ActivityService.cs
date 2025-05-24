@@ -103,6 +103,7 @@ namespace StriveUp.Infrastructure.Services
                 return false;
             }
         }
+
         public async Task<List<UserActivityDto>> GetFeedAsync(int page, int pageSize)
         {
             try
@@ -174,6 +175,6 @@ namespace StriveUp.Infrastructure.Services
                 Console.WriteLine(ex);
                 return new List<ActivityCommentDto>();
             }
-}
+        }
     }
 }

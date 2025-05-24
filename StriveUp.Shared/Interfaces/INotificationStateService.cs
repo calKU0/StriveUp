@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StriveUp.Shared.Interfaces
+﻿namespace StriveUp.Shared.Interfaces
 {
     public interface INotificationStateService
     {
@@ -23,6 +17,4 @@ namespace StriveUp.Shared.Interfaces
         /// </summary>
         Task RefreshUnreadCountAsync();
     }
-
-
 }

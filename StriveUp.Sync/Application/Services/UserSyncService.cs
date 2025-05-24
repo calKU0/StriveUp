@@ -1,14 +1,12 @@
-﻿using Azure.Core;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using StriveUp.Shared.DTOs; 
+using StriveUp.Shared.DTOs;
 using StriveUp.Sync.Application.Interfaces;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace StriveUp.Sync.Application.Services
 {
@@ -80,7 +78,6 @@ namespace StriveUp.Sync.Application.Services
                             continue;
                         }
                     }
-
 
                     IHealthDataProvider provider = user.SynchroProviderName switch
                     {

@@ -17,20 +17,19 @@
 }
 
 .profile-avatar-overlay {
-    width: 120px; 
-    height: 120px; 
-    border-radius: 50%; 
-    object-fit: cover; 
-    border: 4px solid #fff; 
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
 }
-
 
 /* Tabs */
 .nav-tabs .nav-link {
     border: none;
     color: #6c757d;
     font-weight: 500;
-    padding: 0.75rem 1.5rem; 
+    padding: 0.75rem 1.5rem;
 }
 
     .nav-tabs .nav-link.active {
@@ -38,7 +37,6 @@
         color: #fff;
         border-radius: 0.5rem;
     }
-
 
 /* Text tweaks */
 .text-muted {

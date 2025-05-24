@@ -1,13 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StriveUp.Shared.DTOs
+﻿namespace StriveUp.Shared.DTOs
 {
     public class RegisterRequest
     {
@@ -24,7 +15,5 @@ namespace StriveUp.Shared.DTOs
         public string? State { get; set; }
         public string? City { get; set; }
         public string? Bio { get; set; }
-
     }
-
 }

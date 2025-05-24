@@ -145,5 +145,4 @@ namespace StriveUp.API.Controllers
             }
         }
     }
-
 }
