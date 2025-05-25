@@ -10,6 +10,7 @@
     background-color: #ff8000;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     z-index: 9999;
+    transition: top 0.5s ease;
 }
 
     .native-header .page-title.has-back-button {
@@ -33,5 +34,5 @@
 
 
     .native-header.hidden-header {
-        top: -70px; /* Adjust based on header height */
+        top: -40px;
     }

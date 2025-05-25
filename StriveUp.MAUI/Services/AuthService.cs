@@ -3,6 +3,7 @@ using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components.WebView.Maui;
 
 namespace StriveUp.MAUI.Services
 {
@@ -11,6 +12,8 @@ namespace StriveUp.MAUI.Services
         private readonly HttpClient _httpClient;
         private readonly ICustomAuthStateProvider _authStateProvider;
         private readonly ITokenStorageService _tokenStorage;
+
+        public event Func<string, string, Task>? TokensReceived;
 
         public AuthService(IHttpClientFactory httpClientFactory, ICustomAuthStateProvider authStateProvider, ITokenStorageService tokenStorage)
         {
@@ -100,6 +103,28 @@ namespace StriveUp.MAUI.Services
             {
                 Debug.WriteLine(ex);
                 return (false, $"Unexpected error: {ex.Message}");
+            }
+        }
+
+        public async Task StartNativeGoogleLoginAsync()
+        {
+            var authUrl = "https://localhost:7116/api/auth/google-login?returnUrl=StriveUp://login-callback";
+            var callbackUrl = new Uri("StriveUp://login-callback");
+
+            try
+            {
+                var result = await WebAuthenticator.Default.AuthenticateAsync(new Uri(authUrl), callbackUrl);
+
+                if (result.Properties.TryGetValue("access_token", out var accessToken) &&
+                    result.Properties.TryGetValue("refresh_token", out var refreshToken))
+                {
+                    if (TokensReceived != null)
+                        await TokensReceived.Invoke(accessToken!, refreshToken!);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"OAuth error: {ex.Message}");
             }
         }
 

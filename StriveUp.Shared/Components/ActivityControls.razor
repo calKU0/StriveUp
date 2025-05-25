@@ -22,7 +22,7 @@
 
             <div class="position-relative">
                 <i class="sensor-icon fas fa-heartbeat text-danger shadow-lg rounded-circle p-3 bg-white border border-2"
-                   @onclick="() => ShowSensorSelect = true"></i>
+                   @onclick="CheckAndToggleSensorModal"></i>
                 <div class="text-muted small mt-2">Select Sensor</div>
             </div>
         </div>
@@ -96,22 +96,29 @@
 
     protected async override Task OnInitializedAsync()
     {
-        // TO DO
-        // Check for permissions only on list click
-
-        var status = await Permissions.RequestAsync<Permissions.Bluetooth>();
-        if (status != PermissionStatus.Granted)
-        {
-            return;
-        }
-
-        AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
         var config = await ProfileService.GetUserConfig();
 
         if (!string.IsNullOrEmpty(config.SensorId))
         {
             SelectedSensor = AvailableSensors.FirstOrDefault(s => s.Id == config.SensorId);
         }
+    }
+
+    private async Task CheckAndToggleSensorModal()
+    {
+        var status = await Permissions.RequestAsync<Permissions.Bluetooth>();
+
+        if (status != PermissionStatus.Granted)
+        {
+            // Optional: Show a message to the user
+            await JSRuntime.InvokeVoidAsync("alert", "Bluetooth permission is required to select a sensor.");
+            ShowSensorSelect = false; // Ensure modal stays closed
+            StateHasChanged();
+            return;
+        }
+
+        AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
+        ShowSensorSelect = true;
     }
 
 

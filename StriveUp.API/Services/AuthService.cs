@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Maui.Authentication;
+using StriveUp.API.Interfaces;
 using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
-using StriveUp.API.Interfaces;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -164,6 +166,20 @@ public class AuthService : StriveUp.API.Interfaces.IAuthService
                 };
 
                 _context.UserConfigs.Add(config);
+                await _context.SaveChangesAsync();
+
+                return (true, new JwtResponse { Token = token, RefreshToken = refreshToken });
+            }
+            else
+            {
+                // User exists — log them in
+                var token = GenerateJwtToken(user);
+
+                var refreshToken = GenerateRefreshToken();
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(31);
+
+                _context.Update(user);
                 await _context.SaveChangesAsync();
 
                 return (true, new JwtResponse { Token = token, RefreshToken = refreshToken });

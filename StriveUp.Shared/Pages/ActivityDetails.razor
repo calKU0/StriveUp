@@ -312,7 +312,9 @@
     {
         try
         {
+            int maxPoints = 40;
             var measurement = activityConfig.MeasurementType;
+
             if (activity.SpeedData?.Any() == true)
             {
                 var speedLabels = activity.SpeedData
@@ -321,24 +323,18 @@
                             .ToString(@"hh\:mm\:ss"))
                     .ToArray();
 
-                foreach (var d in activity.SpeedData)
-                {
-                    Console.WriteLine($"SpeedValue: {d.SpeedValue}");
-                }
-                Console.WriteLine(activity.SpeedData.Count);
-
                 var maxPaceValue = 1000; // some large number representing "stopped"
                 var paceValues = activity.SpeedData
                     .Select(d => d.SpeedValue > 0 ? 1000.0 / d.SpeedValue : maxPaceValue)
                     .ToArray();
 
-                Console.WriteLine(paceValues.Length);
-                foreach (var pace in paceValues)
-                {
-                    Console.WriteLine(pace);
-                }
+                speedLabels = ActivityUtils.DownsampleEquallySpaced(speedLabels, maxPoints);
+                paceValues = ActivityUtils.DownsampleEquallySpaced(paceValues, maxPoints);
 
-                await JS.InvokeVoidAsync("renderLineChartById", "speedChart", speedLabels, paceValues, "Pace (min/km)", "speed");
+                double avgSpeed = activity.Splits?.Average(s => s.AvgSpeed) ?? 0;
+                double factor = 0.75;
+                double minPace = avgSpeed > 0 ? avgSpeed - factor : 0;
+                await JS.InvokeVoidAsync("renderLineChartById", "speedChart", speedLabels, paceValues, "Pace (min/km)", "speed", minPace);
             }
 
             if (activity.ElevationData?.Any() == true)
@@ -348,7 +344,10 @@
                         .ToString(@"hh\:mm\:ss"))
                     .ToArray();
 
-                var elevationValues = activity.ElevationData.Select(d => d.ElevationValue).ToArray();
+                var elevationValues = activity.ElevationData.Select(d => (int)Math.Round(d.ElevationValue)).ToArray();
+
+                elevationLabels = ActivityUtils.DownsampleEquallySpaced(elevationLabels, maxPoints);
+                elevationValues = ActivityUtils.DownsampleEquallySpaced(elevationValues, maxPoints);
 
                 await JS.InvokeVoidAsync("renderLineChartById", "elevationChart", elevationLabels, elevationValues, "Elevation (m)", "elevation");
             }
@@ -362,6 +361,9 @@
                     .ToArray();
 
                 var hrValues = activity.HrData.Select(d => d.HearthRateValue).ToArray();
+
+                hrLabels = ActivityUtils.DownsampleEquallySpaced(hrLabels, maxPoints);
+                hrValues = ActivityUtils.DownsampleEquallySpaced(hrValues, maxPoints);
 
                 await JS.InvokeVoidAsync("renderLineChartById", "hrChart", hrLabels, hrValues, "Heart Rate (bpm)", "hr");
             }
@@ -379,9 +381,7 @@
                 var elevationValues = activity.Splits.Select(s => s.ElevationGain ?? 0).ToArray();
 
                 await JS.InvokeVoidAsync("renderSplitChart", "splitChart", speedValues.ToArray(), labels, hrValues.ToArray(), elevationValues.ToArray(), measurement);
-
             }
-
         }
         catch (Exception ex)
         {
