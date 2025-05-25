@@ -16,4 +16,5 @@
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 	<uses-feature android:name="android.permission.LOCATION.GPS" android:required="false" />
 	<uses-feature android:name="android.permission.LOCATION.NETWORK" android:required="false" />
+	<application android:icon="@mipmap/appicon" android:label="StriveUp" />
 </manifest>

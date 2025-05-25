@@ -9,7 +9,7 @@ namespace StriveUp.MAUI.Platforms.Android
     [Activity(NoHistory = true, Exported = true, LaunchMode = LaunchMode.SingleTop)]
     [IntentFilter(
         new[] { Intent.ActionView },
-        Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable, Intent.ActionView },
+        Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
         DataScheme = "StriveUp",
         DataHost = "login-callback"
     )]
