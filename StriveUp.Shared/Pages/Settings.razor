@@ -274,7 +274,7 @@
 
         await UpdateUserConfig(new UpdateUserConfigDto
         {
-            SensorId = int.TryParse(device.Id, out var parsedId) ? parsedId : null,
+            SensorId = device.Id,
             SensorName = device.Name
         });
     }
