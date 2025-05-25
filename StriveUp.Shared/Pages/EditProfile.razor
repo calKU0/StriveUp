@@ -1,7 +1,7 @@
 ﻿@page "/profile/edit"
 
 <!-- Usings -->
-@using System.Drawing
+@using SkiaSharp
 @using StriveUp.Shared.DTOs.Profile
 
 <!-- Injections -->
@@ -256,95 +256,60 @@
             var base64Data = imageDataUrl.Substring(imageDataUrl.IndexOf(',') + 1);
             var imageBytes = Convert.FromBase64String(base64Data);
 
-            // Load image into a MemoryStream
-            using var ms = new System.IO.MemoryStream(imageBytes);
-            using var originalImage = Image.FromStream(ms);
+            // Load image using SkiaSharp
+            using var inputStream = new SKMemoryStream(imageBytes);
+            using var originalImage = SKBitmap.Decode(inputStream);
 
-            // Define target size (256x256)
-            var targetWidth = 256;
-            var targetHeight = 256;
-
-            // Calculate the aspect ratio of the original image
-            var aspectRatio = (double)originalImage.Width / originalImage.Height;
-
-            int newWidth, newHeight;
-
-            // Resize the image to fit within the target size while maintaining aspect ratio
-            if (originalImage.Width > originalImage.Height)
+            if (originalImage == null)
             {
-                newWidth = targetWidth;
-                newHeight = (int)(targetWidth / aspectRatio);
-            }
-            else if (originalImage.Width < originalImage.Height)
-            {
-                newHeight = targetHeight;
-                newWidth = (int)(targetHeight * aspectRatio);
-            }
-            else
-            {
-                newWidth = targetWidth;
-                newHeight = targetHeight;
+                Console.WriteLine("Failed to decode image.");
+                return;
             }
 
-            // Create a new Bitmap for the resized image
-            var resizedImage = new Bitmap(newWidth, newHeight);
+            const int targetWidth = 256;
+            const int targetHeight = 256;
 
-            using (var g = Graphics.FromImage(resizedImage))
+            // Calculate new size while preserving aspect ratio
+            float ratioX = (float)targetWidth / originalImage.Width;
+            float ratioY = (float)targetHeight / originalImage.Height;
+            float ratio = Math.Min(ratioX, ratioY);
+
+            int newWidth = (int)(originalImage.Width * ratio);
+            int newHeight = (int)(originalImage.Height * ratio);
+
+            // Resize
+            using var resizedImage = originalImage.Resize(new SKImageInfo(newWidth, newHeight), SKFilterQuality.High);
+
+            // Center crop to 256x256
+            using var croppedImage = new SKBitmap(targetWidth, targetHeight);
+            using (var canvas = new SKCanvas(croppedImage))
             {
-                // Set high quality rendering options
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                canvas.Clear(SKColors.Transparent);
 
-                // Draw the resized image
-                g.DrawImage(originalImage, 0, 0, newWidth, newHeight);
+                int xOffset = (targetWidth - newWidth) / 2;
+                int yOffset = (targetHeight - newHeight) / 2;
+
+                canvas.DrawBitmap(resizedImage, xOffset, yOffset);
             }
 
-            // Now crop if necessary to the exact target size
-            int xOffset = 0, yOffset = 0;
-            if (newWidth > targetWidth)
-            {
-                xOffset = (newWidth - targetWidth) / 2;
-            }
-            if (newHeight > targetHeight)
-            {
-                yOffset = (newHeight - targetHeight) / 2;
-            }
+            // Encode to PNG
+            using var image = SKImage.FromBitmap(croppedImage);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            var croppedBytes = data.ToArray();
 
-            // Create a final bitmap to hold the cropped image
-            var finalImage = new Bitmap(targetWidth, targetHeight);
+            // Convert to base64
+            var croppedBase64 = Convert.ToBase64String(croppedBytes);
 
-            using (var g = Graphics.FromImage(finalImage))
-            {
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-
-                // Crop from the center to get the target size
-                g.DrawImage(resizedImage, 0, 0, new Rectangle(xOffset, yOffset, targetWidth, targetHeight), GraphicsUnit.Pixel);
-            }
-
-            // Save the final cropped and resized image into a memory stream in PNG format
-            using var croppedMs = new System.IO.MemoryStream();
-            finalImage.Save(croppedMs, System.Drawing.Imaging.ImageFormat.Png);
-
-            // Convert the final image to a base64 string
-            var croppedBase64 = Convert.ToBase64String(croppedMs.ToArray());
-
-            // Update the croppedImageUrl to show the result in the UI
+            // Update UI-related data
             croppedImageUrl = $"data:image/png;base64,{croppedBase64}";
-
             editModel.Avatar = croppedImageUrl;
 
-            // Notify the UI to update
             StateHasChanged();
-
             await Task.CompletedTask;
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            Console.WriteLine("Error processing image: " + ex.Message);
         }
     }
-
 }

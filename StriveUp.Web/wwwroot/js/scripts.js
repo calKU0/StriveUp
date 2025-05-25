@@ -97,7 +97,7 @@
     tryRender();
 }
 
-window.renderLineChartById = (id, labels, data, label, chartType) => {
+window.renderLineChartById = (id, labels, data, label, chartType, minSpeed = 1) => {
     const tryRender = () => {
         const canvas = document.getElementById(id);
         if (!canvas) {
@@ -114,14 +114,31 @@ window.renderLineChartById = (id, labels, data, label, chartType) => {
         let ticksLimit = window.innerWidth >= 1200 ? 15 : window.innerWidth >= 768 ? 10 : 5;
 
         if (chartType === "speed") {
+            const minPaceSecPerKm = 1000 / minSpeed;
+
             const maxPace = Math.max(...data.filter(v => !isNaN(v)));
-            chartData = data.map(v => isNaN(v) ? NaN : maxPace - v);
-            const paceRange = Math.max(...data) - Math.min(...data);
+
+            // Clamp pace values for chart rendering
+            const clampedData = data.map(v => {
+                if (isNaN(v)) return NaN;
+                return v > minPaceSecPerKm ? minPaceSecPerKm : v;
+            });
+
+            chartData = clampedData.map(v => isNaN(v) ? NaN : maxPace - v);
+
+            const paceRange = Math.max(...clampedData) - Math.min(...clampedData);
             stepSize = paceRange > 300 ? 60 : 30;
 
             yTicksCallback = (value) => {
                 const originalPace = maxPace - value;
                 if (isNaN(originalPace)) return '';
+
+                if (originalPace > minPaceSecPerKm) {
+                    const minutes = Math.floor(minPaceSecPerKm / 60);
+                    const seconds = Math.floor(minPaceSecPerKm % 60);
+                    return `<${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+
                 const roundedPace = Math.round(originalPace / 30) * 30;
                 const minutes = Math.floor(roundedPace / 60);
                 const seconds = roundedPace % 60;
@@ -129,14 +146,26 @@ window.renderLineChartById = (id, labels, data, label, chartType) => {
             };
 
             tooltipLabelCallback = (context) => {
-                const originalPace = maxPace - context.parsed.y;
-                if (isNaN(originalPace)) return '';
-                const minutes = Math.floor(originalPace / 60);
-                const seconds = Math.round(originalPace % 60);
+                // Use the original data at this point (context.dataIndex)
+                const originalValue = data[context.dataIndex];
+                if (isNaN(originalValue)) return '';
+
+                if (originalValue > minPaceSecPerKm) {
+                    const minutes = Math.floor(minPaceSecPerKm / 60);
+                    const seconds = Math.round(minPaceSecPerKm % 60);
+                    return `Pace: <${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+
+                // Otherwise show the actual pace from clamped data
+                const pace = maxPace - context.parsed.y;
+                const minutes = Math.floor(pace / 60);
+                const seconds = Math.round(pace % 60);
                 return `Pace: ${minutes}:${seconds.toString().padStart(2, '0')} min/km`;
             };
         }
 
+
+        // Colors and other chartType handling unchanged
         let borderColor = 'rgba(255, 167, 192, 0.8)';
         let backgroundColor = 'rgba(255, 167, 38, 0.3)';
 
@@ -236,12 +265,6 @@ window.animateProgressAndCounter = (targetPercent, durationMs, dotNetRef) => {
 
     requestAnimationFrame(step);
 };
-
-window.getDocumentTitle = () => {
-    return document.title;
-};
-
-
 
 window.launchConfetti = () => {
     if (window.confetti) {

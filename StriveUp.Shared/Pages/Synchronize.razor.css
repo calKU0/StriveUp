@@ -13,3 +13,12 @@
 .animate-fade-in {
     animation: fade-in 0.3s ease-out;
 }
+
+@media (max-width: 768px) {
+    .sync-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
+        background-color: #ffffff !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    }
+}

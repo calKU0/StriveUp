@@ -39,7 +39,7 @@
                         </div>
                     </div>
                     <div class="progress-text text-center mt-2">
-                        <span>@AnimatedPercent% Completed</span>
+                        <span>@MedalDto.ProgressPercent% Completed</span>
                     </div>
                 }
                 else
@@ -72,28 +72,17 @@
             AnimatedPercent = 0;
             StateHasChanged();
 
-            await Task.Yield(); // Render initial 0%
-
+            await Task.Yield(); // ensure initial 0% renders
             DisplayedProgress = MedalDto.ProgressPercent;
             StateHasChanged();
 
-            await JS.InvokeVoidAsync("animateProgressAndCounter", MedalDto.ProgressPercent, 1250, DotNetObjectReference.Create(this));
-        }
-    }
-
-    [JSInvokable]
-    public async Task UpdateAnimatedPercent(int percent)
-    {
-        AnimatedPercent = percent;
-        StateHasChanged();
-
-        if (percent == 100)
-        {
-            // Wait a bit, then swap progress bar for claim button
-            await Task.Delay(200);
-            ShowProgressBar = false;
-            ShowRedeemButton = true;
-            StateHasChanged();
+            if (MedalDto.ProgressPercent == 100)
+            {
+                await Task.Delay(1350); // wait for animation to finish
+                ShowProgressBar = false;
+                ShowRedeemButton = true;
+                StateHasChanged();
+            }
         }
     }
 

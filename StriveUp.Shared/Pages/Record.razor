@@ -63,6 +63,7 @@
                 IsTracking="@isTracking"
                 IsPaused="@isPaused"
                 SelectedActivityChanged="@((ActivityDto a) => OnSelectedActivityChanged(a))"
+                OnSelectedSensorChanged="s => sensor = s"
                 OnStartClick="@ToggleTracking"
                 OnStopClick="@ToggleTracking"
                 OnResumeClick="@ResumeTracking"
@@ -77,7 +78,7 @@
                     <div class="row g-3">
                         @if(!selectedActivity.DistanceRelevant)
                         {
-                            <InfoTile Label="Distance" Value="@($"{Distance:F2} km")" IconClass="fas fa-route" />
+                            <InfoTile Label="Distance" Value="@($"{Distance/1000:F2} km")" IconClass="fas fa-route" />
                             <!-- Conditional display of Speed or Pace -->
                             @if (selectedActivity.SpeedRelevant)
                             {
@@ -139,11 +140,12 @@ IsSaving=@isSaving/>
     private const double smoothingAlpha = 0.2;
     private Location lastLocation;
     private DateTime resumeTime;
-    private GpsRequest gpsSettigns = new GpsRequest(GpsBackgroundMode.Realtime, GpsAccuracy.Highest);
+    private GpsRequest gpsSettigns = new GpsRequest(GpsBackgroundMode.Realtime, GpsAccuracy.High);
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = "Tracked via GPS";
     private bool isSaving = false;
+    private BluetoothDeviceDto sensor;
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,13 +190,11 @@ IsSaving=@isSaving/>
                 var config = await ProfileService.GetUserConfig();
                 if (!string.IsNullOrEmpty(config.SensorId))
                 {
-                    var btDevice = new BluetoothDeviceDto
+                    sensor = new BluetoothDeviceDto
                     {
                         Id = config.SensorId,
                         Name = config.SensorName
                     };
-
-                    await ConnectHrDevice(btDevice);
                 }
                 if (!GpsManager.IsListening())
                 {
@@ -211,9 +211,10 @@ IsSaving=@isSaving/>
         }
         else
         {
+            await JSRuntime.InvokeVoidAsync("alert", "Background location permission is required to track your activity.");
             isLoadingLocation = false;
             StateHasChanged();
-            // Handle denied permission scenario
+            Navigation.NavigateTo("/");
         }
     }
 
@@ -238,6 +239,7 @@ IsSaving=@isSaving/>
         bool isInBackground = AppStateService.IsInBackground;
         double acceptableAccuracy = isInBackground ? 25 : 5;
         Console.WriteLine($"Background={isInBackground}");
+
         if (reading.PositionAccuracy > acceptableAccuracy && currentLocation != null)
         {
             Console.WriteLine($"Filtered: Accuracy={reading.PositionAccuracy}, Background={isInBackground}");
@@ -246,8 +248,7 @@ IsSaving=@isSaving/>
 
         currentLocation = location;
 
-        _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking);
-        StateHasChanged();
+        _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false);
 
         if (isTracking)
         {
@@ -349,14 +350,7 @@ IsSaving=@isSaving/>
                 if (isTracking)
                 {
                     HeartRate = hr;
-                    HrData.Add(new ActivityHrDto
-                    {
-                        HearthRateValue = hr,
-                        TimeStamp = DateTime.UtcNow
-                    });
                 }
-
-                InvokeAsync(StateHasChanged);
             };
         }
     }
@@ -377,6 +371,7 @@ IsSaving=@isSaving/>
 
     private async Task StartTracking()
     {
+        _ = ConnectHrDevice(sensor);
         isTracking = true;
         startTime = DateTime.UtcNow;
         route.Clear();
@@ -394,8 +389,6 @@ IsSaving=@isSaving/>
         while (!token.IsCancellationRequested)
         {
             Duration = DateTime.UtcNow - startTime;
-
-            await InvokeAsync(() => StateHasChanged());
             await Task.Delay(1000, token);
         }
     }
@@ -533,7 +526,6 @@ IsSaving=@isSaving/>
         }
         currentHeading = e.Reading.HeadingMagneticNorth;
         JSRuntime.InvokeVoidAsync("updateMarker", currentHeading);
-        StateHasChanged();
     }
 
 

@@ -12,6 +12,8 @@ namespace StriveUp.Web.Services
         private readonly ICustomAuthStateProvider _authStateProvider;
         private readonly ITokenStorageService _tokenStorage;
 
+        public event Func<string, string, Task>? TokensReceived;
+
         public AuthService(IHttpClientFactory httpClient, ICustomAuthStateProvider authStateProvider, ITokenStorageService tokenStorage)
         {
             _httpClient = httpClient.CreateClient("ApiClient");
@@ -102,6 +104,11 @@ namespace StriveUp.Web.Services
                 Debug.WriteLine(ex);
                 return (false, $"Unexpected error: {ex.Message}");
             }
+        }
+
+        public Task StartNativeGoogleLoginAsync()
+        {
+            throw new NotImplementedException();
         }
 
         private class ErrorResponse

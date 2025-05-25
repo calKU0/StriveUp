@@ -111,17 +111,28 @@ namespace StriveUp.API.Controllers
         {
             var info = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
             if (info?.Principal == null)
-            {
-                return Unauthorized(new ErrorResponse { Message = "External login info not found." });
-            }
+                return Unauthorized(new { Message = "External login info not found." });
 
             var (success, jwt) = await _authService.ExternalLoginAsync(info.Principal);
             if (!success || jwt == null)
-                return Unauthorized(new ErrorResponse { Message = "External login failed." });
+                return Unauthorized(new { Message = "External login failed." });
 
-            // Instead of passing tokens via query string (insecure), use fragment or localStorage via intermediate redirect
-            var redirectUrl = $"{returnUrl}#access_token={jwt.Token}&refresh_token={jwt.RefreshToken}";
-            return Redirect(redirectUrl);
+            if (returnUrl.StartsWith("StriveUp://"))
+            {
+                // For native apps, return tokens as JSON (instead of redirect)
+                return Ok(new
+                {
+                    access_token = jwt.Token,
+                    refresh_token = jwt.RefreshToken
+                });
+            }
+            else
+            {
+                // For web, redirect with tokens in URL fragment
+                var redirectUrl = $"{returnUrl}#access_token={jwt.Token}&refresh_token={jwt.RefreshToken}";
+                return Redirect(redirectUrl);
+            }
         }
+
     }
 }

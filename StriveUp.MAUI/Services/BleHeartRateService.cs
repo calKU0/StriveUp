@@ -46,32 +46,40 @@ namespace StriveUp.MAUI.Services
 
         public async Task<bool> ConnectAsync(string id)
         {
-            var target = _adapter.BondedDevices.FirstOrDefault(d => d.Id.ToString().Equals(id, StringComparison.OrdinalIgnoreCase));
-
-            if (target == null)
-                return false;
-
-            _device = target;
-
-            await _adapter.ConnectToDeviceAsync(_device);
-
-            var service = await _device.GetServiceAsync(HR_SERVICE_UUID);
-            _hrCharacteristic = await service.GetCharacteristicAsync(HR_MEASUREMENT_UUID);
-
-            _hrCharacteristic.ValueUpdated += (s, e) =>
+            try
             {
-                if (e.Characteristic.Value.Length > 1)
-                {
-                    if ((DateTime.Now - _lastHeartRateUpdate).TotalSeconds >= 1)
-                    {
-                        int hr = e.Characteristic.Value[1];
-                        OnHeartRateChanged?.Invoke(hr);
-                    }
-                }
-            };
+                var target = _adapter.BondedDevices.FirstOrDefault(d => d.Id.ToString().Equals(id, StringComparison.OrdinalIgnoreCase));
 
-            await _hrCharacteristic.StartUpdatesAsync();
-            return true;
+                if (target == null)
+                    return false;
+
+                _device = target;
+
+                await _adapter.ConnectToDeviceAsync(_device);
+
+                var service = await _device.GetServiceAsync(HR_SERVICE_UUID);
+                _hrCharacteristic = await service.GetCharacteristicAsync(HR_MEASUREMENT_UUID);
+
+                _hrCharacteristic.ValueUpdated += (s, e) =>
+                {
+                    if (e.Characteristic.Value.Length > 1)
+                    {
+                        if ((DateTime.Now - _lastHeartRateUpdate).TotalSeconds >= 1)
+                        {
+                            int hr = e.Characteristic.Value[1];
+                            OnHeartRateChanged?.Invoke(hr);
+                        }
+                    }
+                };
+
+                await _hrCharacteristic.StartUpdatesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error" + ex);
+                return false;
+            }
         }
 
         public async Task DisconnectAsync()

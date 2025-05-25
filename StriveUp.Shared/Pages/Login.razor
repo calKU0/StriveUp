@@ -10,6 +10,7 @@
 @inject IAuthService AuthService
 @inject IJSRuntime JSRuntime
 @inject ITokenStorageService TokenStorageService
+@inject IPlatformService PlatformService
 
 <PageTitle>Login</PageTitle>
 
@@ -78,6 +79,11 @@ else
     private string? loginError;
     private bool isLoading = true;
     private bool isLoggingIn = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.TokensReceived += OnTokensReceivedFromNative;
+    }
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
@@ -150,8 +156,33 @@ else
         Nav.NavigateTo("/register");
     }
 
-    private void TriggerGoogleLogin()
+    private async Task TriggerGoogleLogin()
     {
-        Nav.NavigateTo("https://localhost:7116/api/auth/google-login", forceLoad: true);
+        isLoggingIn = true;
+
+        if (!PlatformService.IsNativeApp())
+        {
+            // Web: just navigate to your API login endpoint with web return URL
+            //var url = "https://striveupapi-emaee9awang6g4ht.polandcentral-01.azurewebsites.net/api/auth/google-login?returnUrl=https://kkurowski.striveup.com:7153/login";
+            var url = "https://localhost:7116/api/auth/google-login";
+            Nav.NavigateTo(url, forceLoad: true);
+        }
+        else
+        {
+            // Native: use platform-specific OAuth launcher
+            await AuthService.StartNativeGoogleLoginAsync();
+        }
+    }
+
+    private async Task OnTokensReceivedFromNative(string accessToken, string refreshToken)
+    {
+        var jwt = new JwtResponse
+        {
+            Token = accessToken,
+            RefreshToken = refreshToken
+        };
+
+        await AuthService.ExternalLoginAsync(jwt);
+        Nav.NavigateTo("/");
     }
 }

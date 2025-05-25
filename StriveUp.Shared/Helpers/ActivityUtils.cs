@@ -65,5 +65,21 @@ namespace StriveUp.Shared.Helpers
         {
             return measurementType == "pace" ? "Pace" : "Speed";
         }
+
+        public static T[] DownsampleEquallySpaced<T>(T[] data, int maxCount)
+        {
+            if (data.Length <= maxCount)
+                return data;
+
+            var step = (double)(data.Length - 1) / (maxCount - 1);
+            var result = new T[maxCount];
+            for (int i = 0; i < maxCount; i++)
+            {
+                int index = (int)Math.Round(i * step);
+                result[i] = data[index];
+            }
+            return result;
+        }
+
     }
 }
