@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StriveUp.API.Interfaces;
 using StriveUp.Shared.DTOs;
+using System.Security.Claims;
 
 namespace StriveUp.API.Controllers
 {
@@ -52,6 +55,34 @@ namespace StriveUp.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new ErrorResponse { Message = "An error occurred during login." });
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteMyAccount()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { Message = "User not authenticated." });
+                }
+
+                await _authService.DeleteAccountAsync(userId);
+                return NoContent(); // 204 No Content on success
+            }
+            catch (InvalidOperationException ex)
+            {
+                // User not found or other expected errors
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Unexpected errors
+                return StatusCode(500, new { message = "An error occurred while deleting the account.", detail = ex.Message });
             }
         }
 

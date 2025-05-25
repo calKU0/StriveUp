@@ -129,9 +129,24 @@ namespace StriveUp.API.Services
             return levels;
         }
 
-        public async Task<(List<UserBestEffortsStatsDto>, UserActivityStatsDto)> GetUserStats(string userName, int activityId)
+        public async Task<(List<UserBestEffortsStatsDto>, UserActivityStatsDto)> GetUserStats(string callingUserId, string userName, int activityId)
         {
-            string userId = _context.Users.Where(u => u.UserName == userName).Select(u => u.Id).First();
+            var targetUser = await _context.Users
+                .Include(u => u.UserConfig)
+                .Where(u => u.UserName == userName)
+                .FirstOrDefaultAsync();
+
+            if (targetUser == null)
+                throw new ArgumentException("User not found");
+
+            // Privacy check: if calling user != target user AND PrivateActivities == true => deny or return empty
+            if (targetUser.Id != callingUserId && targetUser.UserConfig.PrivateActivities == true)
+            {
+                // You can throw exception or return empty data, example here:
+                return (new List<UserBestEffortsStatsDto>(), new UserActivityStatsDto());
+            }
+
+            string userId = targetUser.Id;
 
             // --- Best Efforts ---
             var bestEfforts = await _context.BestEfforts
@@ -216,6 +231,12 @@ namespace StriveUp.API.Services
             var followers = await _context.UserFollowers
                 .Where(uf => uf.FollowerId == userId)
                 .Select(uf => uf.FollowedId)
+                .Join(_context.Users,
+                      followedId => followedId,
+                      user => user.Id,
+                      (followedId, user) => new { user.Id, user.UserConfig })
+                .Where(u => u.UserConfig.PrivateActivities == false) // Allow if private = false
+                .Select(u => u.Id)
                 .ToListAsync();
 
             // Include the user themselves

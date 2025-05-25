@@ -11,24 +11,8 @@ namespace StriveUp.API.Mapping
     {
         public MappingProfile()
         {
-            // UserActivity <-> DTO
-            CreateMap<UserActivity, UserActivityDto>()
-                .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.User.Id))
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
-                .ForMember(dest => dest.UserAvatar, opt => opt.MapFrom(src => src.User.Avatar))
-                .ForMember(dest => dest.LikeCount, opt => opt.MapFrom(src => src.ActivityLikes.Count))
-                .ForMember(dest => dest.IsLikedByCurrentUser, opt => opt.Ignore())
-                .ForMember(dest => dest.Comments, opt => opt.Ignore())
-                .ForMember(dest => dest.ActivityId, opt => opt.MapFrom(src => src.Activity.Id))
-                .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name))
-                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Activity.Description))
-                .ForMember(dest => dest.DurationSeconds, opt => opt.MapFrom(src => src.DurationSeconds));
-
             // CreateUserActivityDto <-> DTO
             CreateMap<CreateUserActivityDto, UserActivity>();
-
-            CreateMap<UserActivityDto, UserActivity>();
 
             // GeoPoint <-> DTO
             CreateMap<GeoPoint, GeoPointDto>().ReverseMap();
@@ -37,6 +21,7 @@ namespace StriveUp.API.Mapping
             CreateMap<ActivitySplit, ActivitySplitDto>();
 
             CreateMap<SegmentConfig, SegmentDto>();
+            CreateMap<UserActivity, UserActivityDto>();
 
             // Comment  <-> DTO
             CreateMap<ActivityComment, ActivityCommentDto>()
@@ -79,10 +64,7 @@ namespace StriveUp.API.Mapping
             CreateMap<EditUserProfileDto, AppUser>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
-            CreateMap<ActivityHrDto, ActivityHr>();
             CreateMap<ActivityHrDto, ActivityHr>().ReverseMap();
-
-            CreateMap<ActivitySpeedDto, ActivitySpeed>();
             CreateMap<ActivitySpeedDto, ActivitySpeed>().ReverseMap();
 
             CreateMap<AppUser, FollowDto>()
@@ -97,17 +79,14 @@ namespace StriveUp.API.Mapping
             CreateMap<CreateNotificationDto, Notification>();
 
             CreateMap<AppUser, SimpleUserDto>();
+            CreateMap<UserConfig, UserConfigDto>();
+            CreateMap<UpdateUserConfigDto, UserConfig>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<UserSynchro, UserSynchroDto>()
                 .ForMember(dest => dest.SynchroProviderId, opt => opt.MapFrom(src => src.SynchroId))
                 .ForMember(dest => dest.SynchroProviderName, opt => opt.MapFrom(src => src.SynchroProvider.Name))
                 .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.SynchroProvider.IconUrl));
-
-            //CreateMap<CreateUserSynchroDto, UserSynchro>()
-            //    .ForMember(dest => dest.SynchroId, opt => opt.MapFrom(src => src.SynchroProviderId))
-            //    .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-            //    .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-            //    .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
 
             CreateMap<SynchroProvider, UserSynchroDto>()
                 .ForMember(dest => dest.SynchroProviderId, opt => opt.MapFrom(src => src.Id))

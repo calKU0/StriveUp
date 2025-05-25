@@ -81,5 +81,32 @@ namespace StriveUp.Infrastructure.Services
                 return null;
             }
         }
+
+        public async Task<UserConfigDto> GetUserConfig()
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                return await _httpClient.GetFromJsonAsync<UserConfigDto>($"profile/config") ?? new();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<bool> UpdateUserConfig(UpdateUserConfigDto config)
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                var result = await _httpClient.PatchAsJsonAsync($"profile/config", config);
+                return result.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

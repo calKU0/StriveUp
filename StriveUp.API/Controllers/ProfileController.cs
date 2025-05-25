@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StriveUp.Infrastructure.Data;
+using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Profile;
 using System.Security.Claims;
 
@@ -73,6 +74,58 @@ namespace StriveUp.API.Controllers
                 Console.WriteLine(ex);
                 return StatusCode(500, new { Message = "An internal server error occurred while fetching the profile.", Error = ex.Message });
             }
+        }
+
+        [HttpGet("config")]
+        public async Task<ActionResult<UserConfigDto>> GetUserConfigData()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { Message = "User not authenticated." });
+                }
+
+                var user = await _context.UserConfigs.FindAsync(userId);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                var userProfile = _mapper.Map<UserConfigDto>(user);
+
+                return Ok(userProfile);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, new { Message = "An internal server error occurred while fetching the profile.", Error = ex.Message });
+            }
+        }
+
+        [HttpPatch("config")]
+        public async Task<IActionResult> PatchUserConfig([FromBody] UpdateUserConfigDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { Message = "User not authenticated." });
+            }
+
+            var config = await _context.UserConfigs.FindAsync(userId);
+            if (config == null)
+            {
+                return NotFound(new { Message = $"UserConfig for user {userId} not found." });
+            }
+
+            _mapper.Map(dto, config);
+
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
         [HttpPut]

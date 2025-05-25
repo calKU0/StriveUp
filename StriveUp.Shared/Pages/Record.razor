@@ -22,6 +22,7 @@
 @inject Shiny.Locations.IGpsManager GpsManager
 @inject IGpsService GpsService
 @inject IAppStateService AppStateService
+@inject IProfileService ProfileService
 @implements IDisposable
 
 <PageTitle>Record</PageTitle>
@@ -61,7 +62,6 @@
                 SelectedActivity="@selectedActivity"
                 IsTracking="@isTracking"
                 IsPaused="@isPaused"
-                OnSelectedSensorChanged="@(sensor => ConnectHrDevice(sensor))"
                 SelectedActivityChanged="@((ActivityDto a) => OnSelectedActivityChanged(a))"
                 OnStartClick="@ToggleTracking"
                 OnStopClick="@ToggleTracking"
@@ -185,6 +185,17 @@ IsSaving=@isSaving/>
         {
             try
             {
+                var config = await ProfileService.GetUserConfig();
+                if (!string.IsNullOrEmpty(config.SensorId))
+                {
+                    var btDevice = new BluetoothDeviceDto
+                    {
+                        Id = config.SensorId,
+                        Name = config.SensorName
+                    };
+
+                    await ConnectHrDevice(btDevice);
+                }
                 if (!GpsManager.IsListening())
                 {
                     isLoadingLocation = true;

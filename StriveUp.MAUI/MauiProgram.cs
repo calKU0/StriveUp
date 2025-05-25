@@ -11,6 +11,11 @@ namespace StriveUp.MAUI;
 
 public static class MauiProgram
 {
+    public static class MauiServiceProvider
+    {
+        public static IServiceProvider Services { get; set; }
+    }
+
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
@@ -44,6 +49,7 @@ public static class MauiProgram
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddSingleton<IPlatformService, MauiPlatformService>();
         builder.Services.AddSingleton<IBleHeartRateService, BleHeartRateService>();
+        builder.Services.AddSingleton<IAppStateService, AppStateService>();
 
 #if ANDROID
         builder.Services.AddGps<MyGpsDelegate>();
@@ -64,6 +70,8 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+        MauiServiceProvider.Services = app.Services;
+        return app;
     }
 }

@@ -186,37 +186,77 @@ namespace StriveUp.API.Controllers
         }
 
         [HttpGet("userActivities")]
-        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetActivities([FromQuery] int page = 1, [FromQuery] int pageSize = 5)
+        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetActivities([FromQuery] string userName, [FromQuery] int page = 1, [FromQuery] int pageSize = 5)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
             try
             {
-                var activities = await _context.UserActivities
+                // Fetch target user and their config first
+                var targetUser = await _context.Users
+                    .Include(u => u.UserConfig)
+                    .FirstOrDefaultAsync(u => u.UserName == userName);
+
+                if (targetUser == null) return NotFound("User not found");
+
+                // Check if calling user is NOT the target user
+                bool isCallerSameUser = targetUser.Id == userId;
+
+                if (!isCallerSameUser)
+                {
+                    // If activities are private, deny fetching activities
+                    if (targetUser.UserConfig.PrivateActivities == true)
+                    {
+                        return StatusCode(403, "User's activities are private.");
+                    }
+                }
+
+                // Query activities for target user
+                var query = _context.UserActivities
                     .AsSplitQuery()
-                    .Where(ua => ua.UserId == userId)
-                    .Include(ua => ua.Activity)
-                    .Include(ua => ua.User)
-                    .Include(ua => ua.ActivityLikes)
-                    .Include(ua => ua.ActivityComments)!.ThenInclude(c => c.User)
-                    .Include(ua => ua.Route)
+                    .Where(ua => ua.User.UserName == userName)
                     .OrderByDescending(ua => ua.DateStart)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .ToListAsync();
+                    .Select(ua => new UserActivityDto
+                    {
+                        Id = ua.Id,
+                        ActivityId = ua.Activity.Id,
+                        UserAvatar = ua.User.Avatar,
+                        Title = ua.Title,
+                        Description = ua.Description,
+                        DurationSeconds = ua.DurationSeconds,
+                        Distance = ua.Distance,
+                        CaloriesBurned = ua.CaloriesBurned,
+                        AvarageSpeed = ua.AvarageSpeed,
+                        MaxSpeed = ua.MaxSpeed,
+                        AvarageHr = ua.AvarageHr,
+                        MaxHr = ua.MaxHr,
+                        ElevationGain = ua.ElevationGain,
+                        DateStart = ua.DateStart,
+                        DateEnd = ua.DateEnd,
+                        ActivityName = ua.Activity.Name,
+                        // If PrivateMap is true and caller is NOT the user, exclude route
+                        Route = (!isCallerSameUser && targetUser.UserConfig.PrivateMap == true) ? null : ua.Route.Select(p => new GeoPointDto
+                        {
+                            Latitude = p.Latitude,
+                            Longitude = p.Longitude,
+                            Timestamp = p.Timestamp
+                        }).ToList(),
+                        Comments = ua.ActivityComments.Select(c => new ActivityCommentDto
+                        {
+                            Content = c.Content,
+                            CreatedAt = c.CreatedAt,
+                            UserName = c.User.UserName
+                        }).ToList(),
+                        IsLikedByCurrentUser = ua.ActivityLikes.Any(l => l.UserId == userId),
+                        LikeCount = ua.ActivityLikes.Count
+                    });
 
-                var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
+                var activities = await query.ToListAsync();
 
-                foreach (var dto in activityDtos)
-                {
-                    var entity = activities.First(a => a.Id == dto.Id);
-                    if (entity.ActivityLikes != null)
-                        dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
-                    dto.Comments = _mapper.Map<List<ActivityCommentDto>>(entity.ActivityComments);
-                }
-
-                return Ok(activityDtos);
+                return Ok(activities);
             }
             catch (Exception ex)
             {
@@ -238,36 +278,67 @@ namespace StriveUp.API.Controllers
                     .Select(f => f.FollowedId)
                     .ToListAsync();
 
-                var userIds = followedUserIds.Append(userId).Distinct().ToList();
+                var userIds = followedUserIds.Append(userId);
 
+                // Fetch activities with necessary includes for UserConfig and relations
                 var activities = await _context.UserActivities
                     .AsSplitQuery()
                     .Where(ua => userIds.Contains(ua.UserId))
+                    .Include(ua => ua.User).ThenInclude(u => u.UserConfig)
                     .Include(ua => ua.Activity)
-                    .Include(ua => ua.User)
-                    .Include(ua => ua.ActivityLikes)
-                    .Include(ua => ua.ActivityComments)!.ThenInclude(c => c.User)
                     .Include(ua => ua.Route)
+                    .Include(ua => ua.ActivityComments).ThenInclude(c => c.User)
+                    .Include(ua => ua.ActivityLikes)
                     .OrderByDescending(ua => ua.DateStart)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
 
-                var activityDtos = _mapper.Map<List<UserActivityDto>>(activities);
+                // Filter out activities from users with PrivateActivities true (unless it's the caller's own)
+                var filteredActivities = activities
+                    .Where(ua => ua.User.Id == userId || ua.User.UserConfig.PrivateActivities != true)
+                    .ToList();
 
-                foreach (var dto in activityDtos)
+                // Map to DTO in memory with PrivateMap route exclusion
+                var result = filteredActivities.Select(ua => new UserActivityDto
                 {
-                    var entity = activities.First(a => a.Id == dto.Id);
+                    Id = ua.Id,
+                    ActivityId = ua.Activity.Id,
+                    UserAvatar = ua.User.Avatar,
+                    UserId = ua.User.Id,
+                    UserName = ua.User.UserName,
+                    Title = ua.Title,
+                    Description = ua.Description,
+                    DurationSeconds = ua.DurationSeconds,
+                    Distance = ua.Distance,
+                    CaloriesBurned = ua.CaloriesBurned,
+                    AvarageSpeed = ua.AvarageSpeed,
+                    MaxSpeed = ua.MaxSpeed,
+                    AvarageHr = ua.AvarageHr,
+                    MaxHr = ua.MaxHr,
+                    ElevationGain = ua.ElevationGain,
+                    DateStart = ua.DateStart,
+                    DateEnd = ua.DateEnd,
+                    ActivityName = ua.Activity.Name,
+                    Route = (ua.User.Id == userId || ua.User.UserConfig.PrivateMap != true)
+                        ? ua.Route.OrderBy(p => p.Timestamp).Select(p => new GeoPointDto
+                        {
+                            Latitude = p.Latitude,
+                            Longitude = p.Longitude,
+                            Timestamp = p.Timestamp
+                        }).ToList()
+                        : null,
+                    Comments = ua.ActivityComments.Select(c => new ActivityCommentDto
+                    {
+                        Content = c.Content,
+                        CreatedAt = c.CreatedAt,
+                        UserName = c.User.UserName
+                    }).ToList(),
+                    IsLikedByCurrentUser = ua.ActivityLikes.Any(l => l.UserId == userId),
+                    LikeCount = ua.ActivityLikes.Count
+                }).ToList();
 
-                    if (entity.ActivityLikes != null)
-                        dto.IsLikedByCurrentUser = entity.ActivityLikes.Any(l => l.UserId == userId);
-                    if (entity.Route != null)
-                        dto.Route = _mapper.Map<List<GeoPointDto>>(entity.Route.OrderBy(p => p.Timestamp));
-
-                    dto.Comments = _mapper.Map<List<ActivityCommentDto>>(entity.ActivityComments);
-                }
-
-                return Ok(activityDtos);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -286,9 +357,8 @@ namespace StriveUp.API.Controllers
             {
                 var activity = await _context.UserActivities
                     .AsSplitQuery()
-                    .Where(ua => ua.Id == id)
                     .Include(ua => ua.Activity)
-                    .Include(ua => ua.User)
+                    .Include(ua => ua.User).ThenInclude(u => u.UserConfig)
                     .Include(ua => ua.ActivityLikes)
                     .Include(ua => ua.ActivityComments)!.ThenInclude(c => c.User)
                     .Include(ua => ua.Route)
@@ -296,14 +366,36 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.SpeedData)
                     .Include(ua => ua.ElevationData)
                     .Include(ua => ua.Splits)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(ua => ua.Id == id);
 
                 if (activity == null)
                     return NotFound("Activity not found or access denied.");
 
+                // Check if calling user is NOT the owner of the activity
+                bool isCallerOwner = activity.User.Id == userId;
+
+                if (!isCallerOwner)
+                {
+                    // Check user config for privacy
+                    var userConfig = activity.User.UserConfig;
+                    if (userConfig.PrivateActivities == true)
+                    {
+                        // User activities are private - forbid access
+                        return Forbid("User's activities are private.");
+                    }
+                }
+
                 var dto = _mapper.Map<UserActivityDto>(activity);
+
+                // If PrivateMap is true and caller is not owner, exclude Route data
+                if (!isCallerOwner && activity.User.UserConfig.PrivateMap == true)
+                {
+                    dto.Route = null;
+                }
+
                 if (activity.ActivityLikes != null)
                     dto.IsLikedByCurrentUser = activity.ActivityLikes.Any(l => l.UserId == userId);
+
                 dto.Comments = _mapper.Map<List<ActivityCommentDto>>(activity.ActivityComments);
 
                 return Ok(dto);

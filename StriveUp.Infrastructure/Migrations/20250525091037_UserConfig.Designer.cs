@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250525091037_UserConfig")]
+    partial class UserConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -866,8 +869,8 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<bool>("PrivateMap")
                         .HasColumnType("bit");
 
-                    b.Property<string>("SensorId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("SensorId")
+                        .HasColumnType("int");
 
                     b.Property<string>("SensorName")
                         .HasColumnType("nvarchar(max)");
