@@ -120,13 +120,13 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
-        public async Task<List<UserActivityDto>?> GetUserActivitiesAsync(int page, int pageSize)
+        public async Task<List<UserActivityDto>?> GetUserActivitiesAsync(string userName, int page, int pageSize)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
 
-                var url = $"activity/userActivities?page={page}&pageSize={pageSize}";
+                var url = $"activity/userActivities?userName={userName}&page={page}&pageSize={pageSize}";
                 return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url) ?? new List<UserActivityDto>();
             }
             catch (Exception ex)

@@ -15,5 +15,7 @@ namespace StriveUp.API.Interfaces
         Task<(bool Success, JwtResponse Token)> ExternalLoginAsync(ClaimsPrincipal externalUser);
 
         Task<JwtResponse> RefreshToken(RefreshTokenRequest request);
+
+        Task DeleteAccountAsync(string userId);
     }
 }

@@ -30,6 +30,7 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<BestEffort> BestEfforts { get; set; }
         public DbSet<SegmentConfig> SegmentConfigs { get; set; }
         public DbSet<ActivitySplit> ActivitySplits { get; set; }
+        public DbSet<UserConfig> UserConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

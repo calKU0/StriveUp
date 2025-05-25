@@ -15,7 +15,7 @@ window.initializeMap = function initializeMap(lat, lng, accessToken) {
             style: 'mapbox://styles/mapbox/streets-v12',
             center: [lng, lat],
             zoom: 17,
-            pitch: 45,
+            pitch: 0,
             bearing: 0,
             antialias: true
         });
@@ -82,14 +82,8 @@ function createArrowMarker() {
     return marker;
 }
 
-function updateMap(lat, lng, heading, shouldTrack) {
+function updateMap(lat, lng, shouldTrack) {
     const lngLat = [lng, lat];
-
-    if (userMarker) {
-        userMarker.setLngLat(lngLat);
-        userMarker.getElement().querySelector('img');
-    }
-
     if (shouldTrack) {
         route.push(lngLat);
 
@@ -106,10 +100,19 @@ function updateMap(lat, lng, heading, shouldTrack) {
 
     window.map.easeTo({
         center: lngLat,
-        bearing: heading,
         duration: 750,
         easing: t => t
     });
+}
+
+function updateMarker(heading) {
+    if (userMarker) {
+        userMarker.getElement().querySelector('img');
+        const img = userMarker.getElement().querySelector('img');
+        if (img) {
+            img.style.transform = `rotate(${heading}deg)`;
+        }
+    }
 }
 
 function clearRoute() {

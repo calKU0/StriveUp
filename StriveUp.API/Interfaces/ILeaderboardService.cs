@@ -10,6 +10,6 @@ namespace StriveUp.API.Interfaces
 
         Task<List<LevelLeaderboardDto>> GetFollowersLevelLeaderboard(string userId);
 
-        Task<(List<UserBestEffortsStatsDto>, UserActivityStatsDto)> GetUserStats(string userName, int activityId);
+        Task<(List<UserBestEffortsStatsDto>, UserActivityStatsDto)> GetUserStats(string callingUserId, string userName, int activityId);
     }
 }

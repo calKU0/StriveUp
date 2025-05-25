@@ -90,34 +90,11 @@
                         }
                     }
                 }
-            },        
+            },
         });
     };
 
     tryRender();
-}
-
-function fillSplitStatsTable(labels, hrValues, elevationValues) {
-    const tbody = document.querySelector('#splitStats tbody');
-    tbody.innerHTML = ''; // clear previous
-
-    for (let i = 0; i < labels.length; i++) {
-        const tr = document.createElement('tr');
-        const splitCell = document.createElement('td');
-        splitCell.textContent = labels[i];
-
-        const hrCell = document.createElement('td');
-        hrCell.textContent = hrValues[i] ?? 'N/A';
-
-        const elevCell = document.createElement('td');
-        elevCell.textContent = elevationValues[i] ?? 'N/A';
-
-        tr.appendChild(splitCell);
-        tr.appendChild(hrCell);
-        tr.appendChild(elevCell);
-
-        tbody.appendChild(tr);
-    }
 }
 
 window.renderLineChartById = (id, labels, data, label, chartType) => {
@@ -225,18 +202,46 @@ window.renderLineChartById = (id, labels, data, label, chartType) => {
     tryRender();
 };
 
-window.animateCounter = (dotNetRef, target, duration) => {
-    let current = 0;
-    const increment = target / (duration / 16); // Roughly 60fps
-    const interval = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-            current = target;
-            clearInterval(interval);
+window.animateProgressAndCounter = (targetPercent, durationMs, dotNetRef) => {
+    const progressBar = document.querySelector('.progress-bar');
+    if (!progressBar) return;
+
+    // Start with width 0% for smooth CSS transition
+    progressBar.style.width = '0%';
+    // Force reflow so the transition triggers properly
+    void progressBar.offsetWidth;
+    progressBar.style.transition = `width ${durationMs}ms ease-out`;
+    progressBar.style.width = `${targetPercent}%`;
+
+    // Immediately set percent to 0 so text updates right away
+    dotNetRef.invokeMethodAsync('UpdateAnimatedPercent', 0);
+
+    let start = null;
+
+    function step(timestamp) {
+        if (!start) start = timestamp;
+        const elapsed = timestamp - start;
+        const progress = Math.min(elapsed / durationMs, 1);
+        const currentPercent = Math.floor(progress * targetPercent);
+
+        dotNetRef.invokeMethodAsync('UpdateAnimatedPercent', currentPercent);
+
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            dotNetRef.invokeMethodAsync('UpdateAnimatedPercent', targetPercent);
+            dotNetRef.dispose();
         }
-        dotNetRef.invokeMethodAsync('UpdateAnimatedPercent', Math.round(current));
-    }, 16);
+    }
+
+    requestAnimationFrame(step);
 };
+
+window.getDocumentTitle = () => {
+    return document.title;
+};
+
+
 
 window.launchConfetti = () => {
     if (window.confetti) {

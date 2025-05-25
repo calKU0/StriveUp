@@ -50,7 +50,8 @@ namespace StriveUp.API.Controllers
         [HttpGet("user-stats/{userName}/{activityId}")]
         public async Task<IActionResult> GetUserStats(string userName, int activityId)
         {
-            var (bestEfforts, activityStats) = await _leaderboardService.GetUserStats(userName, activityId);
+            var callingUserId = GetUserId();
+            var (bestEfforts, activityStats) = await _leaderboardService.GetUserStats(callingUserId, userName, activityId);
             var response = new UserStatsResponseDto
             {
                 BestEfforts = bestEfforts,

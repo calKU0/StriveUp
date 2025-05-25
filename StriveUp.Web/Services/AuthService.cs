@@ -1,6 +1,8 @@
-﻿using StriveUp.Shared.DTOs;
+﻿using StriveUp.Infrastructure.Extensions;
+using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
+using static System.Net.WebRequestMethods;
 
 namespace StriveUp.Web.Services
 {
@@ -8,11 +10,13 @@ namespace StriveUp.Web.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ICustomAuthStateProvider _authStateProvider;
+        private readonly ITokenStorageService _tokenStorage;
 
-        public AuthService(IHttpClientFactory httpClient, ICustomAuthStateProvider authStateProvider)
+        public AuthService(IHttpClientFactory httpClient, ICustomAuthStateProvider authStateProvider, ITokenStorageService tokenStorage)
         {
             _httpClient = httpClient.CreateClient("ApiClient");
             _authStateProvider = authStateProvider;
+            _tokenStorage = tokenStorage;
         }
 
         public async Task<(bool Success, string? ErrorMessage)> LoginAsync(LoginRequest request)
@@ -43,6 +47,14 @@ namespace StriveUp.Web.Services
         public async Task LogoutAsync()
         {
             await _httpClient.PostAsync("auth/logout", null);
+            await _authStateProvider.NotifyUserLogout();
+        }
+
+        public async Task DeleteAccountAsync()
+        {
+            await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+            var response = await _httpClient.DeleteAsync("auth/delete");
+            response.EnsureSuccessStatusCode();
             await _authStateProvider.NotifyUserLogout();
         }
 
