@@ -75,11 +75,12 @@
                             <strong>Level @userProfile.LevelNumber</strong>
                             <span class="ms-2 text-muted small">@userProfile.CurrentXP / @userProfile.LevelTotalXP XP</span>
                         </div>
-                        <div class="progress my-2" style="height: 6px; max-width: 300px; width: 100%;">
-                            <div class="progress-bar bg-warning" role="progressbar"
-                                    style="width: @(XPProgress)%;" aria-valuenow="@XPProgress"
-                                    aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
+                        <div class="progress my-2" style="height: 6px; max-width: 300px; width: 100%;" @key="XPProgress">
+                        <div class="progress-bar bg-warning" role="progressbar"
+                                style="width: @(XPProgress)%;" aria-valuenow="@XPProgress"
+                                aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+
 
                         <!-- Followers / Following -->
                         <div class="d-flex flex-wrap gap-3 mt-3 mb-md-0 mb-2">
@@ -334,8 +335,6 @@
     </div>
 </div>
 
-<!-- TO DO -->
-<!-- Show spinner when loading and optimize so it doesnt load again activities/efforts when changing between tabs-->
 
 @code {
     [Parameter] public string? Username { get; set; }
@@ -474,7 +473,7 @@
                 }
             }
 
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -508,7 +507,7 @@
             isActivitiesLoading = true;
             StateHasChanged();
 
-            var pageActivities = await ActivityService.GetUserActivitiesAsync(activityPage, ActivityPageSize);
+            var pageActivities = await ActivityService.GetUserActivitiesAsync(userName, activityPage, ActivityPageSize);
 
             if (pageActivities != null)
             {

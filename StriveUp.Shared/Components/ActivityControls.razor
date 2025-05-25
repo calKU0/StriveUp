@@ -6,6 +6,7 @@
 <!-- Injections -->
 @inject IJSRuntime JSRuntime
 @inject IBleHeartRateService BleHeartRateService
+@inject IProfileService ProfileService
 
 <div class="text-center my-4">
     @if (!IsTracking && !IsPaused)
@@ -105,7 +106,12 @@
         }
 
         AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
+        var config = await ProfileService.GetUserConfig();
 
+        if (!string.IsNullOrEmpty(config.SensorId))
+        {
+            SelectedSensor = AvailableSensors.FirstOrDefault(s => s.Id == config.SensorId);
+        }
     }
 
 
@@ -164,6 +170,7 @@
     {
         SelectedSensor = sensor;
         SelectedSensorId = sensor.Id;
+        await ProfileService.UpdateUserConfig(new UpdateUserConfigDto { SensorId = sensor.Id, SensorName = sensor.Name });
         await OnSelectedSensorChanged.InvokeAsync(sensor);
         ShowSensorSelect = false;
     }

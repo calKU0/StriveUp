@@ -14,109 +14,115 @@
 
 <div class="d-flex justify-content-center align-items-center">
     <div class="container text-center pt-0 pt-md-2">
+        @if (IsRegistering)
+        {
+            <Spinner Overlay=true></Spinner>
+        }
         <img class="mb-4" src="images/StriveUp-logo-dark.png" alt="Logo" width="144" height="144">
         <h5 class="fw-bold">Register</h5>
         <p>Enter your email and password</p>
-        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
-            <div class="row register-form-row justify-content-center g-3 pb-3">
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="firstName" class="form-control" @bind-Value="registerModel.FirstName" placeholder="First Name" />
-                    <label for="firstName">First Name</label>
-                </div>
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="lastName" class="form-control" @bind-Value="registerModel.LastName" placeholder="Last Name" />
-                    <label for="lastName">Last Name</label>
-                </div>
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="username" class="form-control" @bind-Value="registerModel.Username" placeholder="Username"/>
-                    <label for="username">Username</label>
-                </div>
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="email" class="form-control" @bind-Value="registerModel.Email" type="email" placeholder="Email"/>
-                    <label for="email">Email</label>
-                </div>
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="password" class="form-control" @bind-Value="registerModel.Password" type="password" placeholder="Password"/>
-                    <label for="password">Password</label>
-                </div>
-                <!-- Repeat Password -->
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="repeatPassword" class="form-control" @bind-Value="registerModel.RepeatPassword" type="password" placeholder="Repeat Password" />
-                    <label for="repeatPassword">Repeat Password</label>
-                </div>
-                <!-- Bio -->
-                <div class="form-floating col-12">
-                    <InputTextArea id="bio" class="form-control" @bind-Value="registerModel.Bio" placeholder="Bio" />
-                    <label for="bio">Bio</label>
-                </div>
+        <fieldset disabled="@IsRegistering" style="border:none; padding:0; margin:0;">
+            <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+                <div class="row register-form-row justify-content-center g-3 pb-3">
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="firstName" class="form-control" @bind-Value="registerModel.FirstName" placeholder="First Name" />
+                        <label for="firstName">First Name</label>
+                    </div>
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="lastName" class="form-control" @bind-Value="registerModel.LastName" placeholder="Last Name" />
+                        <label for="lastName">Last Name</label>
+                    </div>
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="username" class="form-control" @bind-Value="registerModel.Username" placeholder="Username"/>
+                        <label for="username">Username</label>
+                    </div>
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="email" class="form-control" @bind-Value="registerModel.Email" type="email" placeholder="Email"/>
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="password" class="form-control" @bind-Value="registerModel.Password" type="password" placeholder="Password"/>
+                        <label for="password">Password</label>
+                    </div>
+                    <!-- Repeat Password -->
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="repeatPassword" class="form-control" @bind-Value="registerModel.RepeatPassword" type="password" placeholder="Repeat Password" />
+                        <label for="repeatPassword">Repeat Password</label>
+                    </div>
+                    <!-- Bio -->
+                    <div class="form-floating col-12">
+                        <InputTextArea id="bio" class="form-control" @bind-Value="registerModel.Bio" placeholder="Bio" />
+                        <label for="bio">Bio</label>
+                    </div>
 
-                <!-- Gender -->
-                <div class="form-floating col-12 col-md-6">
-                    <InputSelect id="gender" class="form-control" @bind-Value="registerModel.Gender">
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </InputSelect>
-                    <label for="gender">Gender</label>
-                </div>
+                    <!-- Gender -->
+                    <div class="form-floating col-12 col-md-6">
+                        <InputSelect id="gender" class="form-control" @bind-Value="registerModel.Gender">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </InputSelect>
+                        <label for="gender">Gender</label>
+                    </div>
 
-                <!-- Birthday -->
-                <div class="form-floating col-12 col-md-6">
-                    <InputDate id="birthday" class="form-control" @bind-Value="registerModel.Birthday" />
-                    <label for="birthday">Birthday</label>
-                </div>
+                    <!-- Birthday -->
+                    <div class="form-floating col-12 col-md-6">
+                        <InputDate id="birthday" class="form-control" @bind-Value="registerModel.Birthday" />
+                        <label for="birthday">Birthday</label>
+                    </div>
 
-                <!-- Country -->
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="country" class="form-control" @bind-Value="registerModel.Country" placeholder="Country" />
-                    <label for="country">Country</label>
-                </div>
+                    <!-- Country -->
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="country" class="form-control" @bind-Value="registerModel.Country" placeholder="Country" />
+                        <label for="country">Country</label>
+                    </div>
 
-                <!-- State -->
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="state" class="form-control" @bind-Value="registerModel.State" placeholder="State" />
-                    <label for="state">State</label>
-                </div>
+                    <!-- State -->
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="state" class="form-control" @bind-Value="registerModel.State" placeholder="State" />
+                        <label for="state">State</label>
+                    </div>
 
-                <!-- City -->
-                <div class="form-floating col-12 col-md-6">
-                    <InputText id="city" class="form-control" @bind-Value="registerModel.City" placeholder="City" />
-                    <label for="city">City</label>
-                </div>
+                    <!-- City -->
+                    <div class="form-floating col-12 col-md-6">
+                        <InputText id="city" class="form-control" @bind-Value="registerModel.City" placeholder="City" />
+                        <label for="city">City</label>
+                    </div>
 
-                <div class="col-12 col-md-6">
-                    <label for="avatarUpload" class="form-label">Upload Avatar (optional)</label>
-                    <!-- Custom Circle Button for file selection -->
-                    <label for="avatarUpload" class="btn btn-light rounded-circle p-3" style="cursor: pointer;">
-                        <span>Select File</span>
-                        <InputFile id="avatarUpload" OnChange="HandleFileChange" class="d-none"/>
-                    </label>
+                    <div class="col-12 col-md-6">
+                        <label for="avatarUpload" class="form-label">Upload Avatar (optional)</label>
+                        <!-- Custom Circle Button for file selection -->
+                        <label for="avatarUpload" class="btn btn-light rounded-circle p-3" style="cursor: pointer;">
+                            <span>Select File</span>
+                            <InputFile id="avatarUpload" OnChange="HandleFileChange" class="d-none"/>
+                        </label>
 
-                    <!-- Display Cropped Image -->
-                    @if (!string.IsNullOrWhiteSpace(croppedImageUrl))
-                    {
-                        <div class="avatar-preview mt-2">
-                            <img src="@croppedImageUrl" alt="Avatar preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;"/>
-                        </div>
-                    }
-                </div>
-            </div>
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            @if (errorMessages.Any())
-            {
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach (var error in errorMessages)
+                        <!-- Display Cropped Image -->
+                        @if (!string.IsNullOrWhiteSpace(croppedImageUrl))
                         {
-                            <li>@error</li>
+                            <div class="avatar-preview mt-2">
+                                <img src="@croppedImageUrl" alt="Avatar preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;"/>
+                            </div>
                         }
-                    </ul>
+                    </div>
                 </div>
-            }
-            <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Register</button>
-        </EditForm>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                @if (errorMessages.Any())
+                {
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach (var error in errorMessages)
+                            {
+                                <li>@error</li>
+                            }
+                        </ul>
+                    </div>
+                }
+                <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Register</button>
+            </EditForm>
+        </fieldset>
 
         <p class="text-muted text-center mb-2">or</p>
         <div class="text-center mb-2">
@@ -144,6 +150,7 @@
     private string? croppedImageUrl;
     private List<string> errorMessages = new();
     private string? successMessage;
+    private bool IsRegistering = false;
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
@@ -191,6 +198,7 @@
     {
         errorMessages.Clear();
         successMessage = null;
+        IsRegistering = true;
 
         try
         {
@@ -215,6 +223,11 @@
         catch (Exception ex)
         {
             errorMessages.Add($"Unexpected error: {ex.Message}");
+        }
+        finally
+        {
+            IsRegistering = false;
+            StateHasChanged();
         }
     }
 

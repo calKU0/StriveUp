@@ -9,7 +9,15 @@
     <div class="modal-backdrop show opacity-100" @onclick="CloseModal">
         <div class="modal-container w-75" @onclick:stopPropagation>
             <div class="modal-card p-4">
-                <h5 class="mb-3">@Label</h5>
+                <h5 class="mb-2">@Label</h5>
+
+                @if (!string.IsNullOrWhiteSpace(Description))
+                {
+                    <p class="text-muted mb-3" style="font-size: 0.95rem;">
+                        @Description
+                    </p>
+                }
+
                 @foreach (var option in Options)
                 {
                     <div class="form-check mb-2">
@@ -36,7 +44,7 @@
 @code {
     [Parameter] public bool Show { get; set; }
     [Parameter] public EventCallback<bool> ShowChanged { get; set; }
-
+    [Parameter] public string? Description { get; set; }
     [Parameter] public string Label { get; set; }
     [Parameter] public List<TItem> Options { get; set; } = new();
     [Parameter] public TItem SelectedValue { get; set; }

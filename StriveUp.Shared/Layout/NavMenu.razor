@@ -8,11 +8,9 @@
 
 
 <div class="d-block d-md-none">
-    <Header PageTitle="@pageTitle"></Header>
+    <Header PageTitle="@pageTitle" ShouldHide="shouldHide"></Header>
 </div>
 
-@if (!shouldHide)
-{
     <!-- Desktop Navbar (fixed top) -->
     <nav class="navbar fixed-top d-none d-md-flex">
         <div class="container-fluid d-flex justify-content-between align-items-center px-3">
@@ -77,6 +75,8 @@
         </div>
     </nav>
 
+@if (!shouldHide)
+{
     <!-- Mobile Navbar (fixed bottom) -->
     <nav class="navbar fixed-bottom d-flex d-md-none">
         <div class="container-fluid p-0 m-0 d-flex justify-content-around align-items-center">
@@ -147,6 +147,18 @@
     private string userAvatarUrl = "images/icons/user.png";
     bool shouldHide = false;
     string pageTitle;
+    private readonly HashSet<string> PagesToHideNavbar = new()
+    {
+        "Login",
+        "Register",
+        "Record",
+        "Comments",
+        "Search",
+        "Settings",
+        "Privacy control",
+        "Terms of service",
+        "Privacy policy"
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -210,26 +222,21 @@
 
     private bool ShouldHideNavbar()
     {
-        pageTitle = GetPageName();
-
-        if (PlatformService.IsNativeApp() && (pageTitle == "Login " || pageTitle == "Register" || pageTitle == "Record" || pageTitle == "Comments" || pageTitle == "Search" || pageTitle == "Settings"))
-        {
-            return true;
-        }
-        return false;  // Show navbar on all other pages
+        return PagesToHideNavbar.Contains(pageTitle);
     }
 
     private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
+        pageTitle = GetPageName();
         shouldHide = ShouldHideNavbar();
         StateHasChanged();
     }
 
     private string GetPageName()
     {
-        var uri = Navigation.Uri;
+        string uri = Navigation.Uri;
         var segments = new Uri(uri).Segments;
-        var pageName = segments.LastOrDefault()?.TrimEnd('/');
+        string pageName = (segments.LastOrDefault()?.TrimEnd('/')).Replace("-"," ");
 
         return CapitalizeFirstLetter(String.IsNullOrEmpty(pageName) ? "home" : pageName);
     }

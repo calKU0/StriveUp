@@ -32,6 +32,11 @@ html, body {
     overflow-x: hidden;
 }
 
+.toast-container {
+    padding-top: 75px !important;
+    padding-right: 10px !important;
+}
+
 .content {
     margin-top: 65px;
 }

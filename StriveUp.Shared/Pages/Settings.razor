@@ -1,74 +1,104 @@
 ﻿@page "/settings"
+@using StriveUp.Shared.Enums
+@using System.Security.Claims
+@using Microsoft.Extensions.DependencyInjection;
 
 <!-- Injections -->
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject IAuthService AuthService
+@inject IProfileService ProfileService
+@inject IServiceProvider ServiceProvider
+@inject IPlatformService PlatformService
+@inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
 <PageTitle>Settings</PageTitle>
 
 <div class="container py-4">
-    <h1 class="mb-4 text-center">Settings</h1>
+    <h1 class="mb-4 text-center d-none d-md-block">Settings</h1>
 
     <div class="row g-3">
-        <div class="col-12 col-md-6 d-flex">
-            <a href="/change-email" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
+
+        <!-- Change Email -->
+@*         <div class="col-12 col-md-6 d-flex">
+            <a href="/change-email" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
                 <span>Change Email</span>
                 <i class="bi bi-chevron-right text-muted"></i>
             </a>
-        </div>
+        </div> *@
 
+        <!-- Synchronize Activities -->
         <div class="col-12 col-md-6 d-flex">
-            <a href="/synchronize" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
+            <a href="/synchronize" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
                 <span>Synchronize Activities</span>
                 <i class="bi bi-arrow-repeat text-muted"></i>
             </a>
         </div>
 
-        <div class="col-12 col-md-6 d-flex">
-            <a href="/manage-devices" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
-                <span>Manage Devices</span>
-                <i class="bi bi-phone text-muted"></i>
-            </a>
-        </div>
+        @if (PlatformService.IsNativeApp())
+        {         
+            <!-- Heart Rate Sensor -->
+            <div class="col-12 col-md-6 d-flex">
+                <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile" @onclick="LoadSensorModal" style="cursor: pointer;">
+                    <span>Heart Rate Sensor</span>
+                    <span class="text-muted small">@selectedSensorDisplay</span>
+                </div>
+            </div>
+        }
 
+        <!-- Appearance -->
         <div class="col-12 col-md-6 d-flex">
-            <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100" @onclick="() => showModal = true" style="cursor: pointer;">
+            <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile" @onclick="() => showThemeModal = true" style="cursor: pointer;">
                 <span>Appearance</span>
                 <span class="text-muted small">@selectedTheme</span>
             </div>
         </div>
 
+        <!-- Default Metric -->
         <div class="col-12 col-md-6 d-flex">
-            <a href="/privacy-control" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
+            <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile" @onclick="() => showMetricModal = true" style="cursor: pointer;">
+                <span>Default Metric</span>
+                <span class="text-muted small">@selectedMetric</span>
+            </div>
+        </div>
+
+        <!-- Privacy Control -->
+        <div class="col-12 col-md-6 d-flex">
+            <a href="/privacy-control" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
                 <span>Privacy Control</span>
                 <i class="bi bi-shield-lock text-muted"></i>
             </a>
         </div>
 
+        <!-- Terms of Service -->
         <div class="col-12 col-md-6 d-flex">
-            <a href="/default-metrics" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
-                <span>Default Metrics</span>
-                <i class="bi bi-sliders text-muted"></i>
-            </a>
-        </div>
-
-        <div class="col-12 col-md-6 d-flex">
-            <a href="/terms-of-service" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
+            <a href="/terms-of-service" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
                 <span>Terms Of Service</span>
                 <i class="bi bi-file-earmark-text text-muted"></i>
             </a>
         </div>
 
+        <!-- Privacy Policy -->
         <div class="col-12 col-md-6 d-flex">
-            <a href="/privacy-policy" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
+            <a href="/privacy-policy" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
                 <span>Privacy Policy</span>
                 <i class="bi bi-file-earmark-text text-muted"></i>
             </a>
         </div>
 
+        <!-- Delete Account -->
         <div class="col-12 col-md-6 d-flex">
-            <button class="list-group-item list-group-item-action text-danger shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100" @onclick="HandleLogout">
+            <button class="list-group-item list-group-item-action text-danger shadow-sm rounded
+                   d-flex justify-content-between align-items-center w-100 h-100"
+                    @onclick="HandleDeleteAccount">
+                <span>Delete Account</span>
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+
+        <!-- Log Out -->
+        <div class="col-12 col-md-6 d-flex">
+            <button class="list-group-item list-group-item-action text-danger shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile" @onclick="HandleLogout">
                 <span>Log Out</span>
                 <i class="bi bi-box-arrow-right"></i>
             </button>
@@ -76,18 +106,98 @@
     </div>
 </div>
 
-<GenericSelectModal TItem="string"
-                    Show="@showModal"
-                    ShowChanged="@(v => showModal = v)"
+<GenericSelectModal TItem="AppTheme"
+                    Show="@showThemeModal"
+                    ShowChanged="@(v => showThemeModal = v)"
                     Label="Choose Theme"
-                    Options="@themes"
+                    Description="This changes how your app looks. Choose between Light, Dark, or follow your System settings."
+                    Options="@themeOptions"
                     SelectedValue="@selectedTheme"
                     SelectedValueChanged="OnThemeChanged" />
 
+<GenericSelectModal TItem="DefaultMetric"
+                    Show="@showMetricModal"
+                    ShowChanged="@(v => showMetricModal = v)"
+                    Label="Choose Default Metric"
+                    Description="Set your preferred measurement system for activities. This will be used across distances, elevations, and stats."
+                    Options="@metricOptions"
+                    SelectedValue="@selectedMetric"
+                    SelectedValueChanged="OnMetricChanged" />
+
+@if (PlatformService.IsNativeApp())
+{   
+    <GenericSelectModal TItem="BluetoothDeviceDto"
+                        Show="@showSensorModal"
+                        ShowChanged="@(v => showSensorModal = v)"
+                        Label="Select Heart Rate Sensor"
+                        Description="Choose a paired Bluetooth heart rate sensor to connect with. This allows live heart rate monitoring during activities."
+                        Options="@availableSensors"
+                        SelectedValue="@selectedSensor"
+                        SelectedValueChanged="OnSensorSelected"
+                        GetLabel="@GetSensorLabel"
+                        GetValue="@GetSensorValue" />
+}
+
+@if (isDeletingAccount)
+{
+    <div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50" style="z-index: 1050;">
+        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Deleting...</span>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(deleteErrorMessage))
+{
+    <div class="toast-container position-fixed top-0 end-0">
+        <div class="toast show align-items-center text-bg-danger border-0" role="alert" style="background-color: #dc3545; color: white;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @deleteErrorMessage
+                </div>
+                <button type="button"
+                        class="btn-close btn-close-white me-2 m-auto"
+                        @onclick="() => deleteErrorMessage = null"></button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showDeletedToast)
+{
+    <div class="toast-container position-fixed top-0 end-0">
+        <div class="toast show align-items-center text-bg-success border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Your account was deleted successfully. Goodbye!
+                </div>
+                <button type="button"
+                        class="btn-close btn-close-white me-2 m-auto"
+                        @onclick="() => showDeletedToast = false"></button>
+            </div>
+        </div>
+    </div>
+}
+
+
 @code {
-    private bool showModal = false;
-    private string selectedTheme = "System";
-    private List<string> themes = new() { "Light", "Dark", "System" };
+    private bool showThemeModal = false;
+    private bool showMetricModal = false;
+    private bool showSensorModal = false;
+    private bool showDeletedToast;
+    private bool isDeletingAccount = false;
+    private string? deleteErrorMessage = null;
+
+    private AppTheme selectedTheme;
+    private DefaultMetric selectedMetric;
+    private string selectedSensorDisplay = "None";
+    private BluetoothDeviceDto? selectedSensor;
+
+    private List<AppTheme> themeOptions = Enum.GetValues<AppTheme>().ToList();
+    private List<DefaultMetric> metricOptions = Enum.GetValues<DefaultMetric>().ToList();
+    private List<BluetoothDeviceDto> availableSensors = new();
+
+    private IBleHeartRateService? BleHeartRateService;
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,26 +206,135 @@
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var currentUser = authState.User;
 
-            if (currentUser.Identity?.IsAuthenticated == false)
+            if (!currentUser.Identity?.IsAuthenticated ?? true)
             {
                 Navigation.NavigateTo("/login");
+                return;
+            }
+
+            if (PlatformService.IsNativeApp())
+            {
+                BleHeartRateService = ServiceProvider.GetService<IBleHeartRateService>();
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            Console.WriteLine("Error loading user config: " + ex.Message);
         }
     }
 
-    void OnThemeChanged(string theme)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var config = await ProfileService.GetUserConfig();
+            if (config == null)
+            {
+                // If no config exists, create a default one
+                config = new UserConfigDto
+                {
+                    Theme = AppTheme.Light,
+                    DefaultMetric = DefaultMetric.Kilometers,
+                };
+            }
+            selectedTheme = config.Theme;
+            selectedMetric = config.DefaultMetric;
+            StateHasChanged();
+
+            if (!string.IsNullOrWhiteSpace(config.SensorName))
+            {
+                selectedSensorDisplay = config.SensorName;
+            }
+        }
+    }
+
+    async Task LoadSensorModal()
+    {
+        availableSensors = BleHeartRateService.GetAvailableDevicesAsync();
+        showSensorModal = true;
+    }
+
+
+    async Task OnThemeChanged(AppTheme theme)
     {
         selectedTheme = theme;
-        // Optionally persist or apply the theme
+        await UpdateUserConfig(new UpdateUserConfigDto { Theme = selectedTheme });
     }
+
+    async Task OnMetricChanged(DefaultMetric metric)
+    {
+        selectedMetric = metric;
+        await UpdateUserConfig(new UpdateUserConfigDto { DefaultMetric = selectedMetric });
+    }
+
+    async Task OnSensorSelected(BluetoothDeviceDto device)
+    {
+        selectedSensor = device;
+        selectedSensorDisplay = $"{device.Name}";
+
+        await UpdateUserConfig(new UpdateUserConfigDto
+        {
+            SensorId = int.TryParse(device.Id, out var parsedId) ? parsedId : null,
+            SensorName = device.Name
+        });
+    }
+
+    async Task UpdateUserConfig(UpdateUserConfigDto dto)
+    {
+        try
+        {
+            await ProfileService.UpdateUserConfig(dto);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error updating config: " + ex.Message);
+        }
+    }
+
+    private string GetSensorLabel(BluetoothDeviceDto device) => $"{device.Name} ({device.Id})";
+
+    private string GetSensorValue(BluetoothDeviceDto device) => device.Id;
 
     async Task HandleLogout()
     {
         await AuthService.LogoutAsync();
         Navigation.NavigateTo("/login");
+    }
+
+    async Task HandleDeleteAccount()
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+            "⚠️ Are you absolutely sure?\n\n" +
+            "Deleting your account is irreversible. " +
+            "All your activities, stats, and settings will be permanently removed.");
+
+        if (!confirmed)
+            return;
+
+        isDeletingAccount = true;
+        deleteErrorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            await AuthService.DeleteAccountAsync();
+
+            isDeletingAccount = false;
+            showDeletedToast = true;
+            StateHasChanged();
+
+            await Task.Delay(3000);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            deleteErrorMessage = "Failed to delete your account. Please try again later.";
+            Console.Error.WriteLine("Delete failed: " + ex.Message);
+        }
+        finally
+        {
+            isDeletingAccount = false;
+            StateHasChanged();
+        }
     }
 }

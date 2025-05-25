@@ -1,0 +1,98 @@
+﻿@page "/privacy-control"
+@inject IProfileService UserService
+@inject ICustomAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Privacy Control</PageTitle>
+
+@if (userConfig == null)
+{
+
+}
+else
+{
+    <div class="container py-4">
+        <h1 class="mb-4 text-center d-none d-md-block">Privacy Settings</h1>
+
+        <p class="text-muted text-center mb-4">
+            These settings control who can see your activities and location. You can adjust your visibility preferences below.
+        </p>
+
+        <div class="row g-3">
+            <!-- Private Activities -->
+            <div class="col-12 col-md-6 d-flex">
+                <div class="privacy-tile list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
+                    <div>
+                        <div class="fw-semibold">Private Activities</div>
+                        <div class="text-muted small">Hide your activities from others by default.</div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               checked="@userConfig.PrivateActivities"
+                               @onchange="e => OnPrivacyChanged(nameof(userConfig.PrivateActivities), e.Value)" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Private Map -->
+            <div class="col-12 col-md-6 d-flex">
+                <div class="privacy-tile list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100">
+                    <div>
+                        <div class="fw-semibold">Private Map</div>
+                        <div class="text-muted small">Prevent others from viewing your activity routes on the map.</div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               checked="@userConfig.PrivateMap"
+                               @onchange="e => OnPrivacyChanged(nameof(userConfig.PrivateMap), e.Value)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private UserConfigDto? userConfig;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first)
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (!currentUser.Identity?.IsAuthenticated ?? true)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            userConfig = await UserService.GetUserConfig();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnPrivacyChanged(string propertyName, object? value)
+    {
+        if (userConfig == null) return;
+
+        switch (propertyName)
+        {
+            case nameof(userConfig.PrivateActivities):
+                userConfig.PrivateActivities = (bool?)value ?? false;
+                break;
+            case nameof(userConfig.PrivateMap):
+                userConfig.PrivateMap = (bool?)value ?? false;
+                break;
+        }
+
+        var updateDto = new UpdateUserConfigDto
+        {
+            PrivateActivities = userConfig.PrivateActivities,
+            PrivateMap = userConfig.PrivateMap
+        };
+
+        await UserService.UpdateUserConfig(updateDto);
+    }
+}

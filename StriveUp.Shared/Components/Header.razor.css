@@ -1,16 +1,18 @@
 .native-header {
-    transition: top 0.5s ease;
-    background-color: #ff8000;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
     position: fixed;
-    height: 52px;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 9999;
+    height: 52px;
+    background-color: #ff8000;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 9999;
 }
 
-    .native-header .page-title {
+    .native-header .page-title.has-back-button {
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
@@ -18,6 +20,17 @@
         font-weight: bold;
         color: #333;
     }
+
+    .native-header .page-title.no-back-button {
+        position: relative;
+        left: 0;
+        transform: none;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        padding-left: 10px;
+    }
+
 
     .native-header.hidden-header {
         top: -70px; /* Adjust based on header height */

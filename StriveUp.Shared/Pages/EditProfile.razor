@@ -170,6 +170,10 @@
             {
                 errorMessage = $"An error occurred: {ex.Message}";
             }
+            finally
+            {
+                StateHasChanged();
+            }
         }
     }
 

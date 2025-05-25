@@ -368,7 +368,7 @@
 
             if (activity.Splits?.Any() == true)
             {
-                var labels = activity.Splits.Select(s => $"{(s.DistanceMeters / 1000):0.##}km").ToArray();
+                var labels = activity.Splits.Select(s => s.SplitNumber + "km").ToArray();
 
 
                 // Pace in seconds per km for chart bar size; use total seconds if pace exists, else large number
