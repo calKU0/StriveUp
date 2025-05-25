@@ -108,7 +108,7 @@ namespace StriveUp.MAUI.Services
 
         public async Task StartNativeGoogleLoginAsync()
         {
-            var authUrl = "https://localhost:7116/api/auth/google-login?returnUrl=StriveUp://login-callback";
+            var authUrl = "https://striveupapi-emaee9awang6g4ht.polandcentral-01.azurewebsites.net/api/auth/google-login?returnUrl=StriveUp://login-callback";
             var callbackUrl = new Uri("StriveUp://login-callback");
 
             try
