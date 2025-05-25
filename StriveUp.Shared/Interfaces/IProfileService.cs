@@ -10,5 +10,9 @@ namespace StriveUp.Shared.Interfaces
         Task<(bool Success, ErrorResponse? Error)> EditProfile(EditUserProfileDto profile);
 
         Task<SimpleUserDto> GetSimpleUserData(string userName);
+
+        Task<UserConfigDto> GetUserConfig();
+
+        Task<bool> UpdateUserConfig(UpdateUserConfigDto config);
     }
 }

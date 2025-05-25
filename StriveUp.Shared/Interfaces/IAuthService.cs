@@ -11,5 +11,7 @@ namespace StriveUp.Shared.Interfaces
         Task<(bool Success, List<string>? Errors)> RegisterAsync(RegisterRequest request);
 
         Task<(bool Success, string? ErrorMessage)> ExternalLoginAsync(JwtResponse jwt);
+
+        Task DeleteAccountAsync();
     }
 }

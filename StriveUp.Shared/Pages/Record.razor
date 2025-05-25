@@ -21,6 +21,7 @@
 @inject IPlatformService PlatformService
 @inject Shiny.Locations.IGpsManager GpsManager
 @inject IGpsService GpsService
+@inject IAppStateService AppStateService
 @implements IDisposable
 
 <PageTitle>Record</PageTitle>
@@ -42,6 +43,11 @@
     }
     else
     {
+        if (isSaving)
+        {
+            <Spinner Overlay=true></Spinner>
+        }
+
         <div class="slides">
             @if (!selectedActivity.Indoor)
             {
@@ -49,8 +55,7 @@
                     <div id="map"></div>
                 </div>
             }
-            <!-- TO DO -->
-            <!-- Add generic modal select on ActivityType/Sensor click -->
+
             <div class="controls">
                 <ActivityControls AvailableActivities="availableActivities"
                 SelectedActivity="@selectedActivity"
@@ -100,7 +105,8 @@ Duration="@Duration"
 Title="@activityTitle"
 Description="@activityDescription"
 OnSave="@SaveActivityWithMeta"
-OnDiscard="@DiscardActivity" />
+OnDiscard="@DiscardActivity" 
+IsSaving=@isSaving/>
 
 
 
@@ -137,6 +143,7 @@ OnDiscard="@DiscardActivity" />
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = "Tracked via GPS";
+    private bool isSaving = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,7 +183,6 @@ OnDiscard="@DiscardActivity" />
         var status = await Permissions.RequestAsync<Permissions.LocationAlways>(); // request always for background
         if (status == PermissionStatus.Granted)
         {
-            // Optionally request Bluetooth if needed for HR device here
             try
             {
                 if (!GpsManager.IsListening())
@@ -218,15 +224,18 @@ OnDiscard="@DiscardActivity" />
         }
 
         double distanceMoved = currentLocation != null ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers) : 0;
-        if (reading.PositionAccuracy > 5 && currentLocation != null)
+        bool isInBackground = AppStateService.IsInBackground;
+        double acceptableAccuracy = isInBackground ? 25 : 5;
+        Console.WriteLine($"Background={isInBackground}");
+        if (reading.PositionAccuracy > acceptableAccuracy && currentLocation != null)
         {
-            Console.WriteLine("Suspicious jump filtered: " + distanceMoved + " meters");
+            Console.WriteLine($"Filtered: Accuracy={reading.PositionAccuracy}, Background={isInBackground}");
             return;
         }
 
         currentLocation = location;
 
-        _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
+        _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking);
         StateHasChanged();
 
         if (isTracking)
@@ -293,12 +302,6 @@ OnDiscard="@DiscardActivity" />
     }
 
 
-    private double ApplyLowPassFilter(double newSpeed)
-    {
-        smoothedSpeed = smoothingAlpha * newSpeed + (1 - smoothingAlpha) * smoothedSpeed;
-        return smoothedSpeed;
-    }
-
     private async Task OnSelectedActivityChanged(ActivityDto activity)
     {
         if (selectedActivity == activity)
@@ -340,7 +343,6 @@ OnDiscard="@DiscardActivity" />
                         HearthRateValue = hr,
                         TimeStamp = DateTime.UtcNow
                     });
-                    Debug.WriteLine($"Heart Rate: {hr} bpm");
                 }
 
                 InvokeAsync(StateHasChanged);
@@ -436,39 +438,53 @@ OnDiscard="@DiscardActivity" />
 
     private async Task SaveActivityWithMeta()
     {
-        var dto = new CreateUserActivityDto
+        try
         {
-            Title = activityTitle,
-            Description = activityDescription,
-            ActivityId = selectedActivity.Id,
-            DateStart = startTime,
-            DateEnd = DateTime.UtcNow,
-            Route = route.Select(loc => new GeoPointDto
-            {
-                Latitude = loc.Latitude,
-                Longitude = loc.Longitude,
-                Timestamp = loc.Timestamp.UtcDateTime,
-            }).ToList(),
-            ElevationGain = (int)Math.Round(elevation),
-            Distance = Distance,
-            HrData = HrData,
-            SpeedData = SpeedData,
-            ElevationData = ElevationData
-        };
+            isSaving = true;
+            StateHasChanged();
+            var dto = new CreateUserActivityDto
+                {
+                    Title = activityTitle,
+                    Description = activityDescription,
+                    ActivityId = selectedActivity.Id,
+                    DateStart = startTime,
+                    DateEnd = DateTime.UtcNow,
+                    Route = route.Select(loc => new GeoPointDto
+                    {
+                        Latitude = loc.Latitude,
+                        Longitude = loc.Longitude,
+                        Timestamp = loc.Timestamp.UtcDateTime,
+                    }).ToList(),
+                    ElevationGain = (int)Math.Round(elevation),
+                    Distance = Distance,
+                    HrData = HrData,
+                    SpeedData = SpeedData,
+                    ElevationData = ElevationData
+                };
 
-        await ActivityService.AddActivityAsync(dto);
-        await JSRuntime.InvokeVoidAsync("clearRoute");
+            await ActivityService.AddActivityAsync(dto);
+            await JSRuntime.InvokeVoidAsync("clearRoute");
 
-        showFinishModal = false;
-        isPaused = false;
-        Distance = 0;
-        Duration = TimeSpan.Zero;
-        Speed = 0;
-        route.Clear();
+            showFinishModal = false;
+            isPaused = false;
+            Distance = 0;
+            Duration = TimeSpan.Zero;
+            Speed = 0;
+            route.Clear();
 
-        StopCompass();
+            StopCompass();
 
-        Navigation.NavigateTo("/feed");
+            Navigation.NavigateTo("/feed");
+        }
+        catch
+        {
+
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
     }
 
     private void StartCompass()
@@ -505,7 +521,8 @@ OnDiscard="@DiscardActivity" />
             return;
         }
         currentHeading = e.Reading.HeadingMagneticNorth;
-        JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, currentHeading, isTracking);
+        JSRuntime.InvokeVoidAsync("updateMarker", currentHeading);
+        StateHasChanged();
     }
 
 

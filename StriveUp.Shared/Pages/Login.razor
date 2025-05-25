@@ -10,7 +10,6 @@
 @inject IAuthService AuthService
 @inject IJSRuntime JSRuntime
 @inject ITokenStorageService TokenStorageService
-@attribute [AllowAnonymous]
 
 <PageTitle>Login</PageTitle>
 
@@ -20,6 +19,11 @@
 }
 else
 {
+    @if (isLoggingIn)
+    {
+        <Spinner Overlay=true></Spinner>
+    }
+
     <div class="d-flex justify-content-center align-items-center login-wrapper">
         <div class="container text-center">
             <img class="mb-4" src="images/StriveUp-logo-dark.png" alt="Logo" width="144" height="144">
@@ -27,15 +31,15 @@ else
             <p>Enter your email and password</p>
 
             <EditForm Model="@loginModel" OnValidSubmit="HandleLogin"
-            class="text-center align-items-center d-flex flex-column">
+                        class="text-center align-items-center d-flex flex-column">
                 <div class="form-floating col-12 col-md-6 mb-3">
                     <InputText class="form-control" @bind-Value="loginModel.Login"
-                    placeholder="email@domain.com" />
+                                placeholder="email@domain.com" />
                     <label for="floatingInput">Email / Username</label>
                 </div>
                 <div class="form-floating col-12 col-md-6 mb-3">
                     <InputText class="form-control" @bind-Value="loginModel.Password" type="password"
-                    placeholder="Password" />
+                                placeholder="Password" />
                     <label for="floatingPassword">Password</label>
                 </div>
                 <DataAnnotationsValidator />
@@ -44,35 +48,36 @@ else
                 {
                     <div class="text-danger col-12 col-md-6 mb-3">@loginError</div>
                 }
-                <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Log in</button>
+                <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3"
+                        disabled="@isLoggingIn">
+                    Log in
+                </button>
             </EditForm>
+            
 
             <p class="text-muted text-center mb-2">or</p>
 
             <!-- Google Button -->
-            <button class="btn login-btn btn-google rounded-3 col-12 col-md-6 mb-3" @onclick="TriggerGoogleLogin">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" class="icon">
+            <button class="btn login-btn btn-google rounded-3 col-12 col-md-6 mb-3" @onclick="TriggerGoogleLogin"
+                    disabled="@isLoggingIn">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" class="icon" />
                 Continue with Google
             </button>
 
-            <!-- Apple Button -->
-@*             <button class="btn login-btn btn-apple rounded-3 col-12 col-md-6 mb-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="icon">
-                Continue with Apple
-            </button> *@
-
             <div class="text-center">
                 <p class="text-muted m-0 p-0">Don't have an account yet?</p>
-                <a href="" @onclick="RegisterClick">Register here!</a>
+                <a href="" @onclick="RegisterClick" disabled="@isLoggingIn">Register here!</a>
             </div>
         </div>
     </div>
 }
 
+
 @code {
     private LoginRequest loginModel = new();
     private string? loginError;
     private bool isLoading = true;
+    private bool isLoggingIn = false;
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
@@ -118,12 +123,15 @@ else
     }
 
 
-
-
     private async Task HandleLogin()
     {
         loginError = string.Empty;
+        isLoggingIn = true;
+        StateHasChanged();
+
         var (success, error) = await AuthService.LoginAsync(loginModel);
+
+        isLoggingIn = false;
 
         if (success)
         {
@@ -133,6 +141,7 @@ else
         else
         {
             loginError = error ?? "Invalid email or password. Please try again.";
+            StateHasChanged();
         }
     }
 

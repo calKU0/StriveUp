@@ -7,7 +7,7 @@ namespace StriveUp.Shared.Interfaces
     {
         Task<List<UserActivityDto>> GetFeedAsync(int page, int pageSize);
 
-        Task<List<UserActivityDto>> GetUserActivitiesAsync(int page, int pageSize);
+        Task<List<UserActivityDto>> GetUserActivitiesAsync(string userName, int page, int pageSize);
 
         Task<bool> AddActivityAsync(CreateUserActivityDto activity);
 
