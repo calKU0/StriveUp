@@ -11,7 +11,8 @@ namespace StriveUp.Shared.Interfaces
 
         Task<bool> AddActivityAsync(CreateUserActivityDto activity);
 
-        Task<bool> UpdateActivityAsync(int activityId, CreateUserActivityDto activity);
+        Task<bool> UpdateUserActivityAsync(int activityId, UpdateUserActivityDto activity);
+        Task<bool> DeleteUserActivityAsync(int activityId);
 
         Task<List<ActivityDto>?> GetAvailableActivitiesAsync();
 

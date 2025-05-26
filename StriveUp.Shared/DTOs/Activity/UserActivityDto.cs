@@ -20,6 +20,10 @@ namespace StriveUp.Shared.DTOs
         public string UserId { get; set; }
         public string UserName { get; set; }
         public string UserAvatar { get; set; }
+        public bool IsPublic { get; set; }
+        public bool ShowHeartRate { get; set; }
+        public bool ShowPace { get; set; }
+        public bool ShowCalories { get; set; }
         public double? AvarageSpeed { get; set; }
         public double? MaxSpeed { get; set; }
         public int? AvarageHr { get; set; }

@@ -55,6 +55,7 @@ namespace StriveUp.API.Controllers
 
                 var availableProviders = allProviders
                     .Where(p => !connectedProviderIds.Contains(p.Id))
+                    .OrderBy(p => p.IsActive)
                     .ToList();
 
                 var dtos = _mapper.Map<List<UserSynchroDto>>(availableProviders);

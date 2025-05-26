@@ -35,6 +35,24 @@ namespace StriveUp.API.Controllers
 
         private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateActivity(int id, [FromBody] UpdateUserActivityDto dto)
+        {
+            // TODO: Retrieve and update the activity
+            // var activity = await _context.UserActivities.FindAsync(id);
+            // Map fields and save changes
+
+            return NoContent(); // or Ok(updatedEntity)
+        }
+
+        // DELETE: api/UserActivities/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteActivity(int id)
+        {
+            // TODO: delete logic
+            return NoContent();
+        }
+
         [HttpPost("addActivity")]
         public async Task<IActionResult> AddActivity(CreateUserActivityDto dto)
         {
@@ -111,6 +129,9 @@ namespace StriveUp.API.Controllers
                 }
 
                 var activityConfig = await _context.ActivityConfig.FirstOrDefaultAsync(ac => ac.ActivityId == dto.ActivityId);
+                var userConfig = await _context.UserConfigs.FirstOrDefaultAsync(ac => ac.UserId == user!.Id);
+
+                userActivity.IsPrivate = userConfig!.PrivateActivities;
 
                 if (activityConfig != null)
                 {

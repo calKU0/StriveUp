@@ -122,19 +122,19 @@
                 }
                 <button type="submit" class="btn btn-lg btn-warning rounded-3 col-12 col-md-6 mb-3">Register</button>
             </EditForm>
+
+            <!-- Google Button -->
+            <button class="btn login-btn btn-google rounded-3 col-12 col-md-6 mb-3" @onclick="TriggerGoogleLogin">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" class="icon">
+                Continue with Google
+            </button>
         </fieldset>
 
         <p class="text-muted text-center mb-2">or</p>
         <div class="text-center mb-2">
             <p class="text-muted">Have an account?</p>
-            <a href="" @onclick="LoginClick">Login here!</a>
+            <a href="login">Login here!</a>
         </div>
-
-        <!-- Google Button -->
-        <button class="btn login-btn btn-google rounded-3 col-12 col-md-6 mb-3" @onclick="TriggerGoogleLogin">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" class="icon">
-            Continue with Google
-        </button>
 
         <!-- Apple Button -->
 @*         <button class="btn login-btn btn-apple rounded-3 col-12 col-md-6 mb-3">
@@ -154,43 +154,44 @@
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
-        if (!first) return;
-
-        try
-        {
-            var uri = Nav.ToAbsoluteUri(Nav.Uri);
-            var fragment = uri.Fragment;
-
-            if (!string.IsNullOrWhiteSpace(fragment))
+        if (first)
+        {          
+            try
             {
-                var parts = System.Web.HttpUtility.ParseQueryString(fragment.TrimStart('#'));
-                var accessToken = parts["access_token"];
-                var refreshToken = parts["refresh_token"];
+                var uri = Nav.ToAbsoluteUri(Nav.Uri);
+                var fragment = uri.Fragment;
 
-                if (!string.IsNullOrWhiteSpace(accessToken) && !string.IsNullOrWhiteSpace(refreshToken))
+                if (!string.IsNullOrWhiteSpace(fragment))
                 {
-                    var jwt = new JwtResponse
+                    var parts = System.Web.HttpUtility.ParseQueryString(fragment.TrimStart('#'));
+                    var accessToken = parts["access_token"];
+                    var refreshToken = parts["refresh_token"];
+
+                    if (!string.IsNullOrWhiteSpace(accessToken) && !string.IsNullOrWhiteSpace(refreshToken))
                     {
-                        Token = accessToken,
-                        RefreshToken = refreshToken
-                    };
+                        var jwt = new JwtResponse
+                        {
+                            Token = accessToken,
+                            RefreshToken = refreshToken
+                        };
 
-                    await AuthService.ExternalLoginAsync(jwt);
-                    Nav.NavigateTo("/");
-                    return;
+                        await AuthService.ExternalLoginAsync(jwt);
+                        Nav.NavigateTo("/");
+                        return;
+                    }
+
+                    errorMessages.Add("Missing tokens in external login response.");
                 }
-
-                errorMessages.Add("Missing tokens in external login response.");
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            errorMessages.Add("Unexpected error during external login.");
-        }
-        finally
-        {
-            StateHasChanged();
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                errorMessages.Add("Unexpected error during external login.");
+            }
+            finally
+            {
+                StateHasChanged();
+            }
         }
     }
 
@@ -229,11 +230,6 @@
             IsRegistering = false;
             StateHasChanged();
         }
-    }
-
-    private void LoginClick()
-    {
-        Nav.NavigateTo("/login");
     }
 
     private void TriggerGoogleLogin()

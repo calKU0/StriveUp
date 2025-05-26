@@ -57,6 +57,10 @@ namespace StriveUp.Infrastructure.Models
         public bool isSynchronized { get; set; } = false;
 
         public string? SynchroId { get; set; }
+        public bool IsPrivate { get; set; }
+        public bool ShowHeartRate { get; set; } = true;
+        public bool ShowPace { get; set; } = true;
+        public bool ShowCalories { get; set; } = true;
         public List<ActivityLike>? ActivityLikes { get; set; }
         public List<ActivityComment>? ActivityComments { get; set; }
         public List<GeoPoint>? Route { get; set; }

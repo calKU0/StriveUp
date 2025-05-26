@@ -91,8 +91,6 @@
                         {
                             <InfoTile Label="Elevation" Value="@($"{(int)Math.Round(elevation)} m")"/>
                         }
-                        <!-- TO DO -->
-                        <!-- Add dynamic kcal -->
                         <InfoTile Label="Kcal" Value="--" />
                     </div>
                 </div>
@@ -143,14 +141,16 @@ IsSaving=@isSaving/>
     private GpsRequest gpsSettigns = new GpsRequest(GpsBackgroundMode.Realtime, GpsAccuracy.High);
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
-    private string activityDescription = "Tracked via GPS";
+    private string activityDescription = string.Empty;
     private bool isSaving = false;
     private BluetoothDeviceDto sensor;
+    private bool isComponentActive = true;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            isComponentActive = true;
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var currentUser = authState.User;
 
@@ -171,7 +171,7 @@ IsSaving=@isSaving/>
         selectedActivity = availableActivities.FirstOrDefault();
 
         mapToken = await SecurableService.GetMapboxTokenAsync();
-        GpsService.ReadingReceived += OnPositionChanged;
+        GpsService.ReadingReceived += OnPositionChangedSync;
 
         if (!selectedActivity.Indoor)
         {
@@ -179,6 +179,11 @@ IsSaving=@isSaving/>
             StartCompass();
         }
     }  
+
+    private void OnPositionChangedSync(GpsReading reading)
+    {
+        _ = OnPositionChanged(reading);
+    }
 
     private async Task RequestPermissionsAndStartGps()
     {
@@ -207,19 +212,21 @@ IsSaving=@isSaving/>
             {
                 Debug.WriteLine($"GPS Start Exception: {ex.Message}");
             }
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
         else
         {
             await JSRuntime.InvokeVoidAsync("alert", "Background location permission is required to track your activity.");
             isLoadingLocation = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
             Navigation.NavigateTo("/");
         }
     }
 
-    private void OnPositionChanged(GpsReading reading)
+    private async Task OnPositionChanged(GpsReading reading)
     {
+        if (!isComponentActive) return;
+
         var location = new Location(reading.Position.Latitude, reading.Position.Longitude, reading.Timestamp)
         {
             Speed = reading.Speed,
@@ -229,26 +236,41 @@ IsSaving=@isSaving/>
         if (!mapInitialized)
         {
             isLoadingLocation = false;
-            StateHasChanged();
             mapInitialized = true;
             mapVisible = true;
-            _ = JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
+            await InvokeAsync(StateHasChanged);
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("JS init map failed: " + ex.Message);
+            }
         }
 
-        double distanceMoved = currentLocation != null ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers) : 0;
+        double distanceMoved = currentLocation != null
+            ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers)
+            : 0;
+
         bool isInBackground = AppStateService.IsInBackground;
         double acceptableAccuracy = isInBackground ? 25 : 5;
-        Console.WriteLine($"Background={isInBackground}");
 
         if (reading.PositionAccuracy > acceptableAccuracy && currentLocation != null)
         {
-            Console.WriteLine($"Filtered: Accuracy={reading.PositionAccuracy}, Background={isInBackground}");
             return;
         }
 
         currentLocation = location;
 
-        _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false);
+        try
+        {
+            await InvokeAsync(() => JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("JS update map failed: " + ex.Message);
+        }
 
         if (isTracking)
         {
@@ -336,7 +358,7 @@ IsSaving=@isSaving/>
             StartCompass();
             _ = RequestPermissionsAndStartGps();           
         }
-        await InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ConnectHrDevice(BluetoothDeviceDto device)
@@ -376,7 +398,7 @@ IsSaving=@isSaving/>
         startTime = DateTime.UtcNow;
         route.Clear();
         durationCts = new CancellationTokenSource();
-        await InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(StateHasChanged);
 
         await JSRuntime.InvokeVoidAsync("scrollToTrackingSection");
         _ = Task.Run(() => UpdateDuration(durationCts.Token)); 
@@ -386,11 +408,16 @@ IsSaving=@isSaving/>
 
     private async Task UpdateDuration(CancellationToken token)
     {
-        while (!token.IsCancellationRequested)
+        try
         {
-            Duration = DateTime.UtcNow - startTime;
-            await Task.Delay(1000, token);
+            while (!token.IsCancellationRequested)
+            {
+                Duration = DateTime.UtcNow - startTime;
+                await InvokeAsync(() => StateHasChanged());
+                await Task.Delay(1000, token);
+            }
         }
+        catch (TaskCanceledException) { }
     }
 
     private async Task StopTracking()
@@ -403,7 +430,7 @@ IsSaving=@isSaving/>
             await GpsManager.StopListener();
         }
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
     }
 
@@ -424,6 +451,22 @@ IsSaving=@isSaving/>
 
     private void ShowFinishModal()
     {
+        var activityName = selectedActivity.Name;
+
+        // Get current part of day
+        var now = DateTime.Now.TimeOfDay;
+
+        string timeOfDay;
+        if (now < TimeSpan.FromHours(11))
+            timeOfDay = "Morning";
+        else if (now < TimeSpan.FromHours(14))
+            timeOfDay = "Lunch";
+        else if (now < TimeSpan.FromHours(18))
+            timeOfDay = "Afternoon";
+        else
+            timeOfDay = "Evening";
+
+        activityTitle = $"{timeOfDay} {activityName}";
         showFinishModal = true;
     }
 
@@ -437,7 +480,7 @@ IsSaving=@isSaving/>
         Speed = 0;
         Duration = TimeSpan.Zero;
         route.Clear();
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SaveActivityWithMeta()
@@ -445,7 +488,7 @@ IsSaving=@isSaving/>
         try
         {
             isSaving = true;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
             var dto = new CreateUserActivityDto
                 {
                     Title = activityTitle,
@@ -487,7 +530,7 @@ IsSaving=@isSaving/>
         finally
         {
             isSaving = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -525,15 +568,27 @@ IsSaving=@isSaving/>
             return;
         }
         currentHeading = e.Reading.HeadingMagneticNorth;
-        JSRuntime.InvokeVoidAsync("updateMarker", currentHeading);
+
+        try
+        {
+            _ = JSRuntime.InvokeVoidAsync("updateMarker", currentHeading);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("JS compass update failed: " + ex.Message);
+        }
     }
 
 
     public void Dispose()
     {
+        isComponentActive = false;
+
         StopCompass();
-        GpsService.ReadingReceived -= OnPositionChanged;
+        GpsService.ReadingReceived -= OnPositionChangedSync;
         _ = GpsManager.StopListener();
+
+        durationCts?.Cancel();
     }
 
     private string GetSpeedOrPace()

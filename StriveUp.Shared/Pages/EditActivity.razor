@@ -1,0 +1,124 @@
+﻿@page "/activity/edit/{ActivityId:int}"
+
+@using StriveUp.Shared.DTOs.Activity
+@inject IActivityService ActivityService
+@inject NavigationManager NavManager
+
+<PageTitle>Edit Activity</PageTitle>
+
+<h3 class="text-2xl font-semibold mb-4">Edit Activity</h3>
+
+@if (model != null)
+{
+    <EditForm Model="model" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="grid gap-4">
+            <InputText class="form-control" @bind-Value="model.Title" placeholder="Title" />
+            <InputTextArea class="form-control" @bind-Value="model.Description" placeholder="Description" />
+
+            <label>Activity Type</label>
+            <InputSelect class="form-select" @bind-Value="model.ActivityId">
+                @foreach (var type in activityTypes)
+                {
+                    <option value="@type.Id">@type.Name</option>
+                }
+            </InputSelect>
+
+            <label>Visibility</label>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="isPrivateSwitch" @bind="model.IsPrivate" />
+                <label class="form-check-label" for="isPrivateSwitch">@((model.IsPrivate ? "Private" : "Public"))</label>
+            </div>
+
+            <details class="bg-gray-100 p-4 rounded shadow-md">
+                <summary class="cursor-pointer text-blue-600">Hidden Details</summary>
+
+                <div class="mt-3 space-y-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showHeartRate" @bind="ShowHeartRate" />
+                        <label class="form-check-label" for="showHeartRate">❤️ Heart Rate</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showPace" @bind="ShowPace" />
+                        <label class="form-check-label" for="showPace">🏃 Pace</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showCalories" @bind="ShowCalories" />
+                        <label class="form-check-label" for="showCalories">🔥 Calories</label>
+                    </div>
+                </div>
+            </details>
+
+            <div class="flex gap-4 mt-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-danger" @onclick="DeleteActivity">Delete</button>
+            </div>
+        </div>
+    </EditForm>
+
+    <ErrorToast Message="@deleteErrorMessage"></ErrorToast>
+}
+else
+{
+    <Spinner></Spinner>
+}
+
+@code {
+    [Parameter] public int ActivityId { get; set; }
+
+    private UpdateUserActivityDto? model;
+    private UserActivityDto? activity;
+    private List<ActivityDto> activityTypes = new();
+
+    private string deleteErrorMessage = null;
+    private string UpdateErrorMessage = null;
+
+    private bool ShowHeartRate = true;
+    private bool ShowPace = true;
+    private bool ShowCalories = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        activity = await ActivityService.GetActivityByIdAsync(ActivityId);
+        model = new UpdateUserActivityDto
+        {
+            Title = activity.Title,
+            Description = activity.Description,
+            ActivityId = activity.ActivityId,
+            IsPrivate = false, // assumes you have this flag
+            ShowHeartRate = true,
+            ShowPace = true,
+            ShowCalories = true,
+        };
+
+        activityTypes = await ActivityService.GetAvailableActivitiesAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        bool success = await ActivityService.UpdateUserActivityAsync(ActivityId, model);
+        if (success)
+        {
+            NavManager.NavigateTo($"/activity/{ActivityId}");
+        }
+        else
+        {
+            UpdateErrorMessage = "Failed to update your activity. Please try again later.";
+        }
+    }
+
+    private async Task DeleteActivity()
+    {
+        bool success = await ActivityService.DeleteUserActivityAsync(ActivityId);
+        if (success)
+        {
+            NavManager.NavigateTo("/feed");
+        }
+        else
+        {
+            deleteErrorMessage = "Failed to delete your activity. Please try again later.";
+        }
+    }
+}

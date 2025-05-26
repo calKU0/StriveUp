@@ -32,7 +32,17 @@
                         <small>@activity.DateStart.ToLongDateString()</small>
                     </div>
                 </div>
-                <span class="badge bg-primary fs-6">@activity.ActivityName</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary fs-6">@activity.ActivityName</span>
+
+                    @if (showEdit)
+                    {
+                        <button class="btn btn-outline-light btn-sm fw-semibold px-3 py-1" style="min-width: 64px;"
+                                @onclick="@(() => Navigation.NavigateTo($"/activity/edit/{activity.Id}"))">
+                            Edit
+                        </button>
+                    }
+                </div>
             </div>
 
             <!-- Route Map -->
@@ -280,6 +290,7 @@
     private ActivityDto activityConfig = new();
     private string userId = "";
     private bool isLoading = true;
+    private bool showEdit = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -291,10 +302,16 @@
             {
                 Navigation.NavigateTo("/login");
             }
-            userId = user.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            userId = currentUser.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             activity = await ActivityService.GetActivityByIdAsync(activityId) ?? new();
             activityConfig = await ActivityService.GetActivityConfig(activity.ActivityId) ?? new();
+
+            if (userId == activity.UserId)
+            {
+                showEdit = true;
+            }
+
             await RenderChartsAsync();
         }
         catch (Exception ex)
