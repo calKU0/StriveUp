@@ -11,91 +11,94 @@
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
-<div class="col-12 col-md-6 col-lg-4 activity-card" @onclick="OnCardClick">
-    <div class="card h-100 rounded-4 border-0 bg-light-subtle transition hover-shadow">
-        <div class="card-body d-flex flex-column gap-3 p-4">
-            <!-- User Info -->
-            <div class="d-flex align-items-center gap-3">
-                <img src="@Activity.UserAvatar" alt="User" width="48" height="48" class="rounded-circle img-fluid" />
-                <div>
-                    <div class="fw-bold fs-6">@Activity.UserName</div>
-                    <div class="text-muted small">@Activity.DateStart.ToShortDateString()</div>
-                </div>
-            </div>
-
-            <!-- Title & Description -->
-            <div>
-                <div class="fs-5 fw-semibold">@Activity.Title</div>
-                <p class="text-muted mb-1">@Activity.Description</p>
-            </div>
-
-            <!-- Optional Map -->
-            @if (Activity.Route?.Count > 1)
-            {
-                <MapRoute Route="Activity.Route" />
-            }
-
-            <!-- Stats Row -->
-            <div class="d-flex justify-content-around text-center py-2 border-top border-bottom align-items-center">
-                <div>
-                    <span class="fw-semibold">@DateUtils.FormatDuration(Activity.DurationSeconds)</span><br />
-                    <small class="text-muted">Duration</small>
-                </div>
-                @if (Activity.AvarageSpeed > 0)
-                {
+@if (Activity != null)
+{ 
+    <div class="col-12 col-md-6 col-lg-4 activity-card" @onclick="OnCardClick">
+        <div class="card h-100 rounded-4 border-0 bg-light-subtle transition hover-shadow">
+            <div class="card-body d-flex flex-column gap-3 p-4">
+                <!-- User Info -->
+                <div class="d-flex align-items-center gap-3">
+                    <img src="@Activity.UserAvatar" alt="User" width="48" height="48" class="rounded-circle img-fluid" />
                     <div>
-                        <span class="fw-semibold">@ActivityUtils.GetSpeedOrPace(Activity.AvarageSpeed ?? 0, activityConfig.MeasurementType)</span><br />
-                        <small class="text-muted">@ActivityUtils.GetSpeedOrPaceLabel(activityConfig.MeasurementType)</small>
+                        <div class="fw-bold fs-6">@Activity.UserName</div>
+                        <div class="text-muted small">@Activity.DateStart.ToShortDateString()</div>
                     </div>
-                }
-                else
-                {
-                    <div>
-                        <span class="fw-semibold">@Activity.CaloriesBurned</span><br />
-                        <small class="text-muted">kcal</small>
-                    </div>
-                }
-                @if (Activity.Distance > 0)
-                {
-                    <div>
-                        <span class="fw-semibold">@(Math.Round(Activity.Distance / 1000.0, 2))</span><br />
-                        <small class="text-muted">km</small>
-                    </div>
-                }
-                <div>
-                    <img src="@ActivityUtils.GetActivityImageUrl(Activity.ActivityName, "dark")" alt="@Activity.ActivityName" style="width:26px" /><br />
-                    <small class="text-muted">Type</small>
                 </div>
-            </div>
 
-            <!-- Actions -->
-            <div class="d-flex justify-content-between align-items-center mt-3 px-1">
-                <!-- Like Button -->
-                <button class="btn btn-light like-button d-flex align-items-center gap-2 px-3 py-1 border rounded-pill shadow-sm
-                   @(Activity.IsLikedByCurrentUser ? "text-danger bg-danger-subtle like-active" : "text-body")"
-                        @onclick="() => ToggleLike()"
-                        @onclick:stopPropagation="true">
-                    <i class="bi bi-heart-fill @(Activity.IsLikedByCurrentUser ? "" : "text-muted")"></i>
-                    <span class="fw-semibold">@Activity.LikeCount</span>
-                </button>
+                <!-- Title & Description -->
+                <div>
+                    <div class="fs-5 fw-semibold">@Activity.Title</div>
+                    <p class="text-muted mb-1">@Activity.Description</p>
+                </div>
 
-                <!-- Comments Link -->
-                <a href="@($"/activity/{Activity.Id}/comments")"
-                @onclick:stopPropagation="true"
-                class="comment-button d-flex align-items-center gap-2 text-decoration-none text-primary-emphasis small px-3 py-1 border rounded-pill bg-primary-subtle shadow-sm">
-                    <i class="bi bi-chat-dots-fill"></i>
-                    <span class="fw-semibold">@(Activity.Comments?.Count ?? 0)</span>
-                    <span class="d-none d-sm-inline">Comments</span>
-                </a>
+                <!-- Optional Map -->
+                @if (Activity.Route?.Count > 1)
+                {
+                    <MapRoute Route="Activity.Route" />
+                }
+
+                <!-- Stats Row -->
+                <div class="d-flex justify-content-around text-center py-2 border-top border-bottom align-items-center">
+                    <div>
+                        <span class="fw-semibold">@DateUtils.FormatDuration(Activity.DurationSeconds)</span><br />
+                        <small class="text-muted">Duration</small>
+                    </div>
+                    @if (Activity.AvarageSpeed > 0 && showSpeed)
+                    {
+                        <div>
+                            <span class="fw-semibold">@ActivityUtils.GetSpeedOrPace(Activity.AvarageSpeed ?? 0, activityConfig.MeasurementType)</span><br />
+                            <small class="text-muted">@ActivityUtils.GetSpeedOrPaceLabel(activityConfig.MeasurementType)</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <span class="fw-semibold">@Activity.CaloriesBurned</span><br />
+                            <small class="text-muted">kcal</small>
+                        </div>
+                    }
+                    @if (Activity.Distance > 0)
+                    {
+                        <div>
+                            <span class="fw-semibold">@(Math.Round(Activity.Distance / 1000.0, 2))</span><br />
+                            <small class="text-muted">km</small>
+                        </div>
+                    }
+                    <div>
+                        <img src="@ActivityUtils.GetActivityImageUrl(Activity.ActivityName, "dark")" alt="@Activity.ActivityName" style="width:26px" /><br />
+                        <small class="text-muted">Type</small>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-between align-items-center mt-3 px-1">
+                    <!-- Like Button -->
+                    <button class="btn btn-light like-button d-flex align-items-center gap-2 px-3 py-1 border rounded-pill shadow-sm
+                       @(Activity.IsLikedByCurrentUser ? "text-danger bg-danger-subtle like-active" : "text-body")"
+                            @onclick="() => ToggleLike()"
+                            @onclick:stopPropagation="true">
+                        <i class="bi bi-heart-fill @(Activity.IsLikedByCurrentUser ? "" : "text-muted")"></i>
+                        <span class="fw-semibold">@Activity.LikeCount</span>
+                    </button>
+
+                    <!-- Comments Link -->
+                    <a href="@($"/activity/{Activity.Id}/comments")"
+                    @onclick:stopPropagation="true"
+                    class="comment-button d-flex align-items-center gap-2 text-decoration-none text-primary-emphasis small px-3 py-1 border rounded-pill bg-primary-subtle shadow-sm">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span class="fw-semibold">@(Activity.Comments?.Count ?? 0)</span>
+                        <span class="d-none d-sm-inline">Comments</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
+}
 @code {
-    [Parameter] public UserActivityDto Activity { get; set; }
+    [Parameter] public SimpleUserActivityDto Activity { get; set; } = new();
     private ActivityDto activityConfig = new();
     private string userId = "";
+    private bool showSpeed = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -104,6 +107,7 @@
             var user = await AuthStateProvider.GetAuthenticationStateAsync();
             userId = user.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             activityConfig = await ActivityService.GetActivityConfig(Activity.ActivityId);
+            if (userId != Activity.UserId && !Activity.ShowSpeed) showSpeed = false;
         }
         catch (Exception ex)
         {

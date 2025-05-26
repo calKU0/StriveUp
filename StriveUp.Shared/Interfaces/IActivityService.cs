@@ -5,13 +5,14 @@ namespace StriveUp.Shared.Interfaces
 {
     public interface IActivityService
     {
-        Task<List<UserActivityDto>> GetFeedAsync(int page, int pageSize);
+        Task<List<SimpleUserActivityDto>> GetFeedAsync(int page, int pageSize);
 
-        Task<List<UserActivityDto>> GetUserActivitiesAsync(string userName, int page, int pageSize);
+        Task<List<SimpleUserActivityDto>> GetUserActivitiesAsync(string userName, int page, int pageSize);
 
         Task<bool> AddActivityAsync(CreateUserActivityDto activity);
 
         Task<bool> UpdateUserActivityAsync(int activityId, UpdateUserActivityDto activity);
+
         Task<bool> DeleteUserActivityAsync(int activityId);
 
         Task<List<ActivityDto>?> GetAvailableActivitiesAsync();

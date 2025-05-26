@@ -38,18 +38,47 @@ namespace StriveUp.API.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateActivity(int id, [FromBody] UpdateUserActivityDto dto)
         {
-            // TODO: Retrieve and update the activity
-            // var activity = await _context.UserActivities.FindAsync(id);
-            // Map fields and save changes
+            var activity = await _context.UserActivities.FindAsync(id);
+            if (activity == null)
+                return NotFound();
 
-            return NoContent(); // or Ok(updatedEntity)
+            // Map updated fields
+            activity.Title = dto.Title;
+            activity.Description = dto.Description;
+            activity.ActivityId = dto.ActivityId;
+            activity.IsPrivate = dto.IsPrivate;
+
+            activity.ShowSpeed = dto.ShowSpeed;
+            activity.ShowHeartRate = dto.ShowHeartRate;
+            activity.ShowCalories = dto.ShowCalories;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
-        // DELETE: api/UserActivities/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteActivity(int id)
         {
-            // TODO: delete logic
+            var activity = await _context.UserActivities
+                       .Include(a => a.BestEfforts)
+                       .Include(a => a.ActivityComments)
+                       .Include(a => a.ActivityLikes)
+                       .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (activity == null)
+                return NotFound();
+
+            // Remove related entities first
+            _context.BestEfforts.RemoveRange(activity.BestEfforts);
+            _context.ActivityComments.RemoveRange(activity.ActivityComments);
+            _context.ActivityLikes.RemoveRange(activity.ActivityLikes);
+
+            // Remove the activity itself
+            _context.UserActivities.Remove(activity);
+
+            await _context.SaveChangesAsync();
+
             return NoContent();
         }
 
@@ -207,7 +236,7 @@ namespace StriveUp.API.Controllers
         }
 
         [HttpGet("userActivities")]
-        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetActivities([FromQuery] string userName, [FromQuery] int page = 1, [FromQuery] int pageSize = 5)
+        public async Task<ActionResult<IEnumerable<SimpleUserActivityDto>>> GetActivities([FromQuery] string userName, [FromQuery] int page = 1, [FromQuery] int pageSize = 5)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
@@ -237,10 +266,11 @@ namespace StriveUp.API.Controllers
                 var query = _context.UserActivities
                     .AsSplitQuery()
                     .Where(ua => ua.User.UserName == userName)
+                    .Where(ua => isCallerSameUser || !ua.IsPrivate)
                     .OrderByDescending(ua => ua.DateStart)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(ua => new UserActivityDto
+                    .Select(ua => new SimpleUserActivityDto
                     {
                         Id = ua.Id,
                         ActivityId = ua.Activity.Id,
@@ -251,9 +281,6 @@ namespace StriveUp.API.Controllers
                         Distance = ua.Distance,
                         CaloriesBurned = ua.CaloriesBurned,
                         AvarageSpeed = ua.AvarageSpeed,
-                        MaxSpeed = ua.MaxSpeed,
-                        AvarageHr = ua.AvarageHr,
-                        MaxHr = ua.MaxHr,
                         ElevationGain = ua.ElevationGain,
                         DateStart = ua.DateStart,
                         DateEnd = ua.DateEnd,
@@ -287,7 +314,7 @@ namespace StriveUp.API.Controllers
         }
 
         [HttpGet("feed")]
-        public async Task<ActionResult<IEnumerable<UserActivityDto>>> GetFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 5)
+        public async Task<ActionResult<IEnumerable<SimpleUserActivityDto>>> GetFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 5)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
@@ -317,11 +344,14 @@ namespace StriveUp.API.Controllers
 
                 // Filter out activities from users with PrivateActivities true (unless it's the caller's own)
                 var filteredActivities = activities
-                    .Where(ua => ua.User.Id == userId || ua.User.UserConfig.PrivateActivities != true)
+                    .Where(ua =>
+                        ua.User.Id == userId || // the activity belongs to the current user
+                        (ua.User.UserConfig.PrivateActivities != true && ua.IsPrivate == false) // from a public user and activity is public
+                    )
                     .ToList();
 
                 // Map to DTO in memory with PrivateMap route exclusion
-                var result = filteredActivities.Select(ua => new UserActivityDto
+                var result = filteredActivities.Select(ua => new SimpleUserActivityDto
                 {
                     Id = ua.Id,
                     ActivityId = ua.Activity.Id,
@@ -334,15 +364,12 @@ namespace StriveUp.API.Controllers
                     Distance = ua.Distance,
                     CaloriesBurned = ua.CaloriesBurned,
                     AvarageSpeed = ua.AvarageSpeed,
-                    MaxSpeed = ua.MaxSpeed,
-                    AvarageHr = ua.AvarageHr,
-                    MaxHr = ua.MaxHr,
                     ElevationGain = ua.ElevationGain,
                     DateStart = ua.DateStart,
                     DateEnd = ua.DateEnd,
                     ActivityName = ua.Activity.Name,
                     Route = (ua.User.Id == userId || ua.User.UserConfig.PrivateMap != true)
-                        ? ua.Route.OrderBy(p => p.Timestamp).Select(p => new GeoPointDto
+                        ? ua.Route.Select(p => new GeoPointDto
                         {
                             Latitude = p.Latitude,
                             Longitude = p.Longitude,
@@ -394,16 +421,9 @@ namespace StriveUp.API.Controllers
 
                 // Check if calling user is NOT the owner of the activity
                 bool isCallerOwner = activity.User.Id == userId;
-
-                if (!isCallerOwner)
+                if (!isCallerOwner && activity.IsPrivate)
                 {
-                    // Check user config for privacy
-                    var userConfig = activity.User.UserConfig;
-                    if (userConfig.PrivateActivities == true)
-                    {
-                        // User activities are private - forbid access
-                        return Forbid("User's activities are private.");
-                    }
+                    return Forbid("This activity is private.");
                 }
 
                 var dto = _mapper.Map<UserActivityDto>(activity);

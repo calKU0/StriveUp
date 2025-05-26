@@ -62,8 +62,6 @@
                         </div>
                     </div>
                 </div>
-
-
             }
         </div>
     }
@@ -85,20 +83,27 @@
                     <div class="row g-3 mb-4">
                         @foreach (var provider in availableProviders)
                         {
+                            var isActive = provider.IsActive;
+                            var isSelected = selectedProvider?.Id == provider.Id;
+
                             <div class="col-6 col-md-4">
-                                <div class="card h-100 text-center p-2 border @((selectedProvider.SynchroProviderId == provider.SynchroProviderId) ? "border-primary" : "")"
-                                     style="cursor: pointer;"
-                                     @onclick="() => SelectProvider(provider)">
+                                <div class="card h-100 text-center p-2 border @(isSelected ? "border-primary" : "") @(isActive ? "" : "opacity-50")"
+                                     style="cursor: @(isActive ? "pointer" : "not-allowed");"
+                                     @onclick="@(isActive ? (() => SelectProvider(provider)) : null)">
                                     <img src="@provider.IconUrl" alt="Icon" class="mx-auto" style="width: 40px; height: 40px; object-fit: contain;" />
-                                    <div class="mt-2 small">@provider.SynchroProviderName</div>
+                                    <div class="mt-2 small fw-semibold">@provider.Name</div>
+                                    @if (!isActive)
+                                    {
+                                        <div class="text-muted" style="font-size: 0.75rem; line-height: 1rem;"><i>Coming soon</i></div>
+                                    }
                                 </div>
                             </div>
                         }
+
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-
                 </div>
             </div>
         </div>
@@ -108,8 +113,8 @@
 
 @code {
     private List<UserSynchroDto> userSynchros = new();
-    private List<UserSynchroDto> availableProviders = new();
-    private UserSynchroDto selectedProvider = new();
+    private List<SynchroProviderDto> availableProviders = new();
+    private SynchroProviderDto selectedProvider = new();
     private bool showModal = false;
     private bool isLoading = true;
 
@@ -213,10 +218,10 @@
         }
     }
 
-    private async Task SelectProvider(UserSynchroDto provider)
+    private async Task SelectProvider(SynchroProviderDto provider)
     {
         selectedProvider = provider;
-        var authUrl = SynchroService.GetOAuthUrl(provider.SynchroProviderName.ToLower().Replace(" ", ""));
+        var authUrl = SynchroService.GetOAuthUrl(provider.Name.ToLower().Replace(" ", ""));
         await JS.InvokeVoidAsync("open", authUrl, "_self");
         
     }

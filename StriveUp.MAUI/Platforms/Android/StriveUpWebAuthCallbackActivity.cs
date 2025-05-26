@@ -10,7 +10,7 @@ namespace StriveUp.MAUI.Platforms.Android
     [IntentFilter(
         new[] { Intent.ActionView },
         Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
-        DataScheme = "StriveUp",
+        DataScheme = "striveup",
         DataHost = "login-callback"
     )]
     public class StriveUpWebAuthCallbackActivity : WebAuthenticatorCallbackActivity

@@ -22,10 +22,10 @@ namespace StriveUp.Infrastructure.Services
             _fitbitSettings = fitbitSettings;
         }
 
-        public async Task<List<UserSynchroDto>> GetAvailableProvidersAsync()
+        public async Task<List<SynchroProviderDto>> GetAvailableProvidersAsync()
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            return await _httpClient.GetFromJsonAsync<List<UserSynchroDto>>("synchro/availableProviders");
+            return await _httpClient.GetFromJsonAsync<List<SynchroProviderDto>>("synchro/availableProviders");
         }
 
         public async Task<List<UserSynchroDto>> GetUserSynchrosAsync()

@@ -100,172 +100,171 @@ namespace StriveUp.Infrastructure.Data
             }
 
             var runningActivity = context.Activities.First(a => a.Name == "Run");
-            //var treadmillActivity = context.Activities.First(a => a.Name == "Treadmill");
-            //var walkingActivity = context.Activities.First(a => a.Name == "Walk");
+            var treadmillActivity = context.Activities.First(a => a.Name == "Treadmill");
+            var walkingActivity = context.Activities.First(a => a.Name == "Walk");
             var bikingActivity = context.Activities.First(a => a.Name == "Bike");
-            //var hikingActivity = context.Activities.First(a => a.Name == "Hike");
+            var hikingActivity = context.Activities.First(a => a.Name == "Hike");
             var swimmingActivity = context.Activities.First(a => a.Name == "Swim");
-            //var ellipticalActivity = context.Activities.First(a => a.Name == "Elliptical");
-            //var jumpropeActivity = context.Activities.First(a => a.Name == "Jump Rope");
-            //var weightTrainingActivity = context.Activities.First(a => a.Name == "Weight Training");
-            //var yogaActivity = context.Activities.First(a => a.Name == "Yoga");
-            //var dancingActivity = context.Activities.First(a => a.Name == "Dancing");
-            //var otherActivity = context.Activities.First(a => a.Name == "Other");
+            var ellipticalActivity = context.Activities.First(a => a.Name == "Elliptical");
+            var jumpropeActivity = context.Activities.First(a => a.Name == "Jump Rope");
+            var weightTrainingActivity = context.Activities.First(a => a.Name == "Weight Training");
+            var yogaActivity = context.Activities.First(a => a.Name == "Yoga");
+            var dancingActivity = context.Activities.First(a => a.Name == "Dancing");
+            var otherActivity = context.Activities.First(a => a.Name == "Other");
 
+            if (!context.ActivityConfig.Any())
+            {
+                var configs = new List<ActivityConfig>
+                {
+                    new ActivityConfig
+                    {
+                        ActivityId = runningActivity.Id,
+                        MeasurementType = "pace",
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
+                        ElevationRelevant = true,
+                        DistanceRelevant = true,
+                        SpeedRelevant = true,
+                        Indoor = false,
+                        PointsPerMinute = 2
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = treadmillActivity.Id,
+                        MeasurementType = "pace",
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        DistanceRelevant = true,
+                        SpeedRelevant = true,
+                        Indoor = true,
+                        PointsPerMinute = 2
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = walkingActivity.Id,
+                        MeasurementType = "pace",
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        DistanceRelevant = true,
+                        SpeedRelevant = false,
+                        Indoor = false,
+                        PointsPerMinute = 0.8
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = bikingActivity.Id,
+                        MeasurementType = "speed",
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
+                        ElevationRelevant = true,
+                        DistanceRelevant = true,
+                        SpeedRelevant = true,
+                        Indoor = false,
+                        PointsPerMinute = 1.5
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = hikingActivity.Id,
+                        MeasurementType = "pace",
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
+                        ElevationRelevant = true,
+                        DistanceRelevant = true,
+                        SpeedRelevant = true,
+                        Indoor = false,
+                        PointsPerMinute = 1.5
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = swimmingActivity.Id,
+                        MeasurementType = "pace",
+                        DefaultDistanceUnit = "km",
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        DistanceRelevant = true,
+                        SpeedRelevant = true,
+                        Indoor = true,
+                        PointsPerMinute = 3
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = ellipticalActivity.Id,
+                        MeasurementType = "time",
+                        DefaultDistanceUnit = null,
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        DistanceRelevant = false,
+                        SpeedRelevant = true,
+                        Indoor = true,
+                        PointsPerMinute = 2
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = jumpropeActivity.Id,
+                        MeasurementType = "reps",
+                        DefaultDistanceUnit = null,
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        DistanceRelevant = false,
+                        SpeedRelevant = false,
+                        Indoor = true,
+                        PointsPerMinute = 1.6
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = weightTrainingActivity.Id,
+                        MeasurementType = "reps",
+                        DefaultDistanceUnit = null,
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        DistanceRelevant = false,
+                        SpeedRelevant = false,
+                        Indoor = true,
+                        PointsPerMinute = 1
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = yogaActivity.Id,
+                        MeasurementType = "time",
+                        DefaultDistanceUnit = null,
+                        UseHeartRate = false,
+                        ElevationRelevant = false,
+                        DistanceRelevant = false,
+                        SpeedRelevant = false,
+                        Indoor = true,
+                        PointsPerMinute = 1
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = dancingActivity.Id,
+                        MeasurementType = "time",
+                        DefaultDistanceUnit = null,
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        DistanceRelevant = false,
+                        SpeedRelevant = false,
+                        Indoor = true,
+                        PointsPerMinute = 2
+                    },
+                    new ActivityConfig
+                    {
+                        ActivityId = dancingActivity.Id,
+                        MeasurementType = "time",
+                        DefaultDistanceUnit = null,
+                        UseHeartRate = true,
+                        ElevationRelevant = false,
+                        DistanceRelevant = false,
+                        SpeedRelevant = false,
+                        Indoor = true,
+                        PointsPerMinute = 1
+                    }
+                };
 
-            //if (!context.ActivityConfig.Any())
-            //{
-            //    var configs = new List<ActivityConfig>
-            //    {
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = runningActivity.Id,
-            //            MeasurementType = "pace",
-            //            DefaultDistanceUnit = "km",
-            //            UseHeartRate = true,
-            //            ElevationRelevant = true,
-            //            DistanceRelevant = true,
-            //            SpeedRelevant = true,
-            //            Indoor = false,
-            //            PointsPerMinute = 2
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = treadmillActivity.Id,
-            //            MeasurementType = "pace",
-            //            DefaultDistanceUnit = "km",
-            //            UseHeartRate = true,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = true,
-            //            SpeedRelevant = true,
-            //            Indoor = true,
-            //            PointsPerMinute = 2
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = walkingActivity.Id,
-            //            MeasurementType = "pace",
-            //            DefaultDistanceUnit = "km",
-            //            UseHeartRate = true,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = true,
-            //            SpeedRelevant = false,
-            //            Indoor = false,
-            //            PointsPerMinute = 0.8
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = bikingActivity.Id,
-            //            MeasurementType = "speed",
-            //            DefaultDistanceUnit = "km",
-            //            UseHeartRate = true,
-            //            ElevationRelevant = true,
-            //            DistanceRelevant = true,
-            //            SpeedRelevant = true,
-            //            Indoor = false,
-            //            PointsPerMinute = 1.5
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = hikingActivity.Id,
-            //            MeasurementType = "pace",
-            //            DefaultDistanceUnit = "km",
-            //            UseHeartRate = true,
-            //            ElevationRelevant = true,
-            //            DistanceRelevant = true,
-            //            SpeedRelevant = true,
-            //            Indoor = false,
-            //            PointsPerMinute = 1.5
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = swimmingActivity.Id,
-            //            MeasurementType = "pace",
-            //            DefaultDistanceUnit = "km",
-            //            UseHeartRate = true,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = true,
-            //            SpeedRelevant = true,
-            //            Indoor = true,
-            //            PointsPerMinute = 3
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = ellipticalActivity.Id,
-            //            MeasurementType = "time",
-            //            DefaultDistanceUnit = null,
-            //            UseHeartRate = true,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = false,
-            //            SpeedRelevant = true,
-            //            Indoor = true,
-            //            PointsPerMinute = 2
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = jumpropeActivity.Id,
-            //            MeasurementType = "reps",
-            //            DefaultDistanceUnit = null,
-            //            UseHeartRate = true,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = false,
-            //            SpeedRelevant = false,
-            //            Indoor = true,
-            //            PointsPerMinute = 1.6
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = weightTrainingActivity.Id,
-            //            MeasurementType = "reps",
-            //            DefaultDistanceUnit = null,
-            //            UseHeartRate = true,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = false,
-            //            SpeedRelevant = false,
-            //            Indoor = true,
-            //            PointsPerMinute = 1
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = yogaActivity.Id,
-            //            MeasurementType = "time",
-            //            DefaultDistanceUnit = null,
-            //            UseHeartRate = false,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = false,
-            //            SpeedRelevant = false,
-            //            Indoor = true,
-            //            PointsPerMinute = 1
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = dancingActivity.Id,
-            //            MeasurementType = "time",
-            //            DefaultDistanceUnit = null,
-            //            UseHeartRate = true,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = false,
-            //            SpeedRelevant = false,
-            //            Indoor = true,
-            //            PointsPerMinute = 2
-            //        },
-            //        new ActivityConfig
-            //        {
-            //            ActivityId = dancingActivity.Id,
-            //            MeasurementType = "time",
-            //            DefaultDistanceUnit = null,
-            //            UseHeartRate = true,
-            //            ElevationRelevant = false,
-            //            DistanceRelevant = false,
-            //            SpeedRelevant = false,
-            //            Indoor = true,
-            //            PointsPerMinute = 1
-            //        }
-            //    };
-
-            //    context.ActivityConfig.AddRange(configs);
-            //    await context.SaveChangesAsync();
-            //}
+                context.ActivityConfig.AddRange(configs);
+                await context.SaveChangesAsync();
+            }
 
             if (!context.SegmentConfigs.Any())
             {

@@ -4,7 +4,7 @@ namespace StriveUp.Shared.Interfaces
 {
     public interface ISynchroService
     {
-        Task<List<UserSynchroDto>> GetAvailableProvidersAsync();
+        Task<List<SynchroProviderDto>> GetAvailableProvidersAsync();
 
         Task<List<UserSynchroDto>> GetUserSynchrosAsync();
 

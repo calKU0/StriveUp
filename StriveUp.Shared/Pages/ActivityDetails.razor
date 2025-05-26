@@ -32,14 +32,21 @@
                         <small>@activity.DateStart.ToLongDateString()</small>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-primary fs-6">@activity.ActivityName</span>
+                <div class="d-flex flex-column-reverse flex-md-row align-items-start align-items-md-center gap-2">
+                    <span class="badge bg-primary d-flex align-items-center justify-content-center rounded-pill
+                     px-2 py-1 px-md-3 py-md-2 fs-6 fs-md-6"
+                          style="min-width: 70px; height: 30px;">
+                        @activity.ActivityName
+                    </span>
 
                     @if (showEdit)
                     {
-                        <button class="btn btn-outline-light btn-sm fw-semibold px-3 py-1" style="min-width: 64px;"
+                        <button class="btn btn-outline-light d-flex align-items-center gap-2 fw-semibold
+                               px-2 py-1 px-md-3 py-md-2 rounded-pill"
+                                style="min-width: 80px; height: 30px;"
                                 @onclick="@(() => Navigation.NavigateTo($"/activity/edit/{activity.Id}"))">
-                            Edit
+                            <i class="bi bi-pencil-square fs-6"></i>
+                            <span class="">Edit</span>
                         </button>
                     }
                 </div>
@@ -66,26 +73,29 @@
                         <div class="p-3 border rounded-3">
                             <i class="bi bi-clock fs-3 text-primary"></i>
                             <h5 class="mt-2">@DateUtils.FormatDuration(activity.DurationSeconds)</h5>
-                            <small class="text-muted">Duration</small>
+                            <small class="text-muted">Time</small>
                         </div>
                     </div>
                     @if (activity.Distance > 0)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
-                                <i class="fas fa-route fa-2x text-primary stat-icon"></i>
+                                <i class="bi bi-geo-alt fs-3 text-primary"></i>
                                 <h5 class="mt-2">@(Math.Round(activity.Distance / 1000.0, 2)) km</h5>
                                 <small class="text-muted">Distance</small>
                             </div>
                         </div>
                     }
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 border rounded-3">
-                            <i class="bi bi-fire fs-3 text-danger"></i>
-                            <h5 class="mt-2">@activity.CaloriesBurned kcal</h5>
-                            <small class="text-muted">Calories</small>
+                    @if (activity.ShowCalories)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 border rounded-3">
+                                <i class="bi bi-fire fs-3 text-danger"></i>
+                                <h5 class="mt-2">@activity.CaloriesBurned kcal</h5>
+                                <small class="text-muted">Calories</small>
+                            </div>
                         </div>
-                    </div>
+                    }
                     @if (activity.ElevationGain > 0)
                     {
                         <div class="col-6 col-md-3">
@@ -96,7 +106,7 @@
                             </div>
                         </div>
                     }
-                    @if (activity.AvarageHr > 0)
+                    @if (activity.AvarageHr > 0 && showHeartRate)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
@@ -106,7 +116,7 @@
                             </div>
                         </div>
                     }
-                    @if (activity.MaxHr > 0)
+                    @if (activity.MaxHr > 0 && showHeartRate)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
@@ -116,7 +126,7 @@
                             </div>
                         </div>
                     }
-                    @if (activity.MaxSpeed > 0)
+                    @if (activity.MaxSpeed > 0 && showSpeed)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
@@ -126,7 +136,7 @@
                             </div>
                         </div>
                     }
-                    @if (activity.AvarageSpeed > 0)
+                    @if (activity.AvarageSpeed > 0 && showSpeed)
                     {
                         <div class="col-6 col-md-3">
                             <div class="p-3 border rounded-3">
@@ -138,6 +148,14 @@
                     }
                 </div>
 
+                <!-- Sensor info -->
+                @if (!string.IsNullOrEmpty(activity.SensorName))
+                {
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-watch fs-4 text-secondary"></i>
+                        <small class="text-muted">@activity.SensorName</small>
+                    </div>
+                }
 
                 <!-- Buttons -->
                 <div class="d-flex gap-3 mt-3">
@@ -150,7 +168,7 @@
                 </div>
 
                 <div class="chart-stats-container mt-5">
-                    @if (activity.SpeedData?.Any() == true)
+                    @if (activity.SpeedData?.Any() == true && showSpeed)
                     {
                         <div class="mb-4">
                             <div class="d-flex align-items-center mb-2">
@@ -193,7 +211,7 @@
                 </div>
 
                 <div class="chart-stats-container mt-3">
-                    @if (activity.HrData?.Any() == true)
+                    @if (activity.HrData?.Any() == true && showHeartRate)
                     {
                         <div class="mb-4">
                             <div class="d-flex align-items-center mb-2">
@@ -266,7 +284,7 @@
                     }
                 </div>
                 <div class="chart-stats-container mt-3">
-                    @if (activity.Splits?.Any() == true)
+                    @if (activity.Splits?.Any() == true && showSpeed)
                     {
                         <div class="mb-4">
                             <h5 class="fw-bold border-bottom border-2 pb-1">
@@ -291,6 +309,9 @@
     private string userId = "";
     private bool isLoading = true;
     private bool showEdit = false;
+    private bool showHeartRate = true;
+    private bool showSpeed = true;
+    private bool showCalories = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -307,10 +328,10 @@
             activity = await ActivityService.GetActivityByIdAsync(activityId) ?? new();
             activityConfig = await ActivityService.GetActivityConfig(activity.ActivityId) ?? new();
 
-            if (userId == activity.UserId)
-            {
-                showEdit = true;
-            }
+            if (userId == activity.UserId) showEdit = true;
+            if (userId != activity.UserId && !activity.ShowCalories) showCalories = false;
+            if (userId != activity.UserId && !activity.ShowSpeed) showSpeed = false;
+            if (userId != activity.UserId && !activity.ShowHeartRate) showHeartRate = false;
 
             await RenderChartsAsync();
         }

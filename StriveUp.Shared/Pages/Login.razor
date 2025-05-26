@@ -67,7 +67,7 @@ else
 
             <div class="text-center">
                 <p class="text-muted m-0 p-0">Don't have an account yet?</p>
-                <a href="" @onclick="RegisterClick" disabled="@isLoggingIn">Register here!</a>
+                <a href="register" disabled="@isLoggingIn">Register here!</a>
             </div>
         </div>
     </div>
@@ -149,11 +149,6 @@ else
             loginError = error ?? "Invalid email or password. Please try again.";
             StateHasChanged();
         }
-    }
-
-    private void RegisterClick()
-    {
-        Nav.NavigateTo("/register");
     }
 
     private async Task TriggerGoogleLogin()

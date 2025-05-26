@@ -13,7 +13,7 @@ namespace StriveUp.Shared.DTOs.Activity
         public int ActivityId { get; set; }
         public bool IsPrivate { get; set; }
         public bool ShowHeartRate { get; set; }
-        public bool ShowPace { get; set; }
+        public bool ShowSpeed { get; set; }
         public bool ShowCalories { get; set; }
     }
 

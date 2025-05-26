@@ -117,7 +117,7 @@ namespace StriveUp.API.Controllers
             if (!success || jwt == null)
                 return Unauthorized(new { Message = "External login failed." });
 
-            if (returnUrl.StartsWith("StriveUp://"))
+            if (returnUrl.StartsWith("striveup://"))
             {
                 // For native apps, pass tokens in query string, NOT fragment
                 var redirectUrl = $"{returnUrl}?access_token={jwt.Token}&refresh_token={jwt.RefreshToken}";

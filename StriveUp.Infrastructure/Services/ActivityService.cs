@@ -90,35 +90,35 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
-        public async Task<List<UserActivityDto>> GetFeedAsync(int page, int pageSize)
+        public async Task<List<SimpleUserActivityDto>> GetFeedAsync(int page, int pageSize)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
 
                 var url = $"activity/feed?page={page}&pageSize={pageSize}";
-                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url) ?? new List<UserActivityDto>();
+                return await _httpClient.GetFromJsonAsync<List<SimpleUserActivityDto>>(url) ?? new List<SimpleUserActivityDto>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching paginated feed: {ex}");
-                return new List<UserActivityDto>();
+                return new List<SimpleUserActivityDto>();
             }
         }
 
-        public async Task<List<UserActivityDto>?> GetUserActivitiesAsync(string userName, int page, int pageSize)
+        public async Task<List<SimpleUserActivityDto>?> GetUserActivitiesAsync(string userName, int page, int pageSize)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
 
                 var url = $"activity/userActivities?userName={userName}&page={page}&pageSize={pageSize}";
-                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url) ?? new List<UserActivityDto>();
+                return await _httpClient.GetFromJsonAsync<List<SimpleUserActivityDto>>(url) ?? new List<SimpleUserActivityDto>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching paginated feed: {ex}");
-                return new List<UserActivityDto>();
+                return new List<SimpleUserActivityDto>();
             }
         }
 
@@ -177,6 +177,7 @@ namespace StriveUp.Infrastructure.Services
                 return false;
             }
         }
+
         public async Task<bool> UpdateUserActivityAsync(int activityId, UpdateUserActivityDto activity)
         {
             try
