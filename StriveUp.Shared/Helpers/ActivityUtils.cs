@@ -1,4 +1,5 @@
 ﻿using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Activity;
 using StriveUp.Shared.Interfaces;
 
 namespace StriveUp.Shared.Helpers
@@ -18,6 +19,26 @@ namespace StriveUp.Shared.Helpers
 
         public static async Task ToggleLikeAsync(
             UserActivityDto activity,
+            string currentUserId,
+            IActivityService activityService)
+        {
+            try
+            {
+                // Optimistically update UI
+                activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
+                activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
+
+                await activityService.LikeActivityAsync(activity.Id);
+            }
+            catch (Exception ex)
+            {
+                activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
+                activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
+            }
+        }
+
+        public static async Task ToggleLikeAsync(
+            SimpleUserActivityDto activity,
             string currentUserId,
             IActivityService activityService)
         {
@@ -80,6 +101,5 @@ namespace StriveUp.Shared.Helpers
             }
             return result;
         }
-
     }
 }

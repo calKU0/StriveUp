@@ -1,10 +1,12 @@
-﻿using StriveUp.Shared.Interfaces;
+﻿using Microsoft.AspNetCore.Components;
+using StriveUp.Shared.Interfaces;
 
 public class NotificationStateService : INotificationStateService, IAsyncDisposable
 {
     private readonly INotificationService _notificationService;
     private Timer? _timer;
     private int _unreadCount;
+    private readonly NavigationManager _navigationManager;
 
     public event Action? OnChange;
 
@@ -21,9 +23,10 @@ public class NotificationStateService : INotificationStateService, IAsyncDisposa
         }
     }
 
-    public NotificationStateService(INotificationService notificationService)
+    public NotificationStateService(INotificationService notificationService, NavigationManager navigationManager)
     {
         _notificationService = notificationService;
+        _navigationManager = navigationManager;
         _timer = new Timer(async _ => await RefreshUnreadCountAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
     }
 
@@ -31,6 +34,14 @@ public class NotificationStateService : INotificationStateService, IAsyncDisposa
     {
         try
         {
+            // Check if current page is NOT "/record"
+            var currentPath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+            if (currentPath.Equals("record", StringComparison.OrdinalIgnoreCase))
+            {
+                // Don't refresh if on /record page
+                return;
+            }
+
             var notifications = await _notificationService.GetMyNotificationsAsync();
             UnreadCount = notifications.Count(n => !n.IsRead);
         }

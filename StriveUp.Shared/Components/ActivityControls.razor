@@ -4,6 +4,7 @@
 @using StriveUp.Shared.DTOs.Activity
 
 <!-- Injections -->
+@inject IAppSettingsService AppSettingsService
 @inject IJSRuntime JSRuntime
 @inject IBleHeartRateService BleHeartRateService
 @inject IProfileService ProfileService
@@ -72,7 +73,13 @@
                     SelectedValueChanged="OnSensorSelected"
                     GetLabel="GetSensorLabel"
                     GetValue="GetSensorValue">
+                    <NoDataTemplate>
+                        <div class="text-center p-4 text-muted fst-italic">
+                            No sensors found. Please make sure your Bluetooth device is on and discoverable.
+                        </div>
+                    </NoDataTemplate>
 </GenericSelectModal>
+
 
 
 @code {
@@ -106,20 +113,35 @@
 
     private async Task CheckAndToggleSensorModal()
     {
-        var status = await Permissions.RequestAsync<Permissions.Bluetooth>();
+        var status = await Permissions.CheckStatusAsync<Permissions.Bluetooth>();
 
         if (status != PermissionStatus.Granted)
         {
-            // Optional: Show a message to the user
-            await JSRuntime.InvokeVoidAsync("alert", "Bluetooth permission is required to select a sensor.");
-            ShowSensorSelect = false; // Ensure modal stays closed
-            StateHasChanged();
+            status = await Permissions.RequestAsync<Permissions.Bluetooth>();
+        }
+
+        if (status != PermissionStatus.Granted)
+        {
+            bool openSettings = await JSRuntime.InvokeAsync<bool>(
+                "confirm",
+                "Bluetooth permission is required to select a sensor. Would you like to open app settings to enable it?"
+            );
+
+            if (openSettings)
+            {
+                AppSettingsService.OpenAppSettings();
+            }
+
+            ShowSensorSelect = false;
+            await InvokeAsync(StateHasChanged);
             return;
         }
 
         AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
         ShowSensorSelect = true;
+        await InvokeAsync(StateHasChanged);
     }
+
 
 
     private string GetActivityImageUrl(int activityId, string theme)

@@ -1,17 +1,16 @@
 ﻿@page "/record"
 
 <!-- Usings -->
-@using GeolocatorPlugin
-@using GeolocatorPlugin.Abstractions
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
-@using Shiny.Locations
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
 @using System.Diagnostics
 
 
 <!-- Injections -->
+@inject IAppSettingsService AppSettingsService
+@inject IAndroidLocationService AndroidLocationService
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
 @inject ISecurableService SecurableService
@@ -19,8 +18,6 @@
 @inject NavigationManager Navigation
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject IPlatformService PlatformService
-@inject Shiny.Locations.IGpsManager GpsManager
-@inject IGpsService GpsService
 @inject IAppStateService AppStateService
 @inject IProfileService ProfileService
 @implements IDisposable
@@ -76,7 +73,7 @@
                 <div class="tiles-wrapper p-2">
                     <!-- Info Tiles -->
                     <div class="row g-3">
-                        @if(!selectedActivity.DistanceRelevant)
+                        @if(selectedActivity.DistanceRelevant)
                         {
                             <InfoTile Label="Distance" Value="@($"{Distance/1000:F2} km")" IconClass="fas fa-route" />
                             <!-- Conditional display of Speed or Pace -->
@@ -91,8 +88,6 @@
                         {
                             <InfoTile Label="Elevation" Value="@($"{(int)Math.Round(elevation)} m")"/>
                         }
-                        <!-- TO DO -->
-                        <!-- Add dynamic kcal -->
                         <InfoTile Label="Kcal" Value="--" />
                     </div>
                 </div>
@@ -136,14 +131,11 @@ IsSaving=@isSaving/>
     private string mapToken;
     private bool btPermission = false;
     private bool isSheetExpanded = false;
-    private double smoothedSpeed = 0;
-    private const double smoothingAlpha = 0.2;
     private Location lastLocation;
     private DateTime resumeTime;
-    private GpsRequest gpsSettigns = new GpsRequest(GpsBackgroundMode.Realtime, GpsAccuracy.High);
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
-    private string activityDescription = "Tracked via GPS";
+    private string activityDescription = string.Empty;
     private bool isSaving = false;
     private BluetoothDeviceDto sensor;
 
@@ -171,7 +163,8 @@ IsSaving=@isSaving/>
         selectedActivity = availableActivities.FirstOrDefault();
 
         mapToken = await SecurableService.GetMapboxTokenAsync();
-        GpsService.ReadingReceived += OnPositionChanged;
+
+        //GpsService.ReadingReceived += OnPositionChangedSync;
 
         if (!selectedActivity.Indoor)
         {
@@ -180,15 +173,29 @@ IsSaving=@isSaving/>
         }
     }  
 
+    private void OnPositionChangedSync(object sender, Microsoft.Maui.Devices.Sensors.Location location)
+    {
+        _ = OnPositionChanged(location);
+    }
+
     private async Task RequestPermissionsAndStartGps()
     {
-        var status = await Permissions.RequestAsync<Permissions.LocationAlways>(); // request always for background
+        // First check the current status
+        var status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+
+        // If not granted, request it
+        if (status != PermissionStatus.Granted)
+        {
+            status = await Permissions.RequestAsync<Permissions.LocationAlways>();
+        }
+
+        // If granted now, proceed with location updates
         if (status == PermissionStatus.Granted)
         {
             try
             {
                 var config = await ProfileService.GetUserConfig();
-                if (!string.IsNullOrEmpty(config.SensorId))
+                if (!string.IsNullOrEmpty(config?.SensorId))
                 {
                     sensor = new BluetoothDeviceDto
                     {
@@ -196,59 +203,85 @@ IsSaving=@isSaving/>
                         Name = config.SensorName
                     };
                 }
-                if (!GpsManager.IsListening())
-                {
-                    isLoadingLocation = true;
-                    await GpsManager.StartListener(gpsSettigns);
-                    Debug.WriteLine("Started listening");
-                }
+
+                isLoadingLocation = true;
+                AndroidLocationService.LocationUpdated += OnPositionChangedSync;
+                AndroidLocationService.StartLocationUpdates();
+                Debug.WriteLine("Started listening");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"GPS Start Exception: {ex.Message}");
             }
-            StateHasChanged();
         }
         else
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Background location permission is required to track your activity.");
-            isLoadingLocation = false;
-            StateHasChanged();
+            // Permission still not granted — offer to open settings
+            bool openSettings = await JSRuntime.InvokeAsync<bool>(
+                "confirm",
+                "Background location permission is required to track your activity. Would you like to open app settings to enable it?"
+            );
+
+            if (openSettings)
+            {
+                AppSettingsService.OpenAppSettings();
+            }
+
             Navigation.NavigateTo("/");
         }
+
+        isLoadingLocation = false;
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void OnPositionChanged(GpsReading reading)
+
+    private async Task OnPositionChanged(Microsoft.Maui.Devices.Sensors.Location position)
     {
-        var location = new Location(reading.Position.Latitude, reading.Position.Longitude, reading.Timestamp)
+        var location = new Location(position.Latitude, position.Longitude, position.Timestamp)
         {
-            Speed = reading.Speed,
-            Altitude = reading.Altitude,
+            Speed = position.Speed,
+            Altitude = position.Altitude,
         };
 
         if (!mapInitialized)
         {
             isLoadingLocation = false;
-            StateHasChanged();
             mapInitialized = true;
             mapVisible = true;
-            _ = JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
+            await InvokeAsync(StateHasChanged);
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("JS init map failed: " + ex.Message);
+            }
         }
 
-        double distanceMoved = currentLocation != null ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers) : 0;
-        bool isInBackground = AppStateService.IsInBackground;
-        double acceptableAccuracy = isInBackground ? 25 : 5;
-        Console.WriteLine($"Background={isInBackground}");
+        double distanceMoved = currentLocation != null
+            ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers)
+            : 0;
 
-        if (reading.PositionAccuracy > acceptableAccuracy && currentLocation != null)
+        bool isInBackground = AppStateService.IsInBackground;
+        double acceptableAccuracy = isInBackground ? 25 : 15;
+
+        Console.WriteLine("Got Location with accuracy = " + position.Accuracy + " Background = " + isInBackground);
+        if (position.Accuracy > acceptableAccuracy && currentLocation != null)
         {
-            Console.WriteLine($"Filtered: Accuracy={reading.PositionAccuracy}, Background={isInBackground}");
             return;
         }
 
         currentLocation = location;
 
-        _ = JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false);
+        try
+        {
+            await InvokeAsync(() => JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("JS update map failed: " + ex.Message);
+        }
 
         if (isTracking)
         {
@@ -325,10 +358,9 @@ IsSaving=@isSaving/>
         if (selectedActivity.Indoor)
         {
             mapInitialized = false;
-            if (GpsManager.IsListening())
-            {
-                _ = GpsManager.StopListener();
-            }
+
+            AndroidLocationService.StopLocationUpdates();
+            
             StopCompass();
         }
         else
@@ -336,7 +368,7 @@ IsSaving=@isSaving/>
             StartCompass();
             _ = RequestPermissionsAndStartGps();           
         }
-        await InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ConnectHrDevice(BluetoothDeviceDto device)
@@ -376,7 +408,7 @@ IsSaving=@isSaving/>
         startTime = DateTime.UtcNow;
         route.Clear();
         durationCts = new CancellationTokenSource();
-        await InvokeAsync(() => StateHasChanged());
+        await InvokeAsync(StateHasChanged);
 
         await JSRuntime.InvokeVoidAsync("scrollToTrackingSection");
         _ = Task.Run(() => UpdateDuration(durationCts.Token)); 
@@ -386,11 +418,16 @@ IsSaving=@isSaving/>
 
     private async Task UpdateDuration(CancellationToken token)
     {
-        while (!token.IsCancellationRequested)
+        try
         {
-            Duration = DateTime.UtcNow - startTime;
-            await Task.Delay(1000, token);
+            while (!token.IsCancellationRequested)
+            {
+                Duration = DateTime.UtcNow - startTime;
+                await InvokeAsync(() => StateHasChanged());
+                await Task.Delay(1000, token);
+            }
         }
+        catch (TaskCanceledException) { }
     }
 
     private async Task StopTracking()
@@ -398,12 +435,9 @@ IsSaving=@isSaving/>
         isTracking = false;
         isPaused = true;
         durationCts?.Cancel();
-        if (GpsManager.IsListening())
-        {
-            await GpsManager.StopListener();
-        }
+        AndroidLocationService.StopLocationUpdates();
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
     }
 
@@ -413,10 +447,9 @@ IsSaving=@isSaving/>
         showFinishModal = false;
         isTracking = true;
         durationCts = new CancellationTokenSource();
-        if (!GpsManager.IsListening())
-        {
-            await GpsManager.StartListener(gpsSettigns);
-        }
+
+        AndroidLocationService.StartLocationUpdates();
+        
 
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
@@ -424,6 +457,22 @@ IsSaving=@isSaving/>
 
     private void ShowFinishModal()
     {
+        var activityName = selectedActivity.Name;
+
+        // Get current part of day
+        var now = DateTime.Now.TimeOfDay;
+
+        string timeOfDay;
+        if (now < TimeSpan.FromHours(11))
+            timeOfDay = "Morning";
+        else if (now < TimeSpan.FromHours(14))
+            timeOfDay = "Lunch";
+        else if (now < TimeSpan.FromHours(18))
+            timeOfDay = "Afternoon";
+        else
+            timeOfDay = "Evening";
+
+        activityTitle = $"{timeOfDay} {activityName}";
         showFinishModal = true;
     }
 
@@ -437,7 +486,7 @@ IsSaving=@isSaving/>
         Speed = 0;
         Duration = TimeSpan.Zero;
         route.Clear();
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SaveActivityWithMeta()
@@ -445,7 +494,7 @@ IsSaving=@isSaving/>
         try
         {
             isSaving = true;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
             var dto = new CreateUserActivityDto
                 {
                     Title = activityTitle,
@@ -463,7 +512,8 @@ IsSaving=@isSaving/>
                     Distance = Distance,
                     HrData = HrData,
                     SpeedData = SpeedData,
-                    ElevationData = ElevationData
+                    ElevationData = ElevationData,
+                    SensorName = sensor.Name ?? null
                 };
 
             await ActivityService.AddActivityAsync(dto);
@@ -487,7 +537,7 @@ IsSaving=@isSaving/>
         finally
         {
             isSaving = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -525,15 +575,25 @@ IsSaving=@isSaving/>
             return;
         }
         currentHeading = e.Reading.HeadingMagneticNorth;
-        JSRuntime.InvokeVoidAsync("updateMarker", currentHeading);
+
+        try
+        {
+            _ = JSRuntime.InvokeVoidAsync("updateMarker", currentHeading);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("JS compass update failed: " + ex.Message);
+        }
     }
 
 
     public void Dispose()
     {
         StopCompass();
-        GpsService.ReadingReceived -= OnPositionChanged;
-        _ = GpsManager.StopListener();
+        AndroidLocationService.LocationUpdated -= OnPositionChangedSync;
+        AndroidLocationService.StopLocationUpdates();
+
+        durationCts?.Cancel();
     }
 
     private string GetSpeedOrPace()

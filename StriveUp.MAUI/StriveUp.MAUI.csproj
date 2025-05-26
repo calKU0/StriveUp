@@ -122,4 +122,10 @@
 		</Content>
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+	  <PackageReference Include="Xamarin.GooglePlayServices.Location">
+	    <Version>121.3.0.5</Version>
+	  </PackageReference>
+	</ItemGroup>
+
 </Project>

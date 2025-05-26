@@ -37,7 +37,7 @@ namespace StriveUp.Infrastructure.Models
 
         [Required]
         public int CaloriesBurned { get; set; }
-
+        public string? SensorName { get; set; }
         public double? AvarageSpeed { get; set; }
         public double? MaxSpeed { get; set; }
         public int? AvarageHr { get; set; }
@@ -57,6 +57,10 @@ namespace StriveUp.Infrastructure.Models
         public bool isSynchronized { get; set; } = false;
 
         public string? SynchroId { get; set; }
+        public bool IsPrivate { get; set; }
+        public bool ShowHeartRate { get; set; } = true;
+        public bool ShowSpeed { get; set; } = true;
+        public bool ShowCalories { get; set; } = true;
         public List<ActivityLike>? ActivityLikes { get; set; }
         public List<ActivityComment>? ActivityComments { get; set; }
         public List<GeoPoint>? Route { get; set; }
@@ -64,6 +68,7 @@ namespace StriveUp.Infrastructure.Models
         public List<ActivitySpeed>? SpeedData { get; set; }
         public List<ActivityElevation>? ElevationData { get; set; }
         public List<ActivitySplit>? Splits { get; set; }
+        public List<BestEffort>? BestEfforts { get; set; }
 
         //[NotMapped]
         //public List<string>? ImageUrls { get; set; }

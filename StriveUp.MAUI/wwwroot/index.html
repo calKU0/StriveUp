@@ -21,7 +21,13 @@
 
     <div class="status-bar-safe-area"></div>
 
-    <div id="app">Loading...</div>
+    <div id="app">
+        <div class="d-flex flex-column align-items-center py-5">
+            <svg class="material-spinner-small" viewBox="22 22 44 44">
+                <circle class="material-path" cx="44" cy="44" r="20.2" fill="none" stroke-width="3.6" />
+            </svg>
+        </div>
+    </div>
 
     <script src="_framework/blazor.webview.js" autostart="false"></script>
     <script src="site.js"></script>

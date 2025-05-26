@@ -1,0 +1,190 @@
+﻿@page "/activity/edit/{ActivityId:int}"
+
+@using StriveUp.Shared.DTOs.Activity
+@inject IActivityService ActivityService
+@inject NavigationManager NavManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Edit Activity</PageTitle>
+
+<div class="container my-5 pt-3">
+    <h2 class="mb-4 fw-bold d-none d-md-block">Edit Activity</h2>
+
+    @if (model != null)
+    {
+        <EditForm Model="model" OnValidSubmit="HandleValidSubmit" class="needs-validation" novalidate>
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="row g-4">
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Title</label>
+                    <InputText class="form-control" @bind-Value="model.Title" placeholder="Enter activity title" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Description</label>
+                    <InputTextArea class="form-control" @bind-Value="model.Description" placeholder="Enter activity description" rows="3" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Activity Type</label>
+                    <InputSelect class="form-select" @bind-Value="model.ActivityId">
+                        @foreach (var type in activityTypes)
+                        {
+                            <option value="@type.Id">@type.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label d-block fw-semibold">Visibility</label>
+                    <div class="form-check form-switch pt-md-1">
+                        <input class="form-check-input" type="checkbox" id="isPrivateSwitch" @bind="model.IsPrivate" />
+                        <span class="badge mx-3 px-3 @(!model.IsPrivate ? "bg-success" : "bg-secondary")">
+                            @(!model.IsPrivate ? "Public" : "Private")
+                        </span>
+                    </div>
+                </div>
+
+<div class="col-12">
+    <details class="bg-light p-4 rounded shadow-sm">
+        <summary class="h6 text-primary cursor-pointer mb-3">Hidden details</summary>
+
+        <div class="row g-3 mt-2">
+
+    <!-- Heart Rate -->
+    <div class="col-md-4">
+        <div class="d-flex flex-column align-items-start">
+            <div class="d-flex align-items-center gap-2">
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" id="showHeartRate" @bind="model.ShowHeartRate" />
+                </div>
+                <label class="form-check-label fw-semibold" for="showHeartRate">
+                    <i class="bi bi-heart-pulse text-danger fs-5 me-1"></i> Heart Rate
+                </label>
+            </div>
+            <span class="badge mt-2 px-3 @(model.ShowHeartRate ? "bg-success" : "bg-secondary")">
+                @(model.ShowHeartRate ? "Public" : "Private")
+            </span>
+        </div>
+    </div>
+
+    <!-- Speed -->
+    <div class="col-md-4">
+        <div class="d-flex flex-column align-items-start">
+            <div class="d-flex align-items-center gap-2">
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" id="showSpeed" @bind="model.ShowSpeed" />
+                </div>
+                <label class="form-check-label fw-semibold" for="showSpeed">
+                    <i class="bi bi-speedometer text-warning fs-5 me-1"></i> Speed
+                </label>
+            </div>
+            <span class="badge mt-2 px-3 @(model.ShowSpeed ? "bg-success" : "bg-secondary")">
+                @(model.ShowSpeed ? "Public" : "Private")
+            </span>
+        </div>
+    </div>
+
+    <!-- Calories -->
+    <div class="col-md-4">
+        <div class="d-flex flex-column align-items-start">
+            <div class="d-flex align-items-center gap-2">
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" id="showCalories" @bind="model.ShowCalories" />
+                </div>
+                <label class="form-check-label fw-semibold" for="showCalories">
+                    <i class="bi bi-fire text-danger fs-5 me-1"></i> Calories
+                </label>
+            </div>
+            <span class="badge mt-2 px-3 @(model.ShowCalories ? "bg-success" : "bg-secondary")">
+                @(model.ShowCalories ? "Public" : "Private")
+            </span>
+        </div>
+    </div>
+
+</div>
+    </details>
+</div>
+
+
+                <div class="col-12 d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-primary px-4">Save</button>
+                    <button type="button" class="btn btn-outline-danger px-4" @onclick="DeleteActivity">🗑 Delete</button>
+                </div>
+            </div>
+        </EditForm>
+
+        <ErrorToast Message="@deleteErrorMessage"></ErrorToast>
+    }
+    else
+    {
+        <div class="text-center mt-5">
+            <Spinner></Spinner>
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter] public int ActivityId { get; set; }
+
+    private UpdateUserActivityDto? model;
+    private UserActivityDto? activity;
+    private List<ActivityDto> activityTypes = new();
+
+    private string deleteErrorMessage = null;
+    private string UpdateErrorMessage = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        activity = await ActivityService.GetActivityByIdAsync(ActivityId);
+        model = new UpdateUserActivityDto
+        {
+            Title = activity.Title,
+            Description = activity.Description,
+            ActivityId = activity.ActivityId,
+            IsPrivate = activity.IsPrivate,
+            ShowHeartRate = activity.ShowHeartRate,
+            ShowSpeed = activity.ShowSpeed,
+            ShowCalories = activity.ShowCalories,
+        };
+
+        activityTypes = await ActivityService.GetAvailableActivitiesAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        bool success = await ActivityService.UpdateUserActivityAsync(ActivityId, model);
+        if (success)
+        {
+            NavManager.NavigateTo($"/activity/{ActivityId}");
+        }
+        else
+        {
+            UpdateErrorMessage = "Failed to update your activity. Please try again later.";
+        }
+    }
+
+    private async Task DeleteActivity()
+    {   
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+            "⚠️ Are you absolutely sure?\n\n" +
+            "Deleting your activity is irreversible. " +
+            "All your stats and best efforts will be permanently removed.");
+
+        if (!confirmed)
+            return;
+
+        bool success = await ActivityService.DeleteUserActivityAsync(ActivityId);
+        if (success)
+        {
+            NavManager.NavigateTo("/feed");
+        }
+        else
+        {
+            deleteErrorMessage = "Failed to delete your activity. Please try again later.";
+        }
+    }
+}

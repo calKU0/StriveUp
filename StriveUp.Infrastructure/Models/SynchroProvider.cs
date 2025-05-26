@@ -9,6 +9,7 @@ namespace StriveUp.Infrastructure.Models
 
         [Required]
         public string Name { get; set; }
+        public bool IsActive { get; set; } = false;
 
         public string? IconUrl { get; set; }
     }

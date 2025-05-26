@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250526163716_MoreDetails")]
+    partial class MoreDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -354,6 +357,7 @@ namespace StriveUp.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("DefaultDistanceUnit")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("DistanceRelevant")
@@ -366,6 +370,7 @@ namespace StriveUp.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("MeasurementType")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("PointsPerMinute")
@@ -537,9 +542,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<int>("UserActivityId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UserActivityId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -549,8 +551,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.HasIndex("SegmentConfigId");
 
                     b.HasIndex("UserActivityId");
-
-                    b.HasIndex("UserActivityId1");
 
                     b.HasIndex("UserId");
 
@@ -843,7 +843,7 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Property<bool>("ShowHeartRate")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("ShowSpeed")
+                    b.Property<bool>("ShowPace")
                         .HasColumnType("bit");
 
                     b.Property<string>("SynchroId")
@@ -1130,10 +1130,6 @@ namespace StriveUp.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("StriveUp.Infrastructure.Models.UserActivity", null)
-                        .WithMany("BestEfforts")
-                        .HasForeignKey("UserActivityId1");
-
                     b.HasOne("StriveUp.Infrastructure.Identity.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1327,8 +1323,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("ActivityComments");
 
                     b.Navigation("ActivityLikes");
-
-                    b.Navigation("BestEfforts");
 
                     b.Navigation("ElevationData");
 

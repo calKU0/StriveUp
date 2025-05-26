@@ -38,7 +38,7 @@ namespace StriveUp.API.Controllers
         }
 
         [HttpGet("availableProviders")]
-        public async Task<ActionResult<List<UserSynchroDto>>> GetAvailableProviders()
+        public async Task<ActionResult<List<SynchroProviderDto>>> GetAvailableProviders()
         {
             try
             {
@@ -55,9 +55,10 @@ namespace StriveUp.API.Controllers
 
                 var availableProviders = allProviders
                     .Where(p => !connectedProviderIds.Contains(p.Id))
+                    .OrderByDescending(p => p.IsActive)
                     .ToList();
 
-                var dtos = _mapper.Map<List<UserSynchroDto>>(availableProviders);
+                var dtos = _mapper.Map<List<SynchroProviderDto>>(availableProviders);
 
                 return Ok(dtos);
             }

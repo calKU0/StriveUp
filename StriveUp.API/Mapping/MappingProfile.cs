@@ -88,9 +88,7 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.SynchroProviderName, opt => opt.MapFrom(src => src.SynchroProvider.Name))
                 .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.SynchroProvider.IconUrl));
 
-            CreateMap<SynchroProvider, UserSynchroDto>()
-                .ForMember(dest => dest.SynchroProviderId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.SynchroProviderName, opt => opt.MapFrom(src => src.Name));
+            CreateMap<SynchroProvider, SynchroProviderDto>();
 
             CreateMap<UpdateUserSynchroDto, UserSynchro>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));

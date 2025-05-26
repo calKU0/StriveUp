@@ -1,9 +1,11 @@
 ﻿@page "/settings"
+@using Microsoft.Maui.ApplicationModel
 @using StriveUp.Shared.Enums
 @using System.Security.Claims
 @using Microsoft.Extensions.DependencyInjection;
 
 <!-- Injections -->
+@inject IAppSettingsService AppSettingsService
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject IAuthService AuthService
 @inject IProfileService ProfileService
@@ -106,7 +108,7 @@
     </div>
 </div>
 
-<GenericSelectModal TItem="AppTheme"
+<GenericSelectModal TItem="Enums.AppTheme"
                     Show="@showThemeModal"
                     ShowChanged="@(v => showThemeModal = v)"
                     Label="Choose Theme"
@@ -140,27 +142,12 @@
 
 @if (isDeletingAccount)
 {
-    <div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50" style="z-index: 1050;">
-        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Deleting...</span>
-        </div>
-    </div>
+    <Spinner Overlay=true text="Deleting..."></Spinner>
 }
 
 @if (!string.IsNullOrEmpty(deleteErrorMessage))
 {
-    <div class="toast-container position-fixed top-0 end-0">
-        <div class="toast show align-items-center text-bg-danger border-0" role="alert" style="background-color: #dc3545; color: white;">
-            <div class="d-flex">
-                <div class="toast-body">
-                    @deleteErrorMessage
-                </div>
-                <button type="button"
-                        class="btn-close btn-close-white me-2 m-auto"
-                        @onclick="() => deleteErrorMessage = null"></button>
-            </div>
-        </div>
-    </div>
+    <ErrorToast Message="@deleteErrorMessage"></ErrorToast>
 }
 
 @if (showDeletedToast)
@@ -188,12 +175,12 @@
     private bool isDeletingAccount = false;
     private string? deleteErrorMessage = null;
 
-    private AppTheme selectedTheme;
+    private Enums.AppTheme selectedTheme;
     private DefaultMetric selectedMetric;
     private string selectedSensorDisplay = "None";
     private BluetoothDeviceDto? selectedSensor;
 
-    private List<AppTheme> themeOptions = Enum.GetValues<AppTheme>().ToList();
+    private List<Enums.AppTheme> themeOptions = Enum.GetValues<Enums.AppTheme>().ToList();
     private List<DefaultMetric> metricOptions = Enum.GetValues<DefaultMetric>().ToList();
     private List<BluetoothDeviceDto> availableSensors = new();
 
@@ -233,7 +220,7 @@
                 // If no config exists, create a default one
                 config = new UserConfigDto
                 {
-                    Theme = AppTheme.Light,
+                    Theme = Enums.AppTheme.Light,
                     DefaultMetric = DefaultMetric.Kilometers,
                 };
             }
@@ -255,6 +242,28 @@
 
     async Task LoadSensorModal()
     {
+        var status = await Permissions.CheckStatusAsync<Permissions.Bluetooth>();
+
+        if (status != PermissionStatus.Granted)
+        {
+            status = await Permissions.RequestAsync<Permissions.Bluetooth>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                bool openSettings = await JSRuntime.InvokeAsync<bool>(
+                    "confirm",
+                    "Bluetooth permission is required to select a sensor. Would you like to open app settings to enable it?"
+                );
+
+                if (openSettings)
+                {
+                    AppSettingsService.OpenAppSettings();
+                }
+
+                return;
+            }
+        }
+
         availableSensors = BleHeartRateService.GetAvailableDevicesAsync();
         if (!string.IsNullOrWhiteSpace(selectedSensor?.Id))
         {
@@ -264,7 +273,7 @@
     }
 
 
-    async Task OnThemeChanged(AppTheme theme)
+    async Task OnThemeChanged(Enums.AppTheme theme)
     {
         selectedTheme = theme;
         await UpdateUserConfig(new UpdateUserConfigDto { Theme = selectedTheme });
@@ -319,7 +328,6 @@
 
         if (!confirmed)
             return;
-
         isDeletingAccount = true;
         deleteErrorMessage = null;
         StateHasChanged();

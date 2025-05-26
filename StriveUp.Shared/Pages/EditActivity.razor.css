@@ -1,0 +1,20 @@
+﻿details summary {
+    outline: none;
+    font-weight: 600;
+    user-select: none;
+}
+
+.form-check-input {
+    min-width: 45px;
+    min-height: 20px;
+}
+
+.form-check-input, .badge {
+    transition: all 0.3s ease;
+    min-height: 20px;
+}
+
+
+summary {
+    transition: height 0.3s ease;
+}

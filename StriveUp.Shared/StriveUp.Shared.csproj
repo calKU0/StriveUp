@@ -11,6 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Geolocation" Version="1.2.1" />
 		<PackageReference Include="Geolocator.Plugin" Version="1.0.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.16" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.16" />

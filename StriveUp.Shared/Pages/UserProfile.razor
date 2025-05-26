@@ -159,31 +159,31 @@
                 }
                 else
                 {   
-                    @if (isEditable)
-                    {
-                        <p class="text-muted">No activities recorded yet.</p>
-
-                        <!-- Encourage user to do an activity -->
-                        @if (PlatformService.IsNativeApp())
+                    <div class="p-3">
+                        @if (isEditable)
                         {
-                            <div class="alert alert-info">
-                                <p>Start tracking your activities now! <a href="/tracking" class="btn btn-primary">Go to Tracking</a></p>
-                            </div>
+                            <p class="text-muted">No activities recorded yet.</p>
+
+                            <!-- Encourage user to do an activity -->
+                            @if (PlatformService.IsNativeApp())
+                            {
+                                <a href="record" class="btn btn-primary">Start tracking now!</a>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <p>Start tracking your activities! Download our app from Google Play:</p>
+                                    <a href="https://play.google.com/store/apps/details?id=com.striveup.app" class="btn btn-primary" target="_blank">
+                                        Download the App
+                                    </a>
+                                </div>
+                            }
                         }
                         else
                         {
-                            <div class="alert alert-info">
-                                <p>Start tracking your activities! Download our app from Google Play:</p>
-                                <a href="https://play.google.com/store/apps/details?id=com.striveup.app" class="btn btn-primary" target="_blank">
-                                    Download the App
-                                </a>
-                            </div>
+                            <p class="text-muted">@userName has not recorded any activity yet.</p>
                         }
-                    }
-                    else
-                    {
-                        <p class="text-muted">@userName has not recorded any activity yet.</p>
-                    }
+                    </div>
                 }
             </div>
         }
@@ -206,14 +206,16 @@
                 }
                 else
                 {
-                    @if (isEditable)
-                    {
-                        <p class="text-muted">No medals earned yet.</p>
-                    }
-                    else
-                    {
-                        <p class="text-muted">@userName has not earned any medal yet.</p>
-                    }
+                    <div class="p-3">
+                        @if (isEditable)
+                        {
+                            <p class="text-muted">No medals earned yet.</p>
+                        }
+                        else
+                        {
+                            <p class="text-muted">@userName has not earned any medal yet.</p>
+                        }
+                    </div>
                 }
             </div>
         }
@@ -338,7 +340,7 @@
 
 @code {
     [Parameter] public string? Username { get; set; }
-    private List<UserActivityDto> pagedActivities = new();
+    private List<SimpleUserActivityDto> pagedActivities = new();
     private bool isActivitiesLoading = false;
     private bool hasMoreActivities = true;
     private int activityPage = 1;

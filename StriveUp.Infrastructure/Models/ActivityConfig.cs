@@ -7,10 +7,9 @@ namespace StriveUp.Infrastructure.Models
         [Key]
         public int Id { get; set; }
 
-        public string MeasurementType { get; set; }
+        public string? MeasurementType { get; set; }
 
-        [Required]
-        public string DefaultDistanceUnit { get; set; } = "km";
+        public string? DefaultDistanceUnit { get; set; }
 
         public bool UseHeartRate { get; set; } = true;
 

@@ -1,5 +1,6 @@
 ﻿<!-- Usings -->
 @using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Activity
 
 <!-- Injections -->
 @inject IActivityService ActivityService
@@ -56,7 +57,7 @@
 
 
 @code {
-    private List<UserActivityDto> activities = new();
+    private List<SimpleUserActivityDto> activities = new();
     private bool isLoading = true;
     private string? errorMessage;
     private bool hasMore = true;

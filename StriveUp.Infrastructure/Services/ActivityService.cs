@@ -90,49 +90,35 @@ namespace StriveUp.Infrastructure.Services
             }
         }
 
-        public async Task<bool> UpdateActivityAsync(int activityId, CreateUserActivityDto activity)
-        {
-            try
-            {
-                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-                var response = await _httpClient.PutAsJsonAsync($"activity/{activityId}", activity);
-                return response.IsSuccessStatusCode;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<List<UserActivityDto>> GetFeedAsync(int page, int pageSize)
+        public async Task<List<SimpleUserActivityDto>> GetFeedAsync(int page, int pageSize)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
 
                 var url = $"activity/feed?page={page}&pageSize={pageSize}";
-                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url) ?? new List<UserActivityDto>();
+                return await _httpClient.GetFromJsonAsync<List<SimpleUserActivityDto>>(url) ?? new List<SimpleUserActivityDto>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching paginated feed: {ex}");
-                return new List<UserActivityDto>();
+                return new List<SimpleUserActivityDto>();
             }
         }
 
-        public async Task<List<UserActivityDto>?> GetUserActivitiesAsync(string userName, int page, int pageSize)
+        public async Task<List<SimpleUserActivityDto>?> GetUserActivitiesAsync(string userName, int page, int pageSize)
         {
             try
             {
                 await _httpClient.AddAuthHeaderAsync(_tokenStorage);
 
                 var url = $"activity/userActivities?userName={userName}&page={page}&pageSize={pageSize}";
-                return await _httpClient.GetFromJsonAsync<List<UserActivityDto>>(url) ?? new List<UserActivityDto>();
+                return await _httpClient.GetFromJsonAsync<List<SimpleUserActivityDto>>(url) ?? new List<SimpleUserActivityDto>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching paginated feed: {ex}");
-                return new List<UserActivityDto>();
+                return new List<SimpleUserActivityDto>();
             }
         }
 
@@ -174,6 +160,36 @@ namespace StriveUp.Infrastructure.Services
             {
                 Console.WriteLine(ex);
                 return new List<ActivityCommentDto>();
+            }
+        }
+
+        public async Task<bool> DeleteUserActivityAsync(int activityId)
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                var response = await _httpClient.DeleteAsync($"activity/{activityId}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateUserActivityAsync(int activityId, UpdateUserActivityDto activity)
+        {
+            try
+            {
+                await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+                var response = await _httpClient.PatchAsJsonAsync($"activity/{activityId}", activity);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return false;
             }
         }
     }
