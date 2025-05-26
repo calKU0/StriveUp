@@ -75,7 +75,7 @@
                     <div class="row g-3">
                         @if(selectedActivity.DistanceRelevant)
                         {
-                            <InfoTile Label="Distance" Value="@($"{Distance/1000:F2} km")" IconClass="fas fa-route" />
+                            <InfoTile Label="Distance" Value="@($"{Distance/1000.0:F2} km")" IconClass="fas fa-route" />
                             <!-- Conditional display of Speed or Pace -->
                             @if (selectedActivity.SpeedRelevant)
                             {
@@ -101,7 +101,8 @@ Duration="@Duration"
 Title="@activityTitle"
 Description="@activityDescription"
 OnSave="@SaveActivityWithMeta"
-OnDiscard="@DiscardActivity" 
+OnDiscard="@DiscardActivity"
+OnResume="@ResumeTracking"
 IsSaving=@isSaving/>
 
 
@@ -137,7 +138,7 @@ IsSaving=@isSaving/>
     private string activityTitle = "My Activity";
     private string activityDescription = string.Empty;
     private bool isSaving = false;
-    private BluetoothDeviceDto sensor;
+    private BluetoothDeviceDto sensor = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -163,8 +164,6 @@ IsSaving=@isSaving/>
         selectedActivity = availableActivities.FirstOrDefault();
 
         mapToken = await SecurableService.GetMapboxTokenAsync();
-
-        //GpsService.ReadingReceived += OnPositionChangedSync;
 
         if (!selectedActivity.Indoor)
         {
@@ -215,7 +214,6 @@ IsSaving=@isSaving/>
                 while (location == null && attempt < maxAttempts)
                 {
                     location = await AndroidLocationService.GetCurrentLocationAsync();
-                    Console.WriteLine(attempt);
                     if (location == null)
                     {
                         attempt++;
@@ -224,11 +222,11 @@ IsSaving=@isSaving/>
                 }
                 await InitializeMap(location);
 
-                Debug.WriteLine("Started listening");
+                Console.WriteLine("Started listening");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"GPS Start Exception: {ex.Message}");
+                Console.WriteLine($"GPS Start Exception: {ex.Message}");
             }
         }
         else
@@ -306,7 +304,6 @@ IsSaving=@isSaving/>
             Speed = location.Speed ?? 0;
 
             Distance += (int)Math.Round(distanceDelta);
-
             if (lastLocation.Altitude.HasValue && location.Altitude.HasValue)
             {
                 double altitudeDelta = location.Altitude.Value - lastLocation.Altitude.Value;
@@ -495,25 +492,25 @@ IsSaving=@isSaving/>
             isSaving = true;
             await InvokeAsync(StateHasChanged);
             var dto = new CreateUserActivityDto
+            {
+                Title = activityTitle,
+                Description = activityDescription,
+                ActivityId = selectedActivity.Id,
+                DateStart = startTime,
+                DateEnd = DateTime.UtcNow,
+                Route = route.Select(loc => new GeoPointDto
                 {
-                    Title = activityTitle,
-                    Description = activityDescription,
-                    ActivityId = selectedActivity.Id,
-                    DateStart = startTime,
-                    DateEnd = DateTime.UtcNow,
-                    Route = route.Select(loc => new GeoPointDto
-                    {
-                        Latitude = loc.Latitude,
-                        Longitude = loc.Longitude,
-                        Timestamp = loc.Timestamp.UtcDateTime,
-                    }).ToList(),
-                    ElevationGain = (int)Math.Round(elevation),
-                    Distance = Distance,
-                    HrData = HrData,
-                    SpeedData = SpeedData,
-                    ElevationData = ElevationData,
-                    SensorName = sensor.Name ?? null
-                };
+                    Latitude = loc.Latitude,
+                    Longitude = loc.Longitude,
+                    Timestamp = loc.Timestamp.UtcDateTime,
+                }).ToList(),
+                ElevationGain = (int)Math.Round(elevation),
+                Distance = Distance,
+                HrData = HrData,
+                SpeedData = SpeedData,
+                ElevationData = ElevationData,
+                SensorName = sensor.Name ?? null
+            };
 
             await ActivityService.AddActivityAsync(dto);
             await JSRuntime.InvokeVoidAsync("clearRoute");
@@ -529,9 +526,11 @@ IsSaving=@isSaving/>
 
             Navigation.NavigateTo("/feed");
         }
-        catch
+        catch (Exception ex)
         {
-
+            Console.WriteLine("Save activity failed: " + ex.Message);
+            // Optionally show an error message to the user
+            await JSRuntime.InvokeVoidAsync("alert", "Failed to save activity. Please try again.");
         }
         finally
         {
@@ -581,13 +580,14 @@ IsSaving=@isSaving/>
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("JS compass update failed: " + ex.Message);
+            Console.WriteLine("JS compass update failed: " + ex.Message);
         }
     }
 
 
     public void Dispose()
     {
+        Console.WriteLine("dipose");
         StopCompass();
         AndroidLocationService.LocationUpdated -= OnPositionChangedSync;
         AndroidLocationService.StopLocationUpdates();
@@ -640,7 +640,6 @@ IsSaving=@isSaving/>
                 await InvokeAsync(StateHasChanged);
                 await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
                 mapInitialized = true;
-                Console.WriteLine("test");
             }
             catch (Exception ex)
             {
