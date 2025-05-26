@@ -13,6 +13,8 @@ namespace StriveUp.Shared.Interfaces
 
         void StopLocationUpdates();
 
+        Task<Location?> GetCurrentLocationAsync();
+
         event EventHandler<Location> LocationUpdated;
     }
 }

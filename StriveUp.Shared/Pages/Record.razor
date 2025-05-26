@@ -207,6 +207,23 @@ IsSaving=@isSaving/>
                 isLoadingLocation = true;
                 AndroidLocationService.LocationUpdated += OnPositionChangedSync;
                 AndroidLocationService.StartLocationUpdates();
+
+                int maxAttempts = 10;
+                int attempt = 0;
+
+                Location? location = null;
+                while (location == null && attempt < maxAttempts)
+                {
+                    location = await AndroidLocationService.GetCurrentLocationAsync();
+                    Console.WriteLine(attempt);
+                    if (location == null)
+                    {
+                        attempt++;
+                        await Task.Delay(1000);
+                    }
+                }
+                await InitializeMap(location);
+
                 Debug.WriteLine("Started listening");
             }
             catch (Exception ex)
@@ -242,22 +259,6 @@ IsSaving=@isSaving/>
             Speed = position.Speed,
             Altitude = position.Altitude,
         };
-
-        if (!mapInitialized)
-        {
-            isLoadingLocation = false;
-            mapInitialized = true;
-            mapVisible = true;
-            await InvokeAsync(StateHasChanged);
-            try
-            {
-                await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("JS init map failed: " + ex.Message);
-            }
-        }
 
         double distanceMoved = currentLocation != null
             ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers)
@@ -358,9 +359,7 @@ IsSaving=@isSaving/>
         if (selectedActivity.Indoor)
         {
             mapInitialized = false;
-
             AndroidLocationService.StopLocationUpdates();
-            
             StopCompass();
         }
         else
@@ -449,7 +448,7 @@ IsSaving=@isSaving/>
         durationCts = new CancellationTokenSource();
 
         AndroidLocationService.StartLocationUpdates();
-        
+
 
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
@@ -626,6 +625,33 @@ IsSaving=@isSaving/>
             // Convert m/s to km/h
             double speedInKmH = Speed * 3.6;
             return $"{speedInKmH:F2} km/h";
+        }
+    }
+
+    private async Task InitializeMap(Location location)
+    {
+        if (!mapInitialized && location is not null)
+        {          
+            await InvokeAsync(StateHasChanged);
+            try
+            {
+                mapVisible = true;
+                isLoadingLocation = false;
+                await InvokeAsync(StateHasChanged);
+                await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
+                mapInitialized = true;
+                Console.WriteLine("test");
+            }
+            catch (Exception ex)
+            {
+                mapVisible = false;
+                Console.WriteLine("JS init map failed: " + ex.Message);
+            }
+            finally
+            {
+                isLoadingLocation = false;
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 

@@ -137,7 +137,13 @@
                         SelectedValue="@selectedSensor"
                         SelectedValueChanged="OnSensorSelected"
                         GetLabel="@GetSensorLabel"
-                        GetValue="@GetSensorValue" />
+                        GetValue="@GetSensorValue">                     
+                        <NoDataTemplate>
+                        <div class="text-center p-4 text-muted fst-italic">
+                            No sensors found. Please make sure your Bluetooth device is on and discoverable.
+                         </div>
+                        </NoDataTemplate>
+</GenericSelectModal>
 }
 
 @if (isDeletingAccount)
