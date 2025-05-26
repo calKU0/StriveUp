@@ -7,6 +7,12 @@ using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
 using System.Reflection;
 
+#if ANDROID
+
+using StriveUp.MAUI.Platforms.Android;
+
+#endif
+
 namespace StriveUp.MAUI;
 
 public static class MauiProgram
@@ -38,7 +44,7 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
-            .UseShiny()
+            //.UseShiny()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -50,10 +56,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<IPlatformService, MauiPlatformService>();
         builder.Services.AddSingleton<IBleHeartRateService, BleHeartRateService>();
         builder.Services.AddSingleton<IAppStateService, AppStateService>();
-
 #if ANDROID
-        builder.Services.AddGps<MyGpsDelegate>();
-        builder.Services.AddSingleton<IGpsService>(sp => sp.GetRequiredService<MyGpsDelegate>());
+        builder.Services.AddSingleton<IAndroidLocationService, AndroidLocationService>();
+        builder.Services.AddSingleton<IAppSettingsService, AppSettingsService>();
 #endif
         builder.Services.AddClientInfrastructure(builder.Configuration);
         builder.Services.AddAuthorizationCore();

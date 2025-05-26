@@ -1,17 +1,16 @@
 ﻿@page "/record"
 
 <!-- Usings -->
-@using GeolocatorPlugin
-@using GeolocatorPlugin.Abstractions
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
-@using Shiny.Locations
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
 @using System.Diagnostics
 
 
 <!-- Injections -->
+@inject IAppSettingsService AppSettingsService
+@inject IAndroidLocationService AndroidLocationService
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
 @inject ISecurableService SecurableService
@@ -19,8 +18,6 @@
 @inject NavigationManager Navigation
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject IPlatformService PlatformService
-@inject Shiny.Locations.IGpsManager GpsManager
-@inject IGpsService GpsService
 @inject IAppStateService AppStateService
 @inject IProfileService ProfileService
 @implements IDisposable
@@ -76,7 +73,7 @@
                 <div class="tiles-wrapper p-2">
                     <!-- Info Tiles -->
                     <div class="row g-3">
-                        @if(!selectedActivity.DistanceRelevant)
+                        @if(selectedActivity.DistanceRelevant)
                         {
                             <InfoTile Label="Distance" Value="@($"{Distance/1000:F2} km")" IconClass="fas fa-route" />
                             <!-- Conditional display of Speed or Pace -->
@@ -136,19 +133,16 @@ IsSaving=@isSaving/>
     private bool isSheetExpanded = false;
     private Location lastLocation;
     private DateTime resumeTime;
-    private GpsRequest gpsSettigns = new GpsRequest(GpsBackgroundMode.Standard, GpsAccuracy.High);
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = string.Empty;
     private bool isSaving = false;
     private BluetoothDeviceDto sensor;
-    private bool isComponentActive = true;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            isComponentActive = true;
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var currentUser = authState.User;
 
@@ -169,7 +163,8 @@ IsSaving=@isSaving/>
         selectedActivity = availableActivities.FirstOrDefault();
 
         mapToken = await SecurableService.GetMapboxTokenAsync();
-        GpsService.ReadingReceived += OnPositionChangedSync;
+
+        //GpsService.ReadingReceived += OnPositionChangedSync;
 
         if (!selectedActivity.Indoor)
         {
@@ -178,20 +173,29 @@ IsSaving=@isSaving/>
         }
     }  
 
-    private void OnPositionChangedSync(GpsReading reading)
+    private void OnPositionChangedSync(object sender, Microsoft.Maui.Devices.Sensors.Location location)
     {
-        _ = OnPositionChanged(reading);
+        _ = OnPositionChanged(location);
     }
 
     private async Task RequestPermissionsAndStartGps()
     {
-        var status = await Permissions.RequestAsync<Permissions.LocationAlways>(); // request always for background
+        // First check the current status
+        var status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+
+        // If not granted, request it
+        if (status != PermissionStatus.Granted)
+        {
+            status = await Permissions.RequestAsync<Permissions.LocationAlways>();
+        }
+
+        // If granted now, proceed with location updates
         if (status == PermissionStatus.Granted)
         {
             try
             {
                 var config = await ProfileService.GetUserConfig();
-                if (!string.IsNullOrEmpty(config.SensorId))
+                if (!string.IsNullOrEmpty(config?.SensorId))
                 {
                     sensor = new BluetoothDeviceDto
                     {
@@ -199,36 +203,44 @@ IsSaving=@isSaving/>
                         Name = config.SensorName
                     };
                 }
-                if (!GpsManager.IsListening())
-                {
-                    isLoadingLocation = true;
-                    await GpsManager.StartListener(gpsSettigns);
-                    Debug.WriteLine("Started listening");
-                }
+
+                isLoadingLocation = true;
+                AndroidLocationService.LocationUpdated += OnPositionChangedSync;
+                AndroidLocationService.StartLocationUpdates();
+                Debug.WriteLine("Started listening");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"GPS Start Exception: {ex.Message}");
             }
-            await InvokeAsync(StateHasChanged);
         }
         else
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Background location permission is required to track your activity.");
-            isLoadingLocation = false;
-            await InvokeAsync(StateHasChanged);
+            // Permission still not granted — offer to open settings
+            bool openSettings = await JSRuntime.InvokeAsync<bool>(
+                "confirm",
+                "Background location permission is required to track your activity. Would you like to open app settings to enable it?"
+            );
+
+            if (openSettings)
+            {
+                AppSettingsService.OpenAppSettings();
+            }
+
             Navigation.NavigateTo("/");
         }
+
+        isLoadingLocation = false;
+        await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OnPositionChanged(GpsReading reading)
-    {
-        if (!isComponentActive) return;
 
-        var location = new Location(reading.Position.Latitude, reading.Position.Longitude, reading.Timestamp)
+    private async Task OnPositionChanged(Microsoft.Maui.Devices.Sensors.Location position)
+    {
+        var location = new Location(position.Latitude, position.Longitude, position.Timestamp)
         {
-            Speed = reading.Speed,
-            Altitude = reading.Altitude,
+            Speed = position.Speed,
+            Altitude = position.Altitude,
         };
 
         if (!mapInitialized)
@@ -252,9 +264,10 @@ IsSaving=@isSaving/>
             : 0;
 
         bool isInBackground = AppStateService.IsInBackground;
-        double acceptableAccuracy = isInBackground ? 25 : 5;
+        double acceptableAccuracy = isInBackground ? 25 : 15;
 
-        if (reading.PositionAccuracy > acceptableAccuracy && currentLocation != null)
+        Console.WriteLine("Got Location with accuracy = " + position.Accuracy + " Background = " + isInBackground);
+        if (position.Accuracy > acceptableAccuracy && currentLocation != null)
         {
             return;
         }
@@ -345,10 +358,9 @@ IsSaving=@isSaving/>
         if (selectedActivity.Indoor)
         {
             mapInitialized = false;
-            if (GpsManager.IsListening())
-            {
-                _ = GpsManager.StopListener();
-            }
+
+            AndroidLocationService.StopLocationUpdates();
+            
             StopCompass();
         }
         else
@@ -423,10 +435,7 @@ IsSaving=@isSaving/>
         isTracking = false;
         isPaused = true;
         durationCts?.Cancel();
-        if (GpsManager.IsListening())
-        {
-            await GpsManager.StopListener();
-        }
+        AndroidLocationService.StopLocationUpdates();
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
         await InvokeAsync(StateHasChanged);
 
@@ -438,10 +447,9 @@ IsSaving=@isSaving/>
         showFinishModal = false;
         isTracking = true;
         durationCts = new CancellationTokenSource();
-        if (!GpsManager.IsListening())
-        {
-            await GpsManager.StartListener(gpsSettigns);
-        }
+
+        AndroidLocationService.StartLocationUpdates();
+        
 
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
@@ -581,11 +589,9 @@ IsSaving=@isSaving/>
 
     public void Dispose()
     {
-        isComponentActive = false;
-
         StopCompass();
-        GpsService.ReadingReceived -= OnPositionChangedSync;
-        _ = GpsManager.StopListener();
+        AndroidLocationService.LocationUpdated -= OnPositionChangedSync;
+        AndroidLocationService.StopLocationUpdates();
 
         durationCts?.Cancel();
     }
