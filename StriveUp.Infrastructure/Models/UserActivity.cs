@@ -37,7 +37,7 @@ namespace StriveUp.Infrastructure.Models
 
         [Required]
         public int CaloriesBurned { get; set; }
-
+        public string? SensorName { get; set; }
         public double? AvarageSpeed { get; set; }
         public double? MaxSpeed { get; set; }
         public int? AvarageHr { get; set; }

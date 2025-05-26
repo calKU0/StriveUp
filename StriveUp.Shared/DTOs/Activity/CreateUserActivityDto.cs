@@ -14,6 +14,7 @@ namespace StriveUp.Shared.DTOs
         public bool isSynchronized { get; set; } = false;
         public string? SynchroId { get; set; }
         public bool IsManuallyAdded { get; set; } = false;
+        public string? SensorName { get; set; }
         public double? AvarageSpeed { get; set; }
         public double? MaxSpeed { get; set; }
         public int? AvarageHr { get; set; }

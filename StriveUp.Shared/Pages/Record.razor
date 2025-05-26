@@ -134,11 +134,9 @@ IsSaving=@isSaving/>
     private string mapToken;
     private bool btPermission = false;
     private bool isSheetExpanded = false;
-    private double smoothedSpeed = 0;
-    private const double smoothingAlpha = 0.2;
     private Location lastLocation;
     private DateTime resumeTime;
-    private GpsRequest gpsSettigns = new GpsRequest(GpsBackgroundMode.Realtime, GpsAccuracy.High);
+    private GpsRequest gpsSettigns = new GpsRequest(GpsBackgroundMode.Standard, GpsAccuracy.High);
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = string.Empty;
@@ -506,7 +504,8 @@ IsSaving=@isSaving/>
                     Distance = Distance,
                     HrData = HrData,
                     SpeedData = SpeedData,
-                    ElevationData = ElevationData
+                    ElevationData = ElevationData,
+                    SensorName = sensor.Name ?? null
                 };
 
             await ActivityService.AddActivityAsync(dto);

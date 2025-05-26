@@ -24,6 +24,7 @@ namespace StriveUp.Shared.DTOs
         public bool ShowHeartRate { get; set; }
         public bool ShowPace { get; set; }
         public bool ShowCalories { get; set; }
+        public string? SensorName { get; set; }
         public double? AvarageSpeed { get; set; }
         public double? MaxSpeed { get; set; }
         public int? AvarageHr { get; set; }
