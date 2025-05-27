@@ -27,6 +27,7 @@ namespace StriveUp.Shared.DTOs.Activity
         public bool ShowSpeed { get; set; }
         public int LikeCount { get; set; }
         public bool IsLikedByCurrentUser { get; set; }
+        public bool HasNewRecord { get; set; }
         public List<ActivityCommentDto>? Comments { get; set; }
         public List<GeoPointDto>? Route { get; set; }
     }

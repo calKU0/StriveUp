@@ -1,4 +1,6 @@
-﻿using StriveUp.Shared.DTOs;
+﻿// Ignore Spelling: Utils
+
+using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Activity;
 using StriveUp.Shared.Interfaces;
 
@@ -30,7 +32,7 @@ namespace StriveUp.Shared.Helpers
 
                 await activityService.LikeActivityAsync(activity.Id);
             }
-            catch (Exception ex)
+            catch
             {
                 activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
                 activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;
@@ -50,7 +52,7 @@ namespace StriveUp.Shared.Helpers
 
                 await activityService.LikeActivityAsync(activity.Id);
             }
-            catch (Exception ex)
+            catch
             {
                 activity.LikeCount += activity.IsLikedByCurrentUser ? -1 : 1;
                 activity.IsLikedByCurrentUser = !activity.IsLikedByCurrentUser;

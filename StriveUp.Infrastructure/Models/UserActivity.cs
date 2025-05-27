@@ -37,6 +37,7 @@ namespace StriveUp.Infrastructure.Models
 
         [Required]
         public int CaloriesBurned { get; set; }
+
         public string? SensorName { get; set; }
         public double? AvarageSpeed { get; set; }
         public double? MaxSpeed { get; set; }
@@ -69,7 +70,6 @@ namespace StriveUp.Infrastructure.Models
         public List<ActivityElevation>? ElevationData { get; set; }
         public List<ActivitySplit>? Splits { get; set; }
         public List<BestEffort>? BestEfforts { get; set; }
-
         //[NotMapped]
         //public List<string>? ImageUrls { get; set; }
     }

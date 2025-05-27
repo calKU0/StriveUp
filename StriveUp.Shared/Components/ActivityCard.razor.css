@@ -17,3 +17,31 @@
         color: white !important;
         box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.2); /* blue shadow */
     }
+
+.new-record-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, #ffd700 0%, #ffbf00 100%);
+    color: #3a2e00;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.25em 0.7em;
+    border-radius: 9999px; /* pill shape */
+    box-shadow: 0 2px 6px rgb(255 191 0 / 0.5);
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    user-select: none;
+    pointer-events: none;
+    z-index: 10;
+}
+
+    .new-record-badge i {
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+
+
+

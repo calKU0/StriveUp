@@ -9,6 +9,7 @@ using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Activity;
+using StriveUp.Shared.DTOs.Leaderboard;
 using System.Security.Claims;
 
 namespace StriveUp.API.Controllers
@@ -368,6 +369,7 @@ namespace StriveUp.API.Controllers
                     DateStart = ua.DateStart,
                     DateEnd = ua.DateEnd,
                     ActivityName = ua.Activity.Name,
+                    HasNewRecord = CheckIfActivityHasNewRecord(ua.Id),
                     Route = (ua.User.Id == userId || ua.User.UserConfig.PrivateMap != true)
                         ? ua.Route.Select(p => new GeoPointDto
                         {
@@ -414,6 +416,7 @@ namespace StriveUp.API.Controllers
                     .Include(ua => ua.SpeedData)
                     .Include(ua => ua.ElevationData)
                     .Include(ua => ua.Splits)
+                    .Include(ua => ua.BestEfforts).ThenInclude(be => be.SegmentConfig)
                     .FirstOrDefaultAsync(ua => ua.Id == id);
 
                 if (activity == null)
@@ -427,6 +430,56 @@ namespace StriveUp.API.Controllers
                 }
 
                 var dto = _mapper.Map<UserActivityDto>(activity);
+
+                // Load all best efforts for this user that belong to the same activity type (segmentConfig.ActivityId == activity.Activity.Id)
+                var allBestEffortsForActivityType = await _context.BestEfforts
+                    .AsNoTracking()
+                    .Include(be => be.SegmentConfig)
+                    .Where(be => be.UserId == userId && !be.UserActivity.IsPrivate)
+                    .Where(be => be.SegmentConfig.ActivityId == activity.Activity.Id)
+                    .OrderBy(be => be.DurationSeconds)
+                    .ToListAsync();
+
+                // Group all efforts by segment short name
+                var effortsGroupedBySegment = allBestEffortsForActivityType
+                    .GroupBy(be => be.SegmentConfig.ShortName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Take(3).ToList() // top 3 per segment by duration
+                    );
+
+                var bestEffortsFromThisActivityTop3 = new List<UserBestEffortsStatsDto>();
+
+                // For each effort in the current activity, check if it is in the top 3 efforts for that segment
+                foreach (var effort in activity.BestEfforts)
+                {
+                    var segmentShortName = effort.SegmentConfig.ShortName;
+
+                    if (effortsGroupedBySegment.TryGetValue(segmentShortName, out var top3Efforts))
+                    {
+                        // Check if this activity's effort is among the top 3 by matching UserActivityId and DurationSeconds (with small tolerance)
+                        var rank = top3Efforts.FindIndex(be =>
+                            be.UserActivityId == effort.UserActivityId &&
+                            Math.Abs(be.DurationSeconds - effort.DurationSeconds) < 0.001) + 1;
+
+                        if (rank > 0 && rank <= 3)
+                        {
+                            bestEffortsFromThisActivityTop3.Add(new UserBestEffortsStatsDto
+                            {
+                                SegmentName = effort.SegmentConfig.Name,
+                                SegmentShortName = segmentShortName,
+                                TotalDuration = effort.DurationSeconds,
+                                Speed = effort.Speed,
+                                ActivityDate = effort.ActivityDate,
+                                ActivityId = effort.UserActivityId,
+                                SegmentRank = rank
+                            });
+                        }
+                    }
+                }
+
+                // Assign only top 3 efforts from this activity to DTO
+                dto.BestEfforts = bestEffortsFromThisActivityTop3;
 
                 // If PrivateMap is true and caller is not owner, exclude Route data
                 if (!isCallerOwner && activity.User.UserConfig.PrivateMap == true)
@@ -918,5 +971,31 @@ namespace StriveUp.API.Controllers
         }
 
         private double ToRadians(double degrees) => degrees * Math.PI / 180;
+
+        private bool CheckIfActivityHasNewRecord(int activityId)
+        {
+            // Fetch segment efforts for this activity
+            var thisActivityEfforts = _context.BestEfforts
+                .Where(se => se.UserActivityId == activityId)
+                .ToList();
+
+            foreach (var effort in thisActivityEfforts)
+            {
+                // Find the fastest time recorded for this segment among all other activities
+                var bestTime = _context.BestEfforts
+                    .Where(se => se.SegmentConfigId == effort.SegmentConfigId && se.UserActivityId != activityId)
+                    .OrderBy(se => se.DurationSeconds)
+                    .Select(se => se.DurationSeconds)
+                    .FirstOrDefault();
+
+                // If no previous record or this activity's effort is faster => new record!
+                if (bestTime == 0 || effort.DurationSeconds < bestTime)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

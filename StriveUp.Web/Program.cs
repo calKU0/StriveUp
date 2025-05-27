@@ -15,6 +15,7 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IPlatformService, WebPlatformService>();
+builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 builder.Services.AddClientInfrastructure(builder.Configuration);
 builder.Services.AddHttpClient("ApiClient", (client) =>
 {

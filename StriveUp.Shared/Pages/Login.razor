@@ -80,7 +80,7 @@ else
     private bool isLoading = true;
     private bool isLoggingIn = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         AuthService.TokensReceived += OnTokensReceivedFromNative;
     }

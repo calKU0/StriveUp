@@ -75,7 +75,7 @@
                     <div class="row g-3">
                         @if(selectedActivity.DistanceRelevant)
                         {
-                            <InfoTile Label="Distance" Value="@($"{Distance/1000:F2} km")" IconClass="fas fa-route" />
+                            <InfoTile Label="Distance" Value="@($"{Distance/1000.0:F2} km")" IconClass="fas fa-route" />
                             <!-- Conditional display of Speed or Pace -->
                             @if (selectedActivity.SpeedRelevant)
                             {
@@ -101,7 +101,8 @@ Duration="@Duration"
 Title="@activityTitle"
 Description="@activityDescription"
 OnSave="@SaveActivityWithMeta"
-OnDiscard="@DiscardActivity" 
+OnDiscard="@DiscardActivity"
+OnResume="@ResumeTracking"
 IsSaving=@isSaving/>
 
 
@@ -129,15 +130,12 @@ IsSaving=@isSaving/>
     private CancellationTokenSource durationCts;
     private bool isLoadingLocation = true;
     private string mapToken;
-    private bool btPermission = false;
-    private bool isSheetExpanded = false;
     private Location lastLocation;
-    private DateTime resumeTime;
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = string.Empty;
     private bool isSaving = false;
-    private BluetoothDeviceDto sensor;
+    private BluetoothDeviceDto sensor = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -163,8 +161,6 @@ IsSaving=@isSaving/>
         selectedActivity = availableActivities.FirstOrDefault();
 
         mapToken = await SecurableService.GetMapboxTokenAsync();
-
-        //GpsService.ReadingReceived += OnPositionChangedSync;
 
         if (!selectedActivity.Indoor)
         {
@@ -207,11 +203,26 @@ IsSaving=@isSaving/>
                 isLoadingLocation = true;
                 AndroidLocationService.LocationUpdated += OnPositionChangedSync;
                 AndroidLocationService.StartLocationUpdates();
-                Debug.WriteLine("Started listening");
+
+                int maxAttempts = 10;
+                int attempt = 0;
+
+                while (currentLocation == null && attempt < maxAttempts)
+                {
+                    currentLocation = await AndroidLocationService.GetCurrentLocationAsync();
+                    if (currentLocation == null)
+                    {
+                        attempt++;
+                        await Task.Delay(1000);
+                    }
+                }
+                await InitializeMap(currentLocation);
+
+                Console.WriteLine("Started listening");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"GPS Start Exception: {ex.Message}");
+                Console.WriteLine($"GPS Start Exception: {ex.Message}");
             }
         }
         else
@@ -243,28 +254,12 @@ IsSaving=@isSaving/>
             Altitude = position.Altitude,
         };
 
-        if (!mapInitialized)
-        {
-            isLoadingLocation = false;
-            mapInitialized = true;
-            mapVisible = true;
-            await InvokeAsync(StateHasChanged);
-            try
-            {
-                await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("JS init map failed: " + ex.Message);
-            }
-        }
-
         double distanceMoved = currentLocation != null
             ? Location.CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, location, DistanceUnits.Kilometers)
             : 0;
 
         bool isInBackground = AppStateService.IsInBackground;
-        double acceptableAccuracy = isInBackground ? 25 : 15;
+        double acceptableAccuracy = isInBackground ? 35 : 25;
 
         Console.WriteLine("Got Location with accuracy = " + position.Accuracy + " Background = " + isInBackground);
         if (position.Accuracy > acceptableAccuracy && currentLocation != null)
@@ -305,7 +300,6 @@ IsSaving=@isSaving/>
             Speed = location.Speed ?? 0;
 
             Distance += (int)Math.Round(distanceDelta);
-
             if (lastLocation.Altitude.HasValue && location.Altitude.HasValue)
             {
                 double altitudeDelta = location.Altitude.Value - lastLocation.Altitude.Value;
@@ -358,9 +352,7 @@ IsSaving=@isSaving/>
         if (selectedActivity.Indoor)
         {
             mapInitialized = false;
-
             AndroidLocationService.StopLocationUpdates();
-            
             StopCompass();
         }
         else
@@ -449,7 +441,7 @@ IsSaving=@isSaving/>
         durationCts = new CancellationTokenSource();
 
         AndroidLocationService.StartLocationUpdates();
-        
+
 
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
@@ -496,25 +488,25 @@ IsSaving=@isSaving/>
             isSaving = true;
             await InvokeAsync(StateHasChanged);
             var dto = new CreateUserActivityDto
+            {
+                Title = activityTitle,
+                Description = activityDescription,
+                ActivityId = selectedActivity.Id,
+                DateStart = startTime,
+                DateEnd = DateTime.UtcNow,
+                Route = route.Select(loc => new GeoPointDto
                 {
-                    Title = activityTitle,
-                    Description = activityDescription,
-                    ActivityId = selectedActivity.Id,
-                    DateStart = startTime,
-                    DateEnd = DateTime.UtcNow,
-                    Route = route.Select(loc => new GeoPointDto
-                    {
-                        Latitude = loc.Latitude,
-                        Longitude = loc.Longitude,
-                        Timestamp = loc.Timestamp.UtcDateTime,
-                    }).ToList(),
-                    ElevationGain = (int)Math.Round(elevation),
-                    Distance = Distance,
-                    HrData = HrData,
-                    SpeedData = SpeedData,
-                    ElevationData = ElevationData,
-                    SensorName = sensor.Name ?? null
-                };
+                    Latitude = loc.Latitude,
+                    Longitude = loc.Longitude,
+                    Timestamp = loc.Timestamp.UtcDateTime,
+                }).ToList(),
+                ElevationGain = (int)Math.Round(elevation),
+                Distance = Distance,
+                HrData = HrData,
+                SpeedData = SpeedData,
+                ElevationData = ElevationData,
+                SensorName = sensor.Name ?? null
+            };
 
             await ActivityService.AddActivityAsync(dto);
             await JSRuntime.InvokeVoidAsync("clearRoute");
@@ -530,9 +522,11 @@ IsSaving=@isSaving/>
 
             Navigation.NavigateTo("/feed");
         }
-        catch
+        catch (Exception ex)
         {
-
+            Console.WriteLine("Save activity failed: " + ex.Message);
+            // Optionally show an error message to the user
+            await JSRuntime.InvokeVoidAsync("alert", "Failed to save activity. Please try again.");
         }
         finally
         {
@@ -570,7 +564,7 @@ IsSaving=@isSaving/>
 
     private void OnCompassReadingChanged(object sender, CompassChangedEventArgs e)
     {
-        if (currentLocation == null)
+        if (!mapInitialized)
         {
             return;
         }
@@ -582,17 +576,19 @@ IsSaving=@isSaving/>
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("JS compass update failed: " + ex.Message);
+            Console.WriteLine("JS compass update failed: " + ex.Message);
         }
     }
 
 
     public void Dispose()
     {
+        Console.WriteLine("dipose");
         StopCompass();
         AndroidLocationService.LocationUpdated -= OnPositionChangedSync;
         AndroidLocationService.StopLocationUpdates();
 
+        mapInitialized = false;
         durationCts?.Cancel();
     }
 
@@ -626,6 +622,32 @@ IsSaving=@isSaving/>
             // Convert m/s to km/h
             double speedInKmH = Speed * 3.6;
             return $"{speedInKmH:F2} km/h";
+        }
+    }
+
+    private async Task InitializeMap(Location location)
+    {
+        if (!mapInitialized && location is not null)
+        {          
+            await InvokeAsync(StateHasChanged);
+            try
+            {
+                mapVisible = true;
+                isLoadingLocation = false;
+                await InvokeAsync(StateHasChanged);
+                await JSRuntime.InvokeVoidAsync("initializeMap", location.Latitude, location.Longitude, mapToken);
+                mapInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                mapVisible = false;
+                Console.WriteLine("JS init map failed: " + ex.Message);
+            }
+            finally
+            {
+                isLoadingLocation = false;
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 

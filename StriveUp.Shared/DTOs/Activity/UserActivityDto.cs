@@ -1,4 +1,5 @@
 ﻿using StriveUp.Shared.DTOs.Activity;
+using StriveUp.Shared.DTOs.Leaderboard;
 
 namespace StriveUp.Shared.DTOs
 {
@@ -38,5 +39,6 @@ namespace StriveUp.Shared.DTOs
         public List<ActivitySpeedDto>? SpeedData { get; set; }
         public List<ActivityElevationDto>? ElevationData { get; set; }
         public List<ActivitySplitDto>? Splits { get; set; }
+        public List<UserBestEffortsStatsDto>? BestEfforts { get; set; }
     }
 }

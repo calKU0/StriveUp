@@ -113,7 +113,7 @@ namespace StriveUp.Infrastructure.Data
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(be => be.UserActivity)
-                    .WithMany()
+                    .WithMany(ua => ua.BestEfforts)
                     .HasForeignKey(be => be.UserActivityId)
                     .OnDelete(DeleteBehavior.Restrict);
 

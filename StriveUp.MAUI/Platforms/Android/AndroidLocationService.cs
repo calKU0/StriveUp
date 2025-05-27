@@ -28,8 +28,11 @@ namespace StriveUp.MAUI.Platforms.Android
         public void StartLocationUpdates()
         {
             var locationRequest = new LocationRequest.Builder(Priority.PriorityHighAccuracy)
-                .SetIntervalMillis(3000)       // 3 seconds
-                .SetMinUpdateIntervalMillis(3000)  // 1 second fastest interval
+                .SetIntervalMillis(5000)
+                .SetGranularity(Granularity.GranularityFine)
+                .SetMinUpdateIntervalMillis(1000)
+                .SetPriority(Priority.PriorityHighAccuracy)
+                .SetWaitForAccurateLocation(true)
                 .Build();
 
             locationCallback = new LocationCallbackImpl(this);
@@ -43,7 +46,6 @@ namespace StriveUp.MAUI.Platforms.Android
             {
                 fusedLocationProviderClient.RemoveLocationUpdates(locationCallback);
                 locationCallback.Dispose();
-                locationCallback = null;
             }
         }
 
@@ -52,14 +54,7 @@ namespace StriveUp.MAUI.Platforms.Android
             if (loc != null)
             {
                 // Convert Android.Locations.Location to Microsoft.Maui.Devices.Sensors.Location
-                var newLocation = new LocationMaui(
-                    loc.Latitude,
-                    loc.Longitude,
-                    loc.Altitude
-                );
-                newLocation.Accuracy = loc.Accuracy;
-                newLocation.Timestamp = loc.Time > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(loc.Time) : DateTimeOffset.Now;
-                newLocation.Speed = loc.HasSpeed ? loc.Speed : 0f;
+                var newLocation = ConvertToMauiLocation(loc);
 
                 LocationUpdated?.Invoke(this, newLocation);
             }
@@ -78,8 +73,43 @@ namespace StriveUp.MAUI.Platforms.Android
             {
                 base.OnLocationResult(result);
                 var loc = result.LastLocation;
-                parent.OnLocationResult(loc);
+                if (loc != null)
+                    parent.OnLocationResult(loc);
             }
+        }
+
+        public async Task<LocationMaui?> GetCurrentLocationAsync()
+        {
+            try
+            {
+                var loc = await fusedLocationProviderClient.GetLastLocationAsync();
+
+                if (loc != null)
+                {
+                    return ConvertToMauiLocation(loc);
+                }
+            }
+            catch
+            {
+            }
+
+            return null;
+        }
+
+        private LocationMaui ConvertToMauiLocation(AndroidLocation.Location loc)
+        {
+            var newLocation = new LocationMaui(
+                loc.Latitude,
+                loc.Longitude,
+                loc.HasAltitude ? loc.Altitude : 0
+            )
+            {
+                Accuracy = loc.HasAccuracy ? loc.Accuracy : 0,
+                Timestamp = loc.Time > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(loc.Time) : DateTimeOffset.Now,
+                Speed = loc.HasSpeed ? loc.Speed : 0f
+            };
+
+            return newLocation;
         }
     }
 }
