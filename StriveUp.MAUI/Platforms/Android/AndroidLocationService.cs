@@ -28,8 +28,11 @@ namespace StriveUp.MAUI.Platforms.Android
         public void StartLocationUpdates()
         {
             var locationRequest = new LocationRequest.Builder(Priority.PriorityHighAccuracy)
-                .SetIntervalMillis(3000)
-                .SetMinUpdateIntervalMillis(3000)
+                .SetIntervalMillis(5000)
+                .SetGranularity(Granularity.GranularityFine)
+                .SetMinUpdateIntervalMillis(1000)
+                .SetPriority(Priority.PriorityHighAccuracy)
+                .SetWaitForAccurateLocation(true)
                 .Build();
 
             locationCallback = new LocationCallbackImpl(this);
@@ -43,7 +46,6 @@ namespace StriveUp.MAUI.Platforms.Android
             {
                 fusedLocationProviderClient.RemoveLocationUpdates(locationCallback);
                 locationCallback.Dispose();
-                locationCallback = null;
             }
         }
 
@@ -71,7 +73,8 @@ namespace StriveUp.MAUI.Platforms.Android
             {
                 base.OnLocationResult(result);
                 var loc = result.LastLocation;
-                parent.OnLocationResult(loc);
+                if (loc != null)
+                    parent.OnLocationResult(loc);
             }
         }
 

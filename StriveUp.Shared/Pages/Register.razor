@@ -149,7 +149,6 @@
     private string? imageDataUrl;
     private string? croppedImageUrl;
     private List<string> errorMessages = new();
-    private string? successMessage;
     private bool IsRegistering = false;
 
     protected override async Task OnAfterRenderAsync(bool first)
@@ -198,7 +197,6 @@
     private async Task HandleRegister()
     {
         errorMessages.Clear();
-        successMessage = null;
         IsRegistering = true;
 
         try
@@ -213,7 +211,6 @@
 
             if (success)
             {
-                successMessage = "Registration successful!";
                 Nav.NavigateTo("/");
             }
             else

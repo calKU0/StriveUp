@@ -130,10 +130,7 @@ IsSaving=@isSaving/>
     private CancellationTokenSource durationCts;
     private bool isLoadingLocation = true;
     private string mapToken;
-    private bool btPermission = false;
-    private bool isSheetExpanded = false;
     private Location lastLocation;
-    private DateTime resumeTime;
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = string.Empty;
@@ -210,17 +207,16 @@ IsSaving=@isSaving/>
                 int maxAttempts = 10;
                 int attempt = 0;
 
-                Location? location = null;
-                while (location == null && attempt < maxAttempts)
+                while (currentLocation == null && attempt < maxAttempts)
                 {
-                    location = await AndroidLocationService.GetCurrentLocationAsync();
-                    if (location == null)
+                    currentLocation = await AndroidLocationService.GetCurrentLocationAsync();
+                    if (currentLocation == null)
                     {
                         attempt++;
                         await Task.Delay(1000);
                     }
                 }
-                await InitializeMap(location);
+                await InitializeMap(currentLocation);
 
                 Console.WriteLine("Started listening");
             }
@@ -263,7 +259,7 @@ IsSaving=@isSaving/>
             : 0;
 
         bool isInBackground = AppStateService.IsInBackground;
-        double acceptableAccuracy = isInBackground ? 25 : 15;
+        double acceptableAccuracy = isInBackground ? 35 : 25;
 
         Console.WriteLine("Got Location with accuracy = " + position.Accuracy + " Background = " + isInBackground);
         if (position.Accuracy > acceptableAccuracy && currentLocation != null)
@@ -568,7 +564,7 @@ IsSaving=@isSaving/>
 
     private void OnCompassReadingChanged(object sender, CompassChangedEventArgs e)
     {
-        if (currentLocation == null)
+        if (!mapInitialized)
         {
             return;
         }
@@ -592,6 +588,7 @@ IsSaving=@isSaving/>
         AndroidLocationService.LocationUpdated -= OnPositionChangedSync;
         AndroidLocationService.StopLocationUpdates();
 
+        mapInitialized = false;
         durationCts?.Cancel();
     }
 

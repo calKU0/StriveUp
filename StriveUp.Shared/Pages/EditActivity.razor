@@ -117,6 +117,7 @@
         </EditForm>
 
         <ErrorToast Message="@deleteErrorMessage"></ErrorToast>
+        <ErrorToast Message="@updateErrorMessage"></ErrorToast>
     }
     else
     {
@@ -134,8 +135,8 @@
     private UserActivityDto? activity;
     private List<ActivityDto> activityTypes = new();
 
-    private string deleteErrorMessage = null;
-    private string UpdateErrorMessage = null;
+    private string deleteErrorMessage = string.Empty;
+    private string updateErrorMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -163,7 +164,7 @@
         }
         else
         {
-            UpdateErrorMessage = "Failed to update your activity. Please try again later.";
+            updateErrorMessage = "Failed to update your activity. Please try again later.";
         }
     }
 

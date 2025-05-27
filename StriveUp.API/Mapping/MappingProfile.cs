@@ -3,6 +3,7 @@ using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.DTOs.Activity;
+using StriveUp.Shared.DTOs.Leaderboard;
 using StriveUp.Shared.DTOs.Profile;
 
 namespace StriveUp.API.Mapping
@@ -21,6 +22,15 @@ namespace StriveUp.API.Mapping
             CreateMap<ActivitySplit, ActivitySplitDto>();
 
             CreateMap<SegmentConfig, SegmentDto>();
+            CreateMap<BestEffort, UserBestEffortsStatsDto>()
+                .ForMember(dest => dest.SegmentName, opt => opt.MapFrom(src => src.SegmentConfig.Name))
+                .ForMember(dest => dest.SegmentShortName, opt => opt.MapFrom(src => src.SegmentConfig.ShortName))
+                .ForMember(dest => dest.TotalDuration, opt => opt.MapFrom(src => src.DurationSeconds))
+                .ForMember(dest => dest.Speed, opt => opt.MapFrom(src => src.Speed))
+                .ForMember(dest => dest.ActivityDate, opt => opt.MapFrom(src => src.ActivityDate))
+                .ForMember(dest => dest.ActivityId, opt => opt.MapFrom(src => src.SegmentConfig.ActivityId))
+                .ForMember(dest => dest.SegmentRank, opt => opt.Ignore());
+
             CreateMap<UserActivity, UserActivityDto>();
 
             // Comment  <-> DTO

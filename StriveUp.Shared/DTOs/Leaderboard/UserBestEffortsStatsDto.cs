@@ -8,5 +8,6 @@
         public double Speed { get; set; }
         public DateTime ActivityDate { get; set; }
         public int ActivityId { get; set; }
+        public int? SegmentRank { get; set; }
     }
 }
