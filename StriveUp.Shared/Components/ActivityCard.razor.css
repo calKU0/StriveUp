@@ -8,6 +8,11 @@
         transform: translateY(-3px);
     }
 
+    .activity-card.pressed .card {
+        background-color: #dcdcdc !important;
+        transition: background-color 0.2s ease;
+    }
+
 .comment-button {
     transition: all 0.2s ease;
 }

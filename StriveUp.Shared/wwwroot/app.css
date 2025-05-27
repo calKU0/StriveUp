@@ -26,6 +26,38 @@
     --vh: 100vh;
 }
 
+.leaderboard-cta {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.heading-lead {
+    font-size: 1.75rem;
+    line-height: 1.2;
+}
+
+.lead-text {
+    font-size: 1rem;
+    max-width: 480px;
+}
+
+.btn-pace {
+    font-size: 1rem;
+}
+
+.app-cta {
+    font-size: 1.25rem;
+}
+
+.competition-text {
+    font-size: 0.9rem;
+}
+
+.btn-add-friends {
+    font-size: 1rem;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     scroll-behavior: smooth;
@@ -456,7 +488,6 @@ textarea.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 0.25rem;
 }
 
 .icon-header {
@@ -466,6 +497,14 @@ textarea.form-control {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+    .icon-header:active {
+        background-color: rgba(0, 0, 0, 0.1); /* slightly darker */
+    }
+
+.card:active {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Styling the progress text */
@@ -682,11 +721,15 @@ textarea.form-control {
     }
 
     .icon-header {
-        padding: 0.25rem !important;
+        padding: 0.6rem !important;
     }
 
     .notification-badge {
         top: 4px !important;
         left: 22px !important;
+    }
+
+    .btn-add-friends {
+        font-size: 0.8rem;
     }
 }
