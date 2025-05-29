@@ -1,0 +1,104 @@
+﻿@page "/goals"
+@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Profile
+@using StriveUp.Shared.Enums
+@using StriveUp.Shared.Helpers
+@inject IGoalService GoalService
+@inject NavigationManager Navigation
+
+<PageTitle>Your Goals</PageTitle>
+
+<div class="container pt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold d-none d-md-flex">Your Goals</h2>
+        <a class="btn btn-primary" href="add-goal">
+            <i class="bi bi-plus-lg me-1"></i> Add
+        </a>
+    </div>
+
+@if (goals==null)
+{
+    <Spinner text="Loading..."></Spinner>
+}
+else if (!goals.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <p class="mb-3">You have no goals set.</p>
+        <a href="add-goal"  class="btn btn-primary">Add some goals</a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var goal in goals)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="goal-card h-100">
+                    <div class="goal-content d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="progress-circle">
+                                <GoalProgressCircle Percent="@goal.PercentCompleted"
+                                                    ActivityImage="@ActivityUtils.GetActivityImageUrl(goal.ActivityName ?? "run", "dark")" />
+                            </div>
+                            <div class="goal-details ms-3">
+                                <p class="fw-bold mt-2 mb-0">
+                                    @FormatProgress(goal.Type, goal.AmountCompleted, goal.TargetValue)
+                                </p>
+                                <small class="text-muted">@FormatGoalTimeframe(goal.Timeframe)</small>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-danger" @onclick="() => DeleteGoal(goal.Id)">
+                                🗑 Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+</div>
+
+@code {
+    private List<UserGoalDto>? goals;
+
+    protected override async Task OnInitializedAsync()
+    {
+        goals = await GoalService.GetGoalsAsync();
+    }
+
+    private async Task DeleteGoal(int goalId)
+    {
+        var success = await GoalService.DeleteGoalAsync(goalId);
+        if (success)
+        {
+            goals = goals!.Where(g => g.Id != goalId).ToList();
+        }
+    }
+
+    private string FormatGoalTimeframe(GoalTimeframe timeframe) => timeframe switch
+    {
+        GoalTimeframe.Weekly => "This week",
+        GoalTimeframe.Monthly => "This month",
+        GoalTimeframe.Yearly => "This year",
+        _ => ""
+    };
+
+    private string FormatProgress(GoalType type, double done, double target)
+    {
+        return type switch
+        {
+            GoalType.Duration => $"{FormatTime(done)} / {FormatTime(target)}",
+            GoalType.Distance => $"{done:N0} / {target:N0} m",
+            GoalType.Activities => $"{done:N0} / {target:N0}",
+            _ => ""
+        };
+    }
+
+    private string FormatTime(double minutes)
+    {
+        var ts = TimeSpan.FromMinutes(minutes);
+        return ts.TotalHours >= 1 ? $"{(int)ts.TotalHours}h {ts.Minutes}m" : $"{ts.Minutes}m";
+    }
+}

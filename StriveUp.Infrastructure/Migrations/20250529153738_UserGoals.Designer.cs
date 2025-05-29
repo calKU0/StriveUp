@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StriveUp.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using StriveUp.Infrastructure.Data;
 namespace StriveUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250529153738_UserGoals")]
+    partial class UserGoals
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -922,12 +925,6 @@ namespace StriveUp.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<double>("TargetValue")
-                        .HasColumnType("float");
-
                     b.Property<int>("Timeframe")
                         .HasColumnType("int");
 
@@ -939,8 +936,6 @@ namespace StriveUp.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ActivityId");
 
                     b.HasIndex("UserId");
 
@@ -1300,19 +1295,11 @@ namespace StriveUp.Infrastructure.Migrations
 
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserGoal", b =>
                 {
-                    b.HasOne("StriveUp.Infrastructure.Models.Activity", "Activity")
-                        .WithMany("UserGoals")
-                        .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("StriveUp.Infrastructure.Identity.AppUser", "User")
                         .WithMany("UserGoals")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Activity");
 
                     b.Navigation("User");
                 });
@@ -1365,8 +1352,6 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("SegmentConfigs");
 
                     b.Navigation("UserActivities");
-
-                    b.Navigation("UserGoals");
                 });
 
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserActivity", b =>

@@ -21,6 +21,7 @@
 		<PackageReference Include="Plugin.BLE" Version="3.1.0" />
 		<PackageReference Include="Shiny.Locations" Version="3.3.4" />
 		<PackageReference Include="SkiaSharp" Version="3.119.0" />
+		<PackageReference Include="WMBlazorSlickCarousel" Version="1.0.1" />
 	</ItemGroup>
 
 </Project>

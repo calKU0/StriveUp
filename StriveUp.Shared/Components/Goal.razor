@@ -1,0 +1,117 @@
+﻿@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Profile
+@using StriveUp.Shared.Enums
+@inject IGoalService GoalService
+@inject NavigationManager Navigation
+@using StriveUp.Shared.Helpers
+@using WMBlazorSlickCarousel
+@using WMBlazorSlickCarousel.WMBSC
+
+<div class="container mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="fw-bold pt-3 pt-md-0 mb-0">Your Goals</h4>
+        <a href="add-goal" class="btn btn-sm btn-primary">✛</a>
+    </div>
+
+    @if (goals == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (!goals.Any())
+    {
+        <div class="alert alert-info">
+            <p class="mb-3">You have no goals set.</p>
+            <a href="add-goal" class="btn btn-primary">Add some goals</a>
+        </div>
+    }
+    else
+    {
+        <BlazorSlickCarousel Configurations="carouselConfig">
+            <BlazorSlickCarouselContent>
+                @foreach (var goal in goals)
+                {
+                    <div class="goal-card">
+                        <div class="goal-content d-flex align-items-center"
+                                @onclick="OnCardClick">
+                            <div class="progress-circle">
+                                <GoalProgressCircle Percent="@goal.PercentCompleted" ActivityImage="@ActivityUtils.GetActivityImageUrl(goal.ActivityName ?? "run", "dark")" />
+                            </div>
+                            <div class="goal-details ms-3">
+                                <p class="fw-bold mt-2 mb-0">
+                                    @FormatProgress(goal.Type, goal.AmountCompleted, goal.TargetValue)
+                                </p>
+                                <small class="text-muted">@FormatGoalTimeframe(goal.Timeframe)</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </BlazorSlickCarouselContent>
+        </BlazorSlickCarousel>
+    }
+</div>
+
+@code {
+    private List<UserGoalDto>? goals;
+    private WMBSCInitialSettings carouselConfig;
+    private bool isPressed = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        goals = await GoalService.GetGoalsAsync();
+
+        carouselConfig = new WMBSCInitialSettings
+        {
+            dots = true,
+            infinite = false,
+            speed = 300,
+            slidesToShow = 2,
+            slidesToScroll = 1,
+            arrows = false,
+            responsive = new List<WMBSCResponsiveSettings>
+            {
+                new WMBSCResponsiveSettings
+                {
+                    breakpoint = 768,
+                    settings = new WMBSCSettings
+                    {
+                        slidesToShow = 1,
+                        slidesToScroll = 1,
+                        dots = true,
+                        arrows = false
+                    }
+                }
+            }
+        };
+
+    }
+
+    private string FormatGoalTimeframe(GoalTimeframe timeframe) => timeframe switch
+    {
+        GoalTimeframe.Weekly => "This week",
+        GoalTimeframe.Monthly => "This month",
+        GoalTimeframe.Yearly => "This year",
+        _ => ""
+    };
+
+    private string FormatProgress(GoalType type, double done, double target)
+    {
+        return type switch
+        {
+            GoalType.Duration => $"{FormatTime(done)} / {FormatTime(target)}",
+            GoalType.Distance => $"{done:N0} / {target:N0} m",
+            GoalType.Activities => $"{done:N0} / {target:N0}",
+            _ => ""
+        };
+    }
+
+    private string FormatTime(double minutes)
+    {
+        var ts = TimeSpan.FromMinutes(minutes);
+        return ts.TotalHours >= 1 ? $"{(int)ts.TotalHours}h {ts.Minutes}m" : $"{ts.Minutes}m";
+    }
+
+    private void OnCardClick()
+    {
+        Navigation.NavigateTo($"/goals");
+    }
+}

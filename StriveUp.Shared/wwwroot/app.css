@@ -26,6 +26,42 @@
     --vh: 100vh;
 }
 
+
+/* Style the dots container */
+.slick-dots {
+    bottom: -25px !important; /* adjust vertical spacing */
+    text-align: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+    /* Style the dot buttons */
+    .slick-dots li button {
+        font-size: 0 !important; /* hide default dot content */
+        width: 12px !important;
+        height: 12px !important;
+        border-radius: 50% !important;
+        background-color: #ccc !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: background-color 0.3s ease !important;
+        display: inline-block !important;
+        padding: 0 !important;
+        margin: 0 6px !important;
+    }
+
+    /* When active, change dot color */
+    .slick-dots li.slick-active button {
+        background-color: #007bff !important;
+    }
+
+    /* Optional: hover effect */
+    .slick-dots li button:hover {
+        background-color: #0056b3 !important;
+    }
+
+
 .leaderboard-cta {
     max-width: 600px;
     margin-left: auto;
@@ -208,17 +244,6 @@ a, .btn-link {
     margin-top: -65px;
 }
 
-.btn-primary {
-    background-color: #4f46e5 !important;
-    border-color: #4f46e5 !important;
-    color: white !important;
-    transition: background-color 0.2s ease !important;
-}
-
-    .btn-primary:hover {
-        background-color: #4338ca !important;
-        border-color: #4338ca !important;
-    }
 
 .arrow-marker {
     display: flex;
@@ -503,10 +528,6 @@ textarea.form-control {
         background-color: rgba(0, 0, 0, 0.1); /* slightly darker */
     }
 
-.card:active {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
 /* Styling the progress text */
 .progress-text {
     font-size: 0.9rem;
@@ -685,7 +706,56 @@ textarea.form-control {
     }
 }
 
+/* Goal card sizing */
+.goal-card {
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0 0.5rem;
+    box-sizing: border-box;
+    min-width: auto; /* Let slider control width */
+}
+
+    .goal-card.pressed {
+        background-color: #dcdcdc !important;
+        transition: background-color 0.2s ease;
+    }
+
+/* Flex layout inside goal card */
+.goal-content {
+    display: flex;
+    align-items: center;
+}
+
+/* Circle size */
+.progress-circle {
+    width: 60px;
+    height: 60px;
+}
+
+/* Text styling */
+.goal-details h6 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.goal-details small {
+    color: #6c757d;
+}
+
+.goal-details p {
+    margin: 0.5rem 0 0;
+    font-weight: 500;
+}
+
 @media (max-width: 768px) {
+    .content:has(main .register-container) {
+        margin-top: 0;
+    }
+
     .navbar .nav-link {
         position: relative;
         flex-grow: 1;
@@ -731,5 +801,10 @@ textarea.form-control {
 
     .btn-add-friends {
         font-size: 0.8rem;
+    }
+    .slick-dots li button {
+        width: 8px !important;
+        height: 8px !important;
+        margin: 0 4px !important;
     }
 }
