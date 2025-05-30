@@ -1,6 +1,6 @@
 ﻿namespace StriveUp.Shared.DTOs
 {
-    public class FollowDto
+    public class UserFollowDto
     {
         public string UserId { get; set; } = default!;
         public string UserName { get; set; } = default!;

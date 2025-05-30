@@ -37,9 +37,12 @@
                 </div>
 
                 <!-- Title & Description -->
-                <div class="position-relative pt-2 pb-4">
+                <div class="position-relative pt-2 pb-2">
                     <div class="fs-5 fw-semibold">@Activity.Title</div>
-                    <p class="text-muted mb-1">@Activity.Description</p>
+                    @if(!String.IsNullOrEmpty(Activity.Description))
+                    {
+                        <p class="text-muted mb-1">@Activity.Description</p>
+                    }
                 </div>
                 @if (Activity.HasNewRecord)
                 {

@@ -310,9 +310,31 @@ a, .btn-link {
     background-color: #ff8000 !important;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.15rem #258cfb;
+.form-control, .form-check-input {
+    border-radius: 0.5rem;
+    transition: box-shadow 0.3s, border-color 0.3s;
 }
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    outline: none;
+    border-color: #ff8000;
+    box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.2), 0 4px 12px rgba(255, 128, 0, 0.15);
+}
+
+.user-list-item {
+    transition: background-color 0.2s ease;
+}
+
+.user-list-item:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+.user-list-item:active {
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
 
 h1:focus {
     outline: none;

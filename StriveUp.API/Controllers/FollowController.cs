@@ -8,6 +8,7 @@ using StriveUp.Infrastructure.Data;
 using StriveUp.Infrastructure.Identity;
 using StriveUp.Infrastructure.Models;
 using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Profile;
 using System.Security.Claims;
 
 namespace StriveUp.API.Controllers
@@ -28,8 +29,82 @@ namespace StriveUp.API.Controllers
             _notificationService = notificationService;
         }
 
+        [HttpGet("followers")]
+        public async Task<ActionResult<List<UserFollowDto>>> GetUserFollowers()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Get IDs the current user is following
+                var followingIds = await _context.UserFollowers
+                    .Where(f => f.FollowerId == userId)
+                    .Select(f => f.FollowedId)
+                    .ToListAsync();
+
+                var followingSet = new HashSet<string>(followingIds);
+
+                // Get followers and map to DTO
+                var followers = await _context.UserFollowers
+                    .Where(uf => uf.FollowedId == userId)
+                    .Select(uf => new UserFollowDto
+                    {
+                        UserId = uf.Follower.Id,
+                        FullName = uf.Follower.FirstName + " " + uf.Follower.LastName,
+                        UserName = uf.Follower.UserName!,
+                        Avatar = uf.Follower.Avatar,
+                        IsFollowed = followingSet.Contains(uf.FollowerId)
+                    })
+                    .ToListAsync();
+
+                return Ok(followers);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("following")]
+        public async Task<ActionResult<List<UserFollowDto>>> GetUserFollowing()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Get IDs of users who follow the current user (to check mutual follows)
+                var followersOfCurrentUser = await _context.UserFollowers
+                    .Where(f => f.FollowedId == userId)
+                    .Select(f => f.FollowerId)
+                    .ToListAsync();
+
+                var followersSet = new HashSet<string>(followersOfCurrentUser);
+
+                // Get users the current user is following
+                var following = await _context.UserFollowers
+                    .Where(f => f.FollowerId == userId)
+                    .Select(f => new UserFollowDto
+                    {
+                        UserId = f.Followed.Id,
+                        FullName = f.Followed.FirstName + " " + f.Followed.LastName,
+                        UserName = f.Followed.UserName!,
+                        Avatar = f.Followed.Avatar,
+                        IsFollowed = followersSet.Contains(f.FollowedId)
+                    })
+                    .ToListAsync();
+
+                return Ok(following);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("search")]
-        public async Task<ActionResult<List<FollowDto>>> SearchUsers(string keyword)
+        public async Task<ActionResult<List<UserFollowDto>>> SearchUsers(string keyword)
         {
             try
             {
@@ -44,13 +119,13 @@ namespace StriveUp.API.Controllers
 
                 var users = await _context.Users
                     .Where(u => u.Id != currentUserId &&
-                                (u.UserName.Contains(keyword) ||
+                                (u.UserName!.Contains(keyword) ||
                                  u.FirstName.Contains(keyword) ||
                                  u.LastName.Contains(keyword)))
                     .Take(20)
                     .ToListAsync();
 
-                var results = _mapper.Map<List<FollowDto>>(users);
+                var results = _mapper.Map<List<UserFollowDto>>(users);
                 foreach (var dto in results)
                 {
                     dto.IsFollowed = followedIds.Contains(dto.UserId);
@@ -65,7 +140,7 @@ namespace StriveUp.API.Controllers
             }
         }
 
-        [HttpPost("{userId}/follow")]
+        [HttpPost("{userId}")]
         public async Task<IActionResult> FollowUser(string userId)
         {
             try
@@ -119,7 +194,7 @@ namespace StriveUp.API.Controllers
             }
         }
 
-        [HttpDelete("{userId}/unfollow")]
+        [HttpDelete("{userId}")]
         public async Task<IActionResult> UnfollowUser(string userId)
         {
             try

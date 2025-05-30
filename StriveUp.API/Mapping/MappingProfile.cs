@@ -81,7 +81,7 @@ namespace StriveUp.API.Mapping
             CreateMap<ActivityHrDto, ActivityHr>().ReverseMap();
             CreateMap<ActivitySpeedDto, ActivitySpeed>().ReverseMap();
 
-            CreateMap<AppUser, FollowDto>()
+            CreateMap<AppUser, UserFollowDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
                 .ForMember(dest => dest.IsFollowed, opt => opt.Ignore());

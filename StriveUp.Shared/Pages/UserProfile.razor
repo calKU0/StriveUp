@@ -79,22 +79,21 @@
                         <div class="progress-bar bg-warning" role="progressbar"
                                 style="width: @(XPProgress)%;" aria-valuenow="@XPProgress"
                                 aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
+                        </div>
 
 
                         <!-- Followers / Following -->
                         <div class="d-flex flex-wrap gap-3 mt-3 mb-md-0 mb-2">
-                            <div class="text-muted">
+                            <a class="text-muted" href="followers">
                                 <i class="fas fa-users me-1"></i>
                                 <strong>@userProfile.Followers.Count</strong> Followers
-                            </div>
-                            <div class="text-muted">
+                            </a>
+                            <a class="text-muted" href="following">
                                 <i class="fas fa-user-plus me-1"></i>
                                 <strong>@userProfile.Following.Count</strong> Following
-                            </div>
+                            </a>
                         </div>
                     </div>
-
                 </div>
 
                 <!-- Buttons (Editable section) -->
