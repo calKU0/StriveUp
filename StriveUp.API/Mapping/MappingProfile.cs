@@ -21,6 +21,10 @@ namespace StriveUp.API.Mapping
             CreateMap<ActivityElevation, ActivityElevationDto>().ReverseMap();
             CreateMap<ActivitySplit, ActivitySplitDto>();
 
+            CreateMap<UserGoal, UserGoalDto>()
+                .ForMember(dest => dest.ActivityName, opt => opt.MapFrom(src => src.Activity.Name));
+            CreateMap<CreateUserGoalDto, UserGoal>();
+
             CreateMap<SegmentConfig, SegmentDto>();
             CreateMap<BestEffort, UserBestEffortsStatsDto>()
                 .ForMember(dest => dest.SegmentName, opt => opt.MapFrom(src => src.SegmentConfig.Name))
@@ -77,7 +81,7 @@ namespace StriveUp.API.Mapping
             CreateMap<ActivityHrDto, ActivityHr>().ReverseMap();
             CreateMap<ActivitySpeedDto, ActivitySpeed>().ReverseMap();
 
-            CreateMap<AppUser, FollowDto>()
+            CreateMap<AppUser, UserFollowDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
                 .ForMember(dest => dest.IsFollowed, opt => opt.Ignore());

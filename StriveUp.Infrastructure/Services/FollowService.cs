@@ -1,6 +1,8 @@
 ﻿using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Profile;
 using StriveUp.Shared.Interfaces;
+using System.Collections.Generic;
 using System.Net.Http.Json;
 
 namespace StriveUp.Infrastructure.Services
@@ -16,23 +18,37 @@ namespace StriveUp.Infrastructure.Services
             _tokenStorage = tokenStorage;
         }
 
-        public async Task<List<FollowDto>> SearchUsersAsync(string keyword)
+        public async Task<List<UserFollowDto>> SearchUsersAsync(string keyword)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            var result = await _httpClient.GetFromJsonAsync<List<FollowDto>>($"follow/search?keyword={keyword}");
+            var result = await _httpClient.GetFromJsonAsync<List<UserFollowDto>>($"follow/search?keyword={keyword}");
             return result ?? new();
         }
 
-        public async Task FollowAsync(string followerId, string followedId)
+        public async Task<bool> FollowAsync(string followedId)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            await _httpClient.PostAsync($"follow/{followedId}/follow", null);
+            var result = await _httpClient.PostAsync($"follow/{followedId}", null);
+            return result.IsSuccessStatusCode;
         }
 
-        public async Task UnfollowAsync(string followerId, string followedId)
+        public async Task<bool> UnfollowAsync(string followedId)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            await _httpClient.DeleteAsync($"follow/{followedId}/unfollow");
+            var result = await _httpClient.DeleteAsync($"follow/{followedId}");
+            return result.IsSuccessStatusCode;
+        }
+
+        public async Task<List<UserFollowDto>> GetUserFollowers()
+        {
+            await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+            return await _httpClient.GetFromJsonAsync<List<UserFollowDto>>($"follow/followers") ?? new();
+        }
+
+        public async Task<List<UserFollowDto>> GetUserFollowing()
+        {
+            await _httpClient.AddAuthHeaderAsync(_tokenStorage);
+            return await _httpClient.GetFromJsonAsync<List<UserFollowDto>>($"follow/following") ?? new();
         }
     }
 }

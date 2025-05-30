@@ -15,7 +15,12 @@ namespace StriveUp.Shared.Helpers
                 "Run" => $"images/icons/run-{theme}.webp",
                 "Bike" => $"images/icons/bike-{theme}.webp",
                 "Swim" => $"images/icons/swim-{theme}.webp",
-                _ => $"images/icons/default.png"
+                "Treadmill" => $"images/icons/treadmill-{theme}.webp",
+                "Walk" => $"images/icons/walk-{theme}.webp",
+                "Hike" => $"images/icons/hike-{theme}.webp",
+                "Elliptical" => $"images/icons/elliptical-{theme}.webp",
+                "Weight Training" => $"images/icons/weight-training-{theme}.webp",
+                _ => $"images/icons/other-{theme}.webp"
             };
         }
 

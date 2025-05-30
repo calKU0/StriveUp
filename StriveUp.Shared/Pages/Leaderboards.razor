@@ -20,7 +20,7 @@
 else 
 {
     <div class="container-fluid p-0 m-0 p-md-2 pt-1">
-        <h1 class="d-md-block d-none">Leaderboards</h1>
+        <h2 class="fw-bold text-center d-none d-md-block">Leaderboards</h2>
 
         <!-- 1. Duration / Distance Toggle (Full Width Tabs) -->
         <div class="tabs leaderboard-type-tabs row row-cols-3 g-0">
@@ -104,14 +104,14 @@ else
                     else if (LeaderboardEntries.Count == 0)
                     {
                         <!-- Modern empty leaderboard call-to-action -->
-                        <div class="text-center py-5 px-3 px-md-5">
-                            <h2 class="fw-semibold text-dark mb-2">Ready to take the lead?</h2>
-                            <p class="text-muted fs-4 mb-4">No one has made a move yet — kick things off and invite friends to join the race!</p>
+                        <div class="text-center py-4 px-3 px-md-5 leaderboard-cta">
+                            <h2 class="fw-semibold text-dark mb-3 heading-lead">Ready to take the lead?</h2>
+                            <p class="text-muted mb-4 lead-text mx-auto">No one has made a move yet — kick things off and invite friends to join the race!</p>
 
                             <div class="d-flex flex-column align-items-center gap-3">
                                 @if (PlatformService.IsNativeApp())
                                 {
-                                    <a class="btn btn-primary btn-lg rounded-pill px-2 py-2 d-flex align-items-center gap-2 shadow-sm" href="/record">
+                                    <a class="btn btn-primary btn-lg rounded-pill px-4 py-2 d-flex align-items-center gap-2 shadow-sm btn-pace" href="/record">
                                         <span class="fs-4">🥇</span>
                                         <span class="fw-medium">Be the first to set the pace</span>
                                     </a>
@@ -119,23 +119,24 @@ else
                                 else
                                 {
                                     <div class="text-center">
-                                        <h5 class="text-primary fw-semibold">Get the app and start your race</h5>
-                                        <a href="https://play.google.com/store" target="_blank">
+                                        <h5 class="text-primary fw-semibold mb-3 app-cta">Get the app and start your race</h5>
+                                        <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer" class="google-play-link">
                                             <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                                                  alt="Get it on Google Play"
-                                                 class="google-play-badge mt-2" style="max-width: 180px;">
+                                                 class="google-play-badge mt-2">
                                         </a>
                                     </div>
                                 }
 
                                 <div class="mt-4 text-center">
-                                    <p class="text-muted mb-2">Want some competition?</p>
-                                    <a href="/search" class="btn btn-outline-dark btn-md rounded-pill px-4 py-2">
+                                    <p class="text-muted mb-2 competition-text">Want some competition?</p>
+                                    <a href="/search" class="btn btn-outline-dark btn-md rounded-pill px-4 py-2 btn-add-friends">
                                         👥 Add friends to compare your stats
                                     </a>
                                 </div>
                             </div>
                         </div>
+
 
                     }
                     else

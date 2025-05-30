@@ -914,6 +914,39 @@ namespace StriveUp.Infrastructure.Migrations
                     b.ToTable("UserFollowers");
                 });
 
+            modelBuilder.Entity("StriveUp.Infrastructure.Models.UserGoal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActivityId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("TargetValue")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Timeframe")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserGoals");
+                });
+
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserSynchro", b =>
                 {
                     b.Property<int>("Id")
@@ -1265,6 +1298,25 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("Follower");
                 });
 
+            modelBuilder.Entity("StriveUp.Infrastructure.Models.UserGoal", b =>
+                {
+                    b.HasOne("StriveUp.Infrastructure.Models.Activity", "Activity")
+                        .WithMany("UserGoals")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StriveUp.Infrastructure.Identity.AppUser", "User")
+                        .WithMany("UserGoals")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserSynchro", b =>
                 {
                     b.HasOne("StriveUp.Infrastructure.Models.SynchroProvider", "SynchroProvider")
@@ -1299,6 +1351,8 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("UserConfig")
                         .IsRequired();
 
+                    b.Navigation("UserGoals");
+
                     b.Navigation("UserSynchros");
                 });
 
@@ -1311,6 +1365,8 @@ namespace StriveUp.Infrastructure.Migrations
                     b.Navigation("SegmentConfigs");
 
                     b.Navigation("UserActivities");
+
+                    b.Navigation("UserGoals");
                 });
 
             modelBuilder.Entity("StriveUp.Infrastructure.Models.UserActivity", b =>

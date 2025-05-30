@@ -9,6 +9,7 @@
 <!-- Injections -->
 @inject NavigationManager Nav
 @inject IAuthService AuthService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Register</PageTitle>
 
@@ -78,11 +79,11 @@
                         <label for="country">Country</label>
                     </div>
 
-                    <!-- State -->
+@*                     <!-- State -->
                     <div class="form-floating col-12 col-md-6">
                         <InputText id="state" class="form-control" @bind-Value="registerModel.State" placeholder="State" />
                         <label for="state">State</label>
-                    </div>
+                    </div> *@
 
                     <!-- City -->
                     <div class="form-floating col-12 col-md-6">
@@ -90,22 +91,23 @@
                         <label for="city">City</label>
                     </div>
 
-                    <div class="col-12 col-md-6">
-                        <label for="avatarUpload" class="form-label">Upload Avatar (optional)</label>
-                        <!-- Custom Circle Button for file selection -->
-                        <label for="avatarUpload" class="btn btn-light rounded-circle p-3" style="cursor: pointer;">
-                            <span>Select File</span>
-                            <InputFile id="avatarUpload" OnChange="HandleFileChange" class="d-none"/>
-                        </label>
+                    <!-- Avatar Upload - Centered Row -->
+                    <div class="row justify-content-center mb-4 mt-3">
+                        <div class="col-12 text-center">
+                            <label for="avatarUpload" class="form-label fw-semibold d-block">Click to upload avatar</label>
 
-                        <!-- Display Cropped Image -->
-                        @if (!string.IsNullOrWhiteSpace(croppedImageUrl))
-                        {
-                            <div class="avatar-preview mt-2">
-                                <img src="@croppedImageUrl" alt="Avatar preview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;"/>
-                            </div>
-                        }
+                            <!-- Hidden File Input -->
+                            <InputFile id="fileInput" style="display:none;" OnChange="HandleFileChange" accept="image/*" />
+
+                            <!-- Avatar Image as Upload Trigger -->
+                            <img src="@GetAvatarUrl()"
+                                 class="rounded-circle avatar-image"
+                                 style="width: 150px; height: 150px; cursor: pointer; object-fit: cover;"
+                                 title="Click to change avatar"
+                                 @onclick="TriggerFileInputClick" />
+                        </div>
                     </div>
+
                 </div>
                 <DataAnnotationsValidator />
                 <ValidationSummary />
@@ -192,6 +194,20 @@
                 StateHasChanged();
             }
         }
+    }
+
+    private string GetAvatarUrl()
+    {
+        return !string.IsNullOrWhiteSpace(croppedImageUrl)
+            ? croppedImageUrl
+            : string.IsNullOrWhiteSpace(registerModel.AvatarBase64)
+                ? "images/icons/user.png"
+                : registerModel.AvatarBase64;
+    }
+
+    private async Task TriggerFileInputClick()
+    {
+        await JSRuntime.InvokeVoidAsync("triggerFileInputClick");
     }
 
     private async Task HandleRegister()

@@ -58,6 +58,28 @@
     color: #cd7f32;
 }
 
+.google-play-link {
+    display: inline-block;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+    .google-play-link:hover,
+    .google-play-link:focus {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+.google-play-badge {
+    display: inline-block;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    max-width: 160px;
+    height: auto;
+    display: block;
+}
+
+
+
 @media (max-width: 768px) {
     .leaderboard-list table {
         font-size: 0.95rem;

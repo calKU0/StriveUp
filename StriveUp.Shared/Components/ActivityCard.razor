@@ -12,8 +12,12 @@
 @inject NavigationManager Navigation
 
 @if (Activity != null)
-{ 
-    <div class="col-12 col-md-6 col-lg-4 activity-card" @onclick="OnCardClick">
+{
+    <div class="col-12 col-md-6 col-lg-4 activity-card @(isPressed ? "pressed" : "")"
+         @onmousedown="() => isPressed = true"
+         @onmouseup="() => isPressed = false"
+         @onmouseleave="() => isPressed = false"
+         @onclick="OnCardClick">
         <div class="card h-100 rounded-4 border-0 bg-light-subtle transition hover-shadow">
             <div class="card-body d-flex flex-column gap-3 p-4 position-relative">
                 @if (Activity.HasNewRecord)
@@ -33,9 +37,12 @@
                 </div>
 
                 <!-- Title & Description -->
-                <div class="position-relative pt-2 pb-4">
+                <div class="position-relative pt-2 pb-2">
                     <div class="fs-5 fw-semibold">@Activity.Title</div>
-                    <p class="text-muted mb-1">@Activity.Description</p>
+                    @if(!String.IsNullOrEmpty(Activity.Description))
+                    {
+                        <p class="text-muted mb-1">@Activity.Description</p>
+                    }
                 </div>
                 @if (Activity.HasNewRecord)
                 {
@@ -115,6 +122,7 @@
     private ActivityDto activityConfig = new();
     private string userId = "";
     private bool showSpeed = true;
+    private bool isPressed = false;
 
     protected override async Task OnInitializedAsync()
     {

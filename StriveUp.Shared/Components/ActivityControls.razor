@@ -2,6 +2,7 @@
 @using Microsoft.Maui.ApplicationModel
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
+@using StriveUp.Shared.Helpers
 
 <!-- Injections -->
 @inject IAppSettingsService AppSettingsService
@@ -14,7 +15,7 @@
     {
         <div class="mb-4 d-flex align-items-center justify-content-center gap-4">
             <div class="position-relative">
-                <img src="@GetActivityImageUrl(SelectedActivity?.Id ?? 4, "dark")"
+                <img src="@ActivityUtils.GetActivityImageUrl(SelectedActivity.Name ?? "run", "dark")"
                      alt="Activity Icon"
                      class="activity-image rounded-circle shadow-lg border border-2 border-primary p-2"
                      @onclick="() => ShowActivitySelect = true" />
@@ -143,21 +144,6 @@
     }
 
 
-
-    private string GetActivityImageUrl(int activityId, string theme)
-    {
-        var activity = AvailableActivities.FirstOrDefault(a => a.Id == activityId);
-
-        return activity?.Name switch
-        {
-            "Run" => $"images/icons/run-{theme}.webp",
-            "Bike" => $"images/icons/bike-{theme}.webp",
-            "Swim" => $"images/icons/swim-{theme}.webp",
-            _ => $"images/icons/default.png"
-        };
-    }
-
-
     private void ToggleSensorSelect()
     {
         ShowSensorSelect = !ShowSensorSelect;
@@ -182,7 +168,7 @@
 
     private string GetActivityIconUrl(ActivityDto activity)
     {
-        return GetActivityImageUrl(activity.Id, "dark");
+        return ActivityUtils.GetActivityImageUrl(activity.Name, "dark");
     }
 
     private string GetSensorLabel(BluetoothDeviceDto sensor)

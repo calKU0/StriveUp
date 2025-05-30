@@ -31,6 +31,7 @@ namespace StriveUp.Infrastructure.Data
         public DbSet<SegmentConfig> SegmentConfigs { get; set; }
         public DbSet<ActivitySplit> ActivitySplits { get; set; }
         public DbSet<UserConfig> UserConfigs { get; set; }
+        public DbSet<UserGoal> UserGoals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,18 @@ namespace StriveUp.Infrastructure.Data
                 .HasOne(ua => ua.User)
                 .WithMany(u => u.UserActivities)
                 .HasForeignKey(ua => ua.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserGoal>()
+                .HasOne(ug => ug.User)
+                .WithMany(ug => ug.UserGoals)
+                .HasForeignKey(ug => ug.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserGoal>()
+                .HasOne(ug => ug.Activity)
+                .WithMany(ug => ug.UserGoals)
+                .HasForeignKey(ug => ug.ActivityId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ActivityComment>()
@@ -101,7 +114,7 @@ namespace StriveUp.Infrastructure.Data
                 .HasOne(n => n.Actor)
                 .WithMany()
                 .HasForeignKey(n => n.ActorId)
-            .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<BestEffort>(entity =>
             {

@@ -1,13 +1,18 @@
 ﻿using StriveUp.Shared.DTOs;
+using StriveUp.Shared.DTOs.Profile;
 
 namespace StriveUp.Shared.Interfaces
 {
     public interface IFollowService
     {
-        Task<List<FollowDto>> SearchUsersAsync(string keyword);
+        Task<List<UserFollowDto>> SearchUsersAsync(string keyword);
 
-        Task FollowAsync(string followerId, string followedId);
+        Task<bool> FollowAsync(string followedId);
 
-        Task UnfollowAsync(string followerId, string followedId);
+        Task<bool> UnfollowAsync(string followedId);
+
+        Task<List<UserFollowDto>> GetUserFollowers();
+
+        Task<List<UserFollowDto>> GetUserFollowing();
     }
 }

@@ -1,0 +1,115 @@
+﻿@page "/following"
+
+<!-- Usings -->
+@using StriveUp.Shared.DTOs
+
+<!-- Injections -->
+@inject IFollowService FollowService
+@inject NavigationManager Navigation
+@inject ICustomAuthStateProvider AuthStateProvider
+
+<PageTitle>Following</PageTitle>
+
+<div class="container py-5">
+    <h2 class="fw-bold text-center d-none d-md-block mb-4">People you follow</h2>
+    @if (isLoading)
+    {
+        <Spinner></Spinner>
+    }
+    else if (following.Any())
+    {
+        <ul class="list-group">
+            @foreach (var user in following)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center search-list-item" @onclick="() => OnListItemClick(user.UserName)">
+                    <div class="d-flex align-items-center">
+                        <img src="@user.Avatar" class="rounded-circle me-3" width="48" height="48" />
+                        <div>
+                            <strong>@user.FullName</strong><br />
+                            <span class="text-muted">@user.UserName</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm @(user.IsFollowed ? "btn-outline-danger" : "btn-primary")"
+                            @onclick:stopPropagation
+                            @onclick="@(() => ToggleFollow(user))">
+                        @(user.IsFollowed ? "Unfollow" : "Follow")
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <p class="mb-3">No one has followed you yet.</p>
+            <a href="search" class="btn btn-primary">Search Users</a>
+        </div>
+    }
+    <ErrorToast Message="@followErrorMessage"></ErrorToast>
+</div>
+
+@code {
+    private List<UserFollowDto> following = new();
+    private bool isLoading = true;
+    private string followErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUser = authState.User;
+
+            if (currentUser.Identity?.IsAuthenticated == false)
+            {
+                Navigation.NavigateTo("/login");
+            }
+
+            following = await FollowService.GetUserFollowing();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ToggleFollow(UserFollowDto user)
+    {
+        try
+        {
+            bool result;
+
+            if (user.IsFollowed)
+            {
+                user.IsFollowed = !user.IsFollowed;
+                result = await FollowService.UnfollowAsync(user.UserId);
+            }
+            else
+            {
+                user.IsFollowed = !user.IsFollowed;
+                result = await FollowService.FollowAsync(user.UserId);
+            }
+
+            if (!result)
+            {
+                followErrorMessage = $"Error {(user.IsFollowed ? "unfollowing" : "following")} user {user.UserName}. Please try again later.";
+                user.IsFollowed = !user.IsFollowed;
+            }
+        }
+        catch (Exception ex)
+        {
+            followErrorMessage = $"Error following user {user.UserName}. Please try again later.";
+            Console.WriteLine($"Error toggling follow status for {user.UserName}: {ex.Message}");
+            user.IsFollowed = !user.IsFollowed;
+        }
+    }
+
+    private void OnListItemClick(string userName)
+    {
+        Navigation.NavigateTo($"/profile/{userName}");
+    }
+}

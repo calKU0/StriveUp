@@ -88,10 +88,7 @@ namespace StriveUp.Infrastructure.Data
                     new Activity { Name = "Hike", Description = "Hiking", AverageCaloriesPerHour = 360 },
                     new Activity { Name = "Swim", Description = "Swimming", AverageCaloriesPerHour = 593 },
                     new Activity { Name = "Elliptical", Description = "Elliptical trainer", AverageCaloriesPerHour = 400 },
-                    new Activity { Name = "Jump Rope", Description = "Jumping rope", AverageCaloriesPerHour = 1020 },
                     new Activity { Name = "Weight Training", Description = "Weight lifting", AverageCaloriesPerHour = 315 },
-                    new Activity { Name = "Yoga", Description = "Yoga", AverageCaloriesPerHour = 320 },
-                    new Activity { Name = "Dancing", Description = "Dancing", AverageCaloriesPerHour = 450 },
                     new Activity { Name = "Other", Description = "Other not specified activity", AverageCaloriesPerHour = 350 }
                 };
 
@@ -106,10 +103,7 @@ namespace StriveUp.Infrastructure.Data
             var hikingActivity = context.Activities.First(a => a.Name == "Hike");
             var swimmingActivity = context.Activities.First(a => a.Name == "Swim");
             var ellipticalActivity = context.Activities.First(a => a.Name == "Elliptical");
-            var jumpropeActivity = context.Activities.First(a => a.Name == "Jump Rope");
             var weightTrainingActivity = context.Activities.First(a => a.Name == "Weight Training");
-            var yogaActivity = context.Activities.First(a => a.Name == "Yoga");
-            var dancingActivity = context.Activities.First(a => a.Name == "Dancing");
             var otherActivity = context.Activities.First(a => a.Name == "Other");
 
             if (!context.ActivityConfig.Any())
@@ -202,56 +196,8 @@ namespace StriveUp.Infrastructure.Data
                     },
                     new ActivityConfig
                     {
-                        ActivityId = jumpropeActivity.Id,
-                        MeasurementType = "reps",
-                        DefaultDistanceUnit = null,
-                        UseHeartRate = true,
-                        ElevationRelevant = false,
-                        DistanceRelevant = false,
-                        SpeedRelevant = false,
-                        Indoor = true,
-                        PointsPerMinute = 1.6
-                    },
-                    new ActivityConfig
-                    {
                         ActivityId = weightTrainingActivity.Id,
                         MeasurementType = "reps",
-                        DefaultDistanceUnit = null,
-                        UseHeartRate = true,
-                        ElevationRelevant = false,
-                        DistanceRelevant = false,
-                        SpeedRelevant = false,
-                        Indoor = true,
-                        PointsPerMinute = 1
-                    },
-                    new ActivityConfig
-                    {
-                        ActivityId = yogaActivity.Id,
-                        MeasurementType = "time",
-                        DefaultDistanceUnit = null,
-                        UseHeartRate = false,
-                        ElevationRelevant = false,
-                        DistanceRelevant = false,
-                        SpeedRelevant = false,
-                        Indoor = true,
-                        PointsPerMinute = 1
-                    },
-                    new ActivityConfig
-                    {
-                        ActivityId = dancingActivity.Id,
-                        MeasurementType = "time",
-                        DefaultDistanceUnit = null,
-                        UseHeartRate = true,
-                        ElevationRelevant = false,
-                        DistanceRelevant = false,
-                        SpeedRelevant = false,
-                        Indoor = true,
-                        PointsPerMinute = 2
-                    },
-                    new ActivityConfig
-                    {
-                        ActivityId = dancingActivity.Id,
-                        MeasurementType = "time",
                         DefaultDistanceUnit = null,
                         UseHeartRate = true,
                         ElevationRelevant = false,

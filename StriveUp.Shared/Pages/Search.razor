@@ -8,30 +8,46 @@
 @inject NavigationManager Navigation
 @inject ICustomAuthStateProvider AuthStateProvider
 
-<PageTitle>Search</PageTitle>
+<PageTitle>Search Users</PageTitle>
 
 <div class="container py-5">
-    <div class="mb-4">
-        <input type="text"
-               class="form-control"
-               placeholder="Search users..."
-               @oninput="HandleInput" />
+    <div class="shadow-sm rounded">
+        <div class="text-center mb-4">
+            <h2>Find and Follow Users</h2>
+            <p class="text-muted">Search for people on the platform to view their profiles and connect with them.</p>
+
+            <div class="mb-4">
+                <div class="input-group">
+                    <div class="search-wrapper mb-4 position-relative">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text"
+                               class="form-control search-input"
+                               placeholder="Search users..."
+                               @oninput="HandleInput" />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
 
     @if (isLoading)
     {
-        <Spinner></Spinner>
+        <div class="text-center my-5">
+            <Spinner></Spinner>
+        </div>
     }
     else if (searchResults?.Any() == true)
     {
-        <ul class="list-group">
+        <div class="list-group shadow-sm rounded">
             @foreach (var user in searchResults)
             {
-                <li class="list-group-item d-flex justify-content-between align-items-center search-list-item" @onclick="() => OnListItemClick(user.UserName)">
+                <div class="list-group-item list-group-item-action user-list-item d-flex justify-content-between align-items-center py-3"
+                     @onclick="() => OnListItemClick(user.UserName)">
                     <div class="d-flex align-items-center">
-                        <img src="@GetAvatar(user.Avatar)" class="rounded-circle me-3" width="48" height="48" />
+                        <img src="@GetAvatar(user.Avatar)" class="rounded-circle me-3 border" width="48" height="48" />
                         <div>
-                            <strong>@user.FullName</strong><br />
+                            <strong class="d-block">@user.FullName</strong>
                             <span class="text-muted">@user.UserName</span>
                         </div>
                     </div>
@@ -40,21 +56,25 @@
                             @onclick="@(() => ToggleFollow(user))">
                         @(user.IsFollowed ? "Unfollow" : "Follow")
                     </button>
-                </li>
+                </div>
             }
-        </ul>
+        </div>
     }
     else if (!string.IsNullOrWhiteSpace(searchText))
     {
-        <p class="text-muted">No users found.</p>
+        <div class="text-center mt-4 text-muted">
+            <em>No users found matching "@searchText".</em>
+        </div>
     }
+
+    <ErrorToast Message="@followErrorMessage"></ErrorToast>
 </div>
 
 @code {
     private string searchText = "";
-    private List<FollowDto> searchResults = new();
+    private List<UserFollowDto> searchResults = new();
     private bool isLoading = false;
-    private string currentUserId = "";
+    private string followErrorMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,7 +83,7 @@
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var currentUser = authState.User;
 
-            if (currentUser.Identity?.IsAuthenticated == false)
+            if (!currentUser.Identity?.IsAuthenticated ?? true)
             {
                 Navigation.NavigateTo("/login");
             }
@@ -87,33 +107,57 @@
             searchResults.Clear();
             return;
         }
-        if (searchText.Length > 2)
-        {
 
-            isLoading = true;
+        isLoading = true;
+        try
+        {
             searchResults = await FollowService.SearchUsersAsync(searchText);
+        }
+        catch (Exception ex)
+        {
+            followErrorMessage = "An error occurred while searching. Please try again.";
+            Console.WriteLine($"Search error: {ex.Message}");
+        }
+        finally
+        {
             isLoading = false;
         }
     }
 
-    private async Task ToggleFollow(FollowDto user)
+    private async Task ToggleFollow(UserFollowDto user)
     {
-        if (user.IsFollowed)
-            await FollowService.UnfollowAsync(currentUserId, user.UserId);
-        else
-            await FollowService.FollowAsync(currentUserId, user.UserId);
+        try
+        {
+            bool result;
+            var originalState = user.IsFollowed;
 
-        user.IsFollowed = !user.IsFollowed;
+            user.IsFollowed = !originalState;
+
+            if (user.IsFollowed)
+            {
+                result = await FollowService.FollowAsync(user.UserId);
+            }
+            else
+            {
+                result = await FollowService.UnfollowAsync(user.UserId);
+            }
+
+            if (!result)
+            {
+                user.IsFollowed = originalState;
+                followErrorMessage = $"Failed to {(user.IsFollowed ? "unfollow" : "follow")} {user.UserName}.";
+            }
+        }
+        catch (Exception ex)
+        {
+            followErrorMessage = $"Error toggling follow state for {user.UserName}.";
+            Console.WriteLine($"Toggle error: {ex.Message}");
+            user.IsFollowed = !user.IsFollowed;
+        }
     }
 
     private string GetAvatar(string? avatar) =>
-        string.IsNullOrWhiteSpace(avatar) ? "https://via.placeholder.com/48" : avatar;
-
-    private async Task HandleSearch(ChangeEventArgs e)
-    {
-        searchText = e.Value?.ToString() ?? "";
-        await OnSearchChanged();
-    }
+        string.IsNullOrWhiteSpace(avatar) ? "https://via.placeholder.com/48?text=U" : avatar;
 
     private void OnListItemClick(string userName)
     {

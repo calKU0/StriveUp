@@ -10,7 +10,7 @@
 
 <!-- Injections -->
 @inject IAppSettingsService AppSettingsService
-@inject IAndroidLocationService AndroidLocationService
+@inject ILocationTrackingService LocationService
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
 @inject ISecurableService SecurableService
@@ -176,58 +176,16 @@ IsSaving=@isSaving/>
 
     private async Task RequestPermissionsAndStartGps()
     {
-        // First check the current status
-        var status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+        // Check location permission first
+        var locationStatus = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
 
-        // If not granted, request it
-        if (status != PermissionStatus.Granted)
+        if (locationStatus != PermissionStatus.Granted)
         {
-            status = await Permissions.RequestAsync<Permissions.LocationAlways>();
+            locationStatus = await Permissions.RequestAsync<Permissions.LocationAlways>();
         }
 
-        // If granted now, proceed with location updates
-        if (status == PermissionStatus.Granted)
+        if (locationStatus != PermissionStatus.Granted)
         {
-            try
-            {
-                var config = await ProfileService.GetUserConfig();
-                if (!string.IsNullOrEmpty(config?.SensorId))
-                {
-                    sensor = new BluetoothDeviceDto
-                    {
-                        Id = config.SensorId,
-                        Name = config.SensorName
-                    };
-                }
-
-                isLoadingLocation = true;
-                AndroidLocationService.LocationUpdated += OnPositionChangedSync;
-                AndroidLocationService.StartLocationUpdates();
-
-                int maxAttempts = 10;
-                int attempt = 0;
-
-                while (currentLocation == null && attempt < maxAttempts)
-                {
-                    currentLocation = await AndroidLocationService.GetCurrentLocationAsync();
-                    if (currentLocation == null)
-                    {
-                        attempt++;
-                        await Task.Delay(1000);
-                    }
-                }
-                await InitializeMap(currentLocation);
-
-                Console.WriteLine("Started listening");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"GPS Start Exception: {ex.Message}");
-            }
-        }
-        else
-        {
-            // Permission still not granted — offer to open settings
             bool openSettings = await JSRuntime.InvokeAsync<bool>(
                 "confirm",
                 "Background location permission is required to track your activity. Would you like to open app settings to enable it?"
@@ -239,11 +197,74 @@ IsSaving=@isSaving/>
             }
 
             Navigation.NavigateTo("/");
+            return;
+        }
+
+        // Check notification permission (for Android 13+)
+        var notificationStatus = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+        if (notificationStatus != PermissionStatus.Granted)
+        {
+            notificationStatus = await Permissions.RequestAsync<Permissions.PostNotifications>();
+        }
+
+        if (notificationStatus != PermissionStatus.Granted)
+        {
+            bool openSettings = await JSRuntime.InvokeAsync<bool>(
+                "confirm",
+                "Notification permission is required to show tracking notification. Would you like to open app settings to enable it?"
+            );
+
+            if (openSettings)
+            {
+                AppSettingsService.OpenAppSettings();
+            }
+
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        // Now start location tracking if both permissions granted
+        try
+        {
+            var config = await ProfileService.GetUserConfig();
+            if (!string.IsNullOrEmpty(config?.SensorId))
+            {
+                sensor = new BluetoothDeviceDto
+                {
+                    Id = config.SensorId,
+                    Name = config.SensorName
+                };
+            }
+
+            isLoadingLocation = true;
+            LocationService.LocationUpdated += OnPositionChangedSync;
+            await LocationService.StartAsync();
+
+            int maxAttempts = 10;
+            int attempt = 0;
+
+            while (currentLocation == null && attempt < maxAttempts)
+            {
+                currentLocation = await LocationService.GetLastKnownLocationAsync();
+                if (currentLocation == null)
+                {
+                    attempt++;
+                    await Task.Delay(1000);
+                }
+            }
+            await InitializeMap(currentLocation);
+
+            Console.WriteLine("Started listening");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"GPS Start Exception: {ex.Message}");
         }
 
         isLoadingLocation = false;
         await InvokeAsync(StateHasChanged);
     }
+
 
 
     private async Task OnPositionChanged(Microsoft.Maui.Devices.Sensors.Location position)
@@ -352,7 +373,7 @@ IsSaving=@isSaving/>
         if (selectedActivity.Indoor)
         {
             mapInitialized = false;
-            AndroidLocationService.StopLocationUpdates();
+            await LocationService.StopAsync();
             StopCompass();
         }
         else
@@ -427,7 +448,7 @@ IsSaving=@isSaving/>
         isTracking = false;
         isPaused = true;
         durationCts?.Cancel();
-        AndroidLocationService.StopLocationUpdates();
+        await LocationService.StopAsync();
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
         await InvokeAsync(StateHasChanged);
 
@@ -440,7 +461,7 @@ IsSaving=@isSaving/>
         isTracking = true;
         durationCts = new CancellationTokenSource();
 
-        AndroidLocationService.StartLocationUpdates();
+        await LocationService.StartAsync();
 
 
         _ = Task.Run(() => UpdateDuration(durationCts.Token));
@@ -583,10 +604,9 @@ IsSaving=@isSaving/>
 
     public void Dispose()
     {
-        Console.WriteLine("dipose");
         StopCompass();
-        AndroidLocationService.LocationUpdated -= OnPositionChangedSync;
-        AndroidLocationService.StopLocationUpdates();
+        LocationService.LocationUpdated -= OnPositionChangedSync;
+        LocationService.StopAsync();
 
         mapInitialized = false;
         durationCts?.Cancel();

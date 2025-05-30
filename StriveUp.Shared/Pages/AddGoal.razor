@@ -1,0 +1,170 @@
+﻿@page "/add-goal"
+@using StriveUp.Shared.DTOs
+@using StriveUp.Shared.DTOs.Activity
+@using StriveUp.Shared.DTOs.Profile
+@using StriveUp.Shared.Enums
+@using StriveUp.Shared.Helpers
+@inject IActivityService ActivityService
+@inject IGoalService GoalService
+@inject NavigationManager Navigation
+
+<PageTitle>Add Goal</PageTitle>
+
+<div class="container pt-3">
+    <div class="card shadow-sm p-4 mx-auto mt-4 add-goal-form">
+        <h2 class="mb-4 text-center fw-bold">🎯 Add New Goal</h2>
+
+        @if (activities == null)
+        {
+            <p>Loading</p>
+        }
+        else
+        {
+            <EditForm Model="newGoal" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <!-- Activity Selection -->
+                <div class="mb-3 position-relative">
+                    <label class="form-label fw-semibold">Activity</label>
+
+                    <div class="form-control d-flex align-items-center justify-content-between"
+                         role="button"
+                         @onclick="ToggleDropdown">
+                        @if (SelectedActivity != null)
+                        {
+                            <div class="d-flex align-items-center">
+                                <img src="@ActivityUtils.GetActivityImageUrl(SelectedActivity.Name,"dark")"
+                                     alt="icon"
+                                     class="me-2"
+                                     style="width: 30px; height: 30px;" />
+                                <span>@SelectedActivity.Name</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted">-- Select Activity --</span>
+                        }
+                        <span class="ms-auto">
+                            <i class="bi bi-chevron-down"></i>
+                        </span>
+                    </div>
+
+                    @if (dropdownOpen)
+                    {
+                        <div class="custom-dropdown shadow rounded mt-1 p-2 bg-white border position-absolute w-100" style="z-index: 1000;">
+                            @foreach (var activity in activities)
+                            {
+                                <div class="d-flex align-items-center p-2 custom-option"
+                                     role="button"
+                                     @onclick="@(() => SelectActivity(activity))">
+                                    <img src="@ActivityUtils.GetActivityImageUrl(activity.Name, "dark")"
+                                         class="me-2"
+                                         style="width: 30px; height: 30px;" />
+                                    <span>@activity.Name</span>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <input type="hidden" @bind="newGoal.ActivityId" />
+
+                    <small class="form-text text-muted">
+                        Choose which activity this goal is for (e.g., running, swimming).
+                    </small>
+                </div>
+
+                <!-- Goal Type -->
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Goal Type</label>
+                    <select class="form-select" @bind="newGoal.Type">
+                        @foreach (GoalType type in Enum.GetValues(typeof(GoalType)))
+                        {
+                            if (type == GoalType.Distance && SelectedActivity?.DistanceRelevant == false)
+                            {
+                                continue;
+                            }
+                            <option value="@type">@type</option>
+                        }
+                    </select>
+                    <small class="form-text text-muted">
+                        Select how you want to measure progress: by time, distance, or number of activities.
+                    </small>
+                </div>
+                
+
+
+                <!-- Timeframe -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Timeframe</label>
+                    <select class="form-select" @bind="newGoal.Timeframe">
+                        @foreach (GoalTimeframe tf in Enum.GetValues(typeof(GoalTimeframe)))
+                        {
+                            <option value="@tf">@tf</option>
+                        }
+                    </select>
+                    <small class="form-text text-muted">
+                        Choose how often this goal should be tracked: weekly, monthly, or yearly.
+                    </small>
+                </div>
+
+                <!-- Target -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">
+                        Target @GoalUnitLabel
+                    </label>
+                    <InputNumber class="form-control" @bind-Value="newGoal.TargetValue" />
+                    <small class="form-text text-muted">
+                        Enter the target value in @GoalUnitLabel. For example, 10 km, 2 hours, or 5 activities.
+                    </small>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex flex-column flex-md-row justify-content-center gap-2">
+                    <button class="btn btn-primary px-4" type="submit">✅ Save Goal</button>
+                    <a href="/goals" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    private List<ActivityDto>? activities;
+    private CreateUserGoalDto newGoal = new();
+    private bool dropdownOpen = false;
+
+    private ActivityDto? SelectedActivity =>
+        activities?.FirstOrDefault(a => a.Id == newGoal.ActivityId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        activities = await ActivityService.GetAvailableActivitiesAsync();
+    }
+
+    private void ToggleDropdown() => dropdownOpen = !dropdownOpen;
+
+    private void SelectActivity(ActivityDto activity)
+    {
+        newGoal.ActivityId = activity.Id;
+        dropdownOpen = false;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var result = await GoalService.AddGoalAsync(newGoal);
+        if (result)
+        {
+            Navigation.NavigateTo("/goals");
+        }
+    }
+
+    private string GoalUnitLabel => newGoal.Type switch
+    {
+        GoalType.Duration => "(hours)",
+        GoalType.Distance => "(km)",
+        GoalType.Activities => "(activities)",
+        _ => ""
+    };
+}
