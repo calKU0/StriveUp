@@ -8,7 +8,7 @@ let mapboxMap;
 let route = [];
 let routeLine = null;
 let cumulativeHeading = 0;
-let lastHeading = 0; gi
+let lastHeading = 0;
 
 window.headerScrollHelper = {
     lastScrollTop: 0,
