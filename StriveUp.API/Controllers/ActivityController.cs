@@ -175,18 +175,24 @@ namespace StriveUp.API.Controllers
                     user.CurrentXP += xpReward;
                 }
 
-                var segments = await _context.SegmentConfigs.Where(s => s.ActivityId == userActivity.ActivityId).ToListAsync();
-                var cumulativeDistances = ComputeCumulativeDistances(userActivity.Route);
-                var splits = ComputeActivitySplits(
-                    userActivity.Route,
-                    userActivity.HrData,
-                    userActivity.SpeedData,
-                    userActivity.ElevationData,
-                    cumulativeDistances,
-                    activityConfig.MeasurementType
-                );
+                List<SegmentConfig> segments = new();
+                double[] cumulativeDistances = Array.Empty<double>();
 
-                userActivity.Splits = splits;
+                if (userActivity.Route is not null && userActivity.Route.Count > 1)
+                {
+                    segments = await _context.SegmentConfigs.Where(s => s.ActivityId == userActivity.ActivityId).ToListAsync();
+                    cumulativeDistances = ComputeCumulativeDistances(userActivity.Route);
+                    var splits = ComputeActivitySplits(
+                        userActivity.Route,
+                        userActivity.HrData,
+                        userActivity.SpeedData,
+                        userActivity.ElevationData,
+                        cumulativeDistances,
+                        activityConfig.MeasurementType
+                    );
+
+                    userActivity.Splits = splits;
+                }
                 _context.UserActivities.Add(userActivity);
 
                 await _context.SaveChangesAsync();
