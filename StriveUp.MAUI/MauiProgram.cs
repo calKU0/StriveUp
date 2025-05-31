@@ -57,7 +57,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IBleHeartRateService, BleHeartRateService>();
         builder.Services.AddSingleton<IAppStateService, AppStateService>();
 #if ANDROID
-        builder.Services.AddSingleton<ILocationTrackingService, LocationTrackingService>();
+        builder.Services.AddSingleton<IActivityTrackingService, ActivityTrackingService>();
         builder.Services.AddSingleton<IAppSettingsService, AppSettingsService>();
 #endif
         builder.Services.AddClientInfrastructure(builder.Configuration);

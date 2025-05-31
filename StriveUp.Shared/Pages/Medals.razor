@@ -21,7 +21,7 @@
     else
     {
         <!-- Filters Section (Always rendered) -->
-        <div class="filter-wrapper @(showFilters ? "expanded" : "collapsed")">
+        <div class="filter-wrapper pt-2 @(showFilters ? "expanded" : "collapsed")">
             <!-- Frequency Tabs -->
             <div class="tabs mb-4">
                 <button class="tab-button @(activeFrequencyTab == "all" ? "active" : "")" @onclick="@(() => SetFrequencyTab("all"))">All</button>

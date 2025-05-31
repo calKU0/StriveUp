@@ -127,8 +127,12 @@ namespace StriveUp.API.Controllers
 
                 double durationSeconds = (dto.DateEnd - dto.DateStart).TotalSeconds;
 
+                if (userActivity.CaloriesBurned == null || userActivity.CaloriesBurned == 0)
+                {
+                    userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
+                }
+
                 userActivity.DurationSeconds = durationSeconds;
-                userActivity.CaloriesBurned = Convert.ToInt32(Math.Round((activity.AverageCaloriesPerHour / 3600.0) * durationSeconds));
 
                 userActivity.MaxSpeed ??= userActivity.SpeedData.Count > 0
                     ? userActivity.SpeedData.Max(s => s.SpeedValue)

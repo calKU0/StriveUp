@@ -145,10 +145,10 @@
         Medal.TimesClaimed++;
         MedalState.DecrementMedalsCount();
         StateHasChanged();
+        await JS.InvokeVoidAsync("launchConfetti");
 
         // Call the service, but do NOT await before updating UI
         var response = await MedalsService.ClaimMedal(Medal.Id);
-        await JS.InvokeVoidAsync("launchConfetti");
         if (response)
         {
             await OnModalClaim.InvokeAsync(Medal.Id);

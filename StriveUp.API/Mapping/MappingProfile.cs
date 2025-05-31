@@ -49,7 +49,8 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.UseHeartRate, opt => opt.MapFrom(src => src.Config.UseHeartRate))
                 .ForMember(dest => dest.SpeedRelevant, opt => opt.MapFrom(src => src.Config.SpeedRelevant))
                 .ForMember(dest => dest.DistanceRelevant, opt => opt.MapFrom(src => src.Config.DistanceRelevant))
-                .ForMember(dest => dest.Segments, opt => opt.MapFrom(src => src.SegmentConfigs));
+                .ForMember(dest => dest.Segments, opt => opt.MapFrom(src => src.SegmentConfigs))
+                .ForMember(dest => dest.AverageCaloriesPerHour, opt => opt.MapFrom(src => src.AverageCaloriesPerHour));
 
             // Medal <-> DTO
             CreateMap<Medal, MedalDto>();

@@ -817,8 +817,8 @@ textarea.form-control {
     }
 
     .notification-badge {
-        top: 4px !important;
-        left: 22px !important;
+        top: 8px !important;
+        left: 26px !important;
     }
 
     .btn-add-friends {
