@@ -7,14 +7,14 @@ using AndroidApp = Android.App.Application;
 
 namespace StriveUp.MAUI.Platforms.Android;
 
-public class LocationTrackingService : ILocationTrackingService
+public class ActivityTrackingService : IActivityTrackingService
 {
     private readonly Context _context;
     private Location? _lastKnownLocation;
 
     public event EventHandler<Location>? LocationUpdated;
 
-    public LocationTrackingService()
+    public ActivityTrackingService()
     {
         _context = AndroidApp.Context;
 
@@ -26,17 +26,16 @@ public class LocationTrackingService : ILocationTrackingService
         };
     }
 
-    public Task StartAsync()
+    public Task StartAsync(bool isIndoor = false, bool startNow = false)
     {
         var intent = new Intent(_context, typeof(LocationForegroundService));
+        intent.PutExtra("isIndoor", isIndoor);
+        intent.PutExtra("startNow", startNow); // Controls whether notification timer starts now
+
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-        {
             _context.StartForegroundService(intent);
-        }
         else
-        {
             _context.StartService(intent);
-        }
 
         return Task.CompletedTask;
     }
@@ -45,6 +44,23 @@ public class LocationTrackingService : ILocationTrackingService
     {
         var intent = new Intent(_context, typeof(LocationForegroundService));
         _context.StopService(intent);
+        return Task.CompletedTask;
+    }
+
+    public Task PauseAsync()
+    {
+        var intent = new Intent(_context, typeof(LocationForegroundService));
+        intent.PutExtra("command", "pause");
+        _context.StartForegroundService(intent);
+        return Task.CompletedTask;
+    }
+
+    public Task ResumeAsync(bool isIndoor = false)
+    {
+        var intent = new Intent(_context, typeof(LocationForegroundService));
+        intent.PutExtra("command", "resume");
+        intent.PutExtra("isIndoor", isIndoor);
+        _context.StartForegroundService(intent);
         return Task.CompletedTask;
     }
 

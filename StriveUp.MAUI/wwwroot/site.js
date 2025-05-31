@@ -48,7 +48,7 @@ window.initializeMap = function initializeMap(lat, lng, accessToken) {
         window.map.on('load', () => {
             userMarker = new mapboxgl.Marker({
                 element: createArrowMarker(),
-                anchor: 'center',
+                anchor: 'bottom'
             })
                 .setLngLat([lng, lat])
                 .addTo(window.map);
@@ -88,38 +88,104 @@ window.initializeMap = function initializeMap(lat, lng, accessToken) {
 };
 
 function createArrowMarker() {
-    const marker = document.createElement('div');
-    marker.className = 'arrow-marker';
-    const arrowIcon = document.createElement('img');
-    arrowIcon.src = '/images/icons/arrow-icon.png';  // Point to your arrow icon
-    arrowIcon.style.width = '14px';
-    arrowIcon.style.height = '14px';
-    marker.appendChild(arrowIcon);
-    return marker;
-};
+    const outer = document.createElement('div');
+    outer.className = 'arrow-marker';
+    outer.style.width = '22px';
+    outer.style.height = '30px';
+    outer.style.position = 'relative';
+
+    const rotWrapper = document.createElement('div');
+    rotWrapper.style.width = '22px';
+    rotWrapper.style.height = '30px';
+    rotWrapper.style.position = 'absolute';
+    rotWrapper.style.top = '0';
+    rotWrapper.style.left = '0';
+    rotWrapper.style.transformOrigin = '11px 26px'; // half width, near bottom center (adjusted)
+
+    rotWrapper.innerHTML = `
+      <svg width="22" height="40" viewBox="0 0 22 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 0 L15.5 11 L11 7 L6.5 11 Z" fill="#4285F4" stroke="#4285F4" stroke-width="0.7"/>
+        <circle cx="11" cy="22" r="10" fill="#4285F4" fill-opacity="0.3"/>
+        <circle cx="11" cy="22" r="6" fill="#4285F4"/>
+      </svg>
+    `;
+
+    outer.appendChild(rotWrapper);
+    outer.rotWrapper = rotWrapper; // save reference for rotation
+
+    return outer;
+}
+
+function updateMarker(heading) {
+    if (!userMarker) return;
+
+    // Normalize heading to 0-360
+    heading = ((heading % 360) + 360) % 360;
+
+    // Calculate difference
+    let diff = heading - lastHeading;
+
+    // Fix wrap-around so diff is smallest path
+    if (diff < -180) diff += 360;
+    else if (diff > 180) diff -= 360;
+
+    // Update cumulative heading by adding difference
+    cumulativeHeading += diff;
+
+    // Rotate the entire marker div around the circle center
+    userMarker.getElement().rotWrapper.style.transform = `rotate(${heading}deg)`;
+
+    lastHeading = heading;
+}
 
 function addCenterButton() {
     const button = document.createElement('button');
-    button.textContent = '📍';
     button.className = 'center-button';
     button.style.position = 'absolute';
-    button.style.top = '10px';
+    button.style.bottom = '50px';
     button.style.right = '10px';
-    button.style.zIndex = 1;
+    button.style.zIndex = 1000;
     button.style.background = 'white';
     button.style.border = 'none';
     button.style.borderRadius = '4px';
-    button.style.padding = '6px';
+    button.style.padding = '8px';
+    button.style.cursor = 'pointer';
+    button.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+    button.style.display = 'flex';
+    button.style.alignItems = 'center';
+    button.style.justifyContent = 'center';
+
+    // SVG crosshair icon
+    button.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+        </svg>
+    `;
+
+    button.addEventListener('touchstart', () => {
+        button.style.background = '#f0f0f0';
+    });
+    button.addEventListener('touchend', () => {
+        button.style.background = 'white';
+    });
+    button.addEventListener('touchcancel', () => {
+        button.style.background = 'white';
+    });
 
     button.onclick = () => {
         isUserInteracting = false;
         if (window.currentLocation) {
             updateMap(window.currentLocation.lat, window.currentLocation.lng, false, true);
         }
+        button.style.background = 'white';
     };
 
     document.getElementById('map').appendChild(button);
-};
+}
 
 function updateMap(lat, lng, shouldTrack, forceCenter = false) {
     const lngLat = [lng, lat];
@@ -143,35 +209,12 @@ function updateMap(lat, lng, shouldTrack, forceCenter = false) {
     if (!isUserInteracting || forceCenter) {
         window.map.easeTo({
             center: lngLat,
-            duration: 750,
-            easing: t => t
+            duration: 400,
+            easing: t => t < 0.5
+                ? 4 * t * t * t
+                : 1 - Math.pow(-2 * t + 2, 3) / 2
         });
     }
-};
-
-function updateMarker(heading) {
-    if (!userMarker) return;
-
-    // Normalize heading to 0-360
-    heading = ((heading % 360) + 360) % 360;
-
-    // Calculate difference
-    let diff = heading - lastHeading;
-
-    // Fix wrap-around so diff is smallest path
-    if (diff < -180) diff += 360;
-    else if (diff > 180) diff -= 360;
-
-    // Update cumulative heading by adding difference
-    cumulativeHeading += diff;
-
-    // Apply rotation using cumulative heading
-    const img = userMarker.getElement().querySelector('img');
-    if (img) {
-        img.style.transform = `rotate(${cumulativeHeading}deg)`;
-    }
-
-    lastHeading = heading;
 };
 
 function interpolateAngle(startAngle, endAngle, t) {
@@ -529,7 +572,6 @@ window.triggerFileInputClick = function () {
         fileInput.click();
     }
 };
-
 
 window.getTimeAgo = function (utcDateString) {
     const utcDate = new Date(utcDateString);

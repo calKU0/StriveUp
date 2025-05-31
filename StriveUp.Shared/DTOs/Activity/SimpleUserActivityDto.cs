@@ -19,7 +19,7 @@ namespace StriveUp.Shared.DTOs.Activity
         public int? ElevationGain { get; set; }
         public DateTime DateStart { get; set; }
         public DateTime DateEnd { get; set; }
-        public int CaloriesBurned { get; set; }
+        public int? CaloriesBurned { get; set; }
         public string UserId { get; set; }
         public string UserName { get; set; }
         public string UserAvatar { get; set; }

@@ -6,6 +6,7 @@ using Android.OS;
 using Android.Runtime;
 using Microsoft.Maui.Devices.Sensors;
 using System;
+using System.Timers;
 
 namespace StriveUp.MAUI.Platforms.Android
 {
@@ -14,6 +15,9 @@ namespace StriveUp.MAUI.Platforms.Android
     {
         private IFusedLocationProviderClient _fusedLocationProviderClient;
         private LocationCallback _locationCallback;
+        private System.Timers.Timer _notificationTimer;
+        private DateTime _startTime;
+        private bool _isIndoor;
 
         public static event EventHandler<Location> LocationUpdated;
 
@@ -27,15 +31,55 @@ namespace StriveUp.MAUI.Platforms.Android
 
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
-            StartForeground(1, BuildNotification());
-            StartLocationUpdates();
+            _isIndoor = intent?.GetBooleanExtra("isIndoor", false) ?? false;
+            bool startNow = intent?.GetBooleanExtra("startNow", false) ?? false;
+            string command = intent?.GetStringExtra("command");
+            StartForeground(1, BuildNotification(GetNotificationMessage()));
+
+            if (command == "pause")
+            {
+                _notificationTimer?.Stop();
+                UpdateNotificationPaused();
+                if (!_isIndoor)
+                    StopLocationUpdates();
+            }
+            else if (command == "resume")
+            {
+                if (_notificationTimer == null)
+                {
+                    _startTime = DateTime.UtcNow; // reset start time or you could keep track externally if needed
+                }
+                StartNotificationTimer();
+                StartForeground(1, BuildNotification(GetNotificationMessage(), "00:00:00"));
+                if (!_isIndoor)
+                    StartLocationUpdates();
+            }
+            else if (startNow)
+            {
+                _startTime = DateTime.UtcNow;
+                StartNotificationTimer();
+                StartForeground(1, BuildNotification(GetNotificationMessage(), "00:00:00"));
+                if (!_isIndoor)
+                    StartLocationUpdates();
+            }
+            else
+            {
+                if (!_isIndoor)
+                    StartLocationUpdates();
+            }
+
             return StartCommandResult.Sticky;
         }
 
         public override void OnDestroy()
         {
             base.OnDestroy();
-            StopLocationUpdates();
+            _notificationTimer?.Stop();
+            _notificationTimer?.Dispose();
+            if (!_isIndoor)
+            {
+                StopLocationUpdates();
+            }
         }
 
         public override IBinder OnBind(Intent intent) => null;
@@ -43,7 +87,7 @@ namespace StriveUp.MAUI.Platforms.Android
         private void StartLocationUpdates()
         {
             var locationRequest = new LocationRequest.Builder(Priority.PriorityBalancedPowerAccuracy, 5000)
-                .SetMinUpdateIntervalMillis(3000)
+                .SetMinUpdateIntervalMillis(5000)
                 .Build();
 
             _fusedLocationProviderClient.RequestLocationUpdates(locationRequest, _locationCallback, Looper.MainLooper);
@@ -57,13 +101,18 @@ namespace StriveUp.MAUI.Platforms.Android
             }
         }
 
-        private Notification BuildNotification()
+        private Notification BuildNotification(string message, string duration = "")
         {
+            string contentText = string.IsNullOrEmpty(duration)
+                ? message
+                : $"{message} - {duration}";
+
             var builder = new Notification.Builder(this, ChannelId)
                 .SetContentTitle("StriveUp")
-                .SetContentText("Tracking your location")
+                .SetContentText(contentText)
                 .SetSmallIcon(Resource.Drawable.notification)
-                .SetOngoing(true); // persistent
+                .SetOngoing(true)
+                .SetOnlyAlertOnce(true);
 
             return builder.Build();
         }
@@ -100,6 +149,40 @@ namespace StriveUp.MAUI.Platforms.Android
                 var manager = (NotificationManager)GetSystemService(NotificationService);
                 manager.CreateNotificationChannel(channel);
             }
+        }
+
+        private string GetNotificationMessage()
+        {
+            return "Tracking your activity";
+        }
+
+        private void StartNotificationTimer()
+        {
+            _notificationTimer = new System.Timers.Timer(1000); // 1 sec
+            _notificationTimer.Elapsed += (s, e) =>
+            {
+                var duration = DateTime.UtcNow - _startTime;
+                string formatted = $"{(int)duration.TotalHours:00}:{duration.Minutes:00}:{duration.Seconds:00}";
+
+                var notification = BuildNotification(GetNotificationMessage(), formatted);
+                var manager = (NotificationManager)GetSystemService(NotificationService);
+                manager.Notify(1, notification);
+            };
+            _notificationTimer.Start();
+        }
+
+        private void UpdateNotificationPaused()
+        {
+            var builder = new Notification.Builder(this, ChannelId)
+                .SetContentTitle("StriveUp")
+                .SetContentText("Tracking paused")
+                .SetSmallIcon(Resource.Drawable.notification)
+                .SetOngoing(true)
+                .SetOnlyAlertOnce(true);
+
+            var notification = builder.Build();
+            var manager = (NotificationManager)GetSystemService(NotificationService);
+            manager.Notify(1, notification);
         }
     }
 }

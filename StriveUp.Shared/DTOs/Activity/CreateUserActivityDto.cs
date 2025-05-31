@@ -20,6 +20,7 @@ namespace StriveUp.Shared.DTOs
         public int? AvarageHr { get; set; }
         public int? MaxHr { get; set; }
         public int? ElevationGain { get; set; }
+        public int? CaloriesBurned { get; set; }
         public List<GeoPointDto>? Route { get; set; }
         public List<ActivityHrDto>? HrData { get; set; }
         public List<ActivitySpeedDto>? SpeedData { get; set; }

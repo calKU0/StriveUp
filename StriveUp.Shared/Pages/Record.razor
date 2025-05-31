@@ -10,7 +10,7 @@
 
 <!-- Injections -->
 @inject IAppSettingsService AppSettingsService
-@inject ILocationTrackingService LocationService
+@inject IActivityTrackingService ActivityTrackingService
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
 @inject ISecurableService SecurableService
@@ -88,7 +88,7 @@
                         {
                             <InfoTile Label="Elevation" Value="@($"{(int)Math.Round(elevation)} m")"/>
                         }
-                        <InfoTile Label="Kcal" Value="--" />
+                        <InfoTile Label="Kcal" Value="@(((int)Math.Round(CaloriesBurned)).ToString())" />
                     </div>
                 </div>
             </div>
@@ -111,15 +111,15 @@ IsSaving=@isSaving/>
     private List<ActivityHrDto> HrData = new();
     private List<ActivitySpeedDto> SpeedData = new();
     private List<ActivityElevationDto> ElevationData = new();
-    private string selectedDeviceId;
+    private string selectedDeviceId = string.Empty;
     private List<Location> route = new();
     private List<ActivityDto> availableActivities = new();
     private bool isPaused = false;
-    private ActivityDto selectedActivity;
+    private ActivityDto selectedActivity = new();
     private bool isTracking = false;
     private bool mapVisible = false;
     private bool mapInitialized = false;
-    private Location currentLocation;
+    private Location? currentLocation;
     private int Distance = 0;
     private double elevation = 0; 
     private double Speed = 0;
@@ -127,15 +127,16 @@ IsSaving=@isSaving/>
     private TimeSpan Duration = TimeSpan.Zero;
     private DateTime startTime;
     private double currentHeading = 0;
-    private CancellationTokenSource durationCts;
+    private CancellationTokenSource? durationCts;
     private bool isLoadingLocation = true;
-    private string mapToken;
-    private Location lastLocation;
+    private string mapToken = string.Empty;
+    private Location? lastLocation;
     private bool showFinishModal = false;
     private string activityTitle = "My Activity";
     private string activityDescription = string.Empty;
     private bool isSaving = false;
     private BluetoothDeviceDto sensor = new();
+    private double CaloriesBurned = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -237,15 +238,16 @@ IsSaving=@isSaving/>
             }
 
             isLoadingLocation = true;
-            LocationService.LocationUpdated += OnPositionChangedSync;
-            await LocationService.StartAsync();
+            ActivityTrackingService.LocationUpdated += OnPositionChangedSync;
+            await ActivityTrackingService.StartAsync(selectedActivity.Indoor, false); // false = don't start timer
 
-            int maxAttempts = 10;
+
+            int maxAttempts = 20;
             int attempt = 0;
 
             while (currentLocation == null && attempt < maxAttempts)
             {
-                currentLocation = await LocationService.GetLastKnownLocationAsync();
+                currentLocation = await ActivityTrackingService.GetLastKnownLocationAsync();
                 if (currentLocation == null)
                 {
                     attempt++;
@@ -292,7 +294,10 @@ IsSaving=@isSaving/>
 
         try
         {
-            await InvokeAsync(() => JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false));
+            if (!AppStateService.IsInBackground)
+            {
+                await InvokeAsync(() => JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false));
+            }
         }
         catch (Exception ex)
         {
@@ -316,8 +321,8 @@ IsSaving=@isSaving/>
             if (timeDelta > 0)
             {
                 var deltaSpeed = (distanceDelta) / (timeDelta * 3600); // m/s
-
             }
+
             Speed = location.Speed ?? 0;
 
             Distance += (int)Math.Round(distanceDelta);
@@ -342,15 +347,6 @@ IsSaving=@isSaving/>
             TimeStamp = timestamp
         });
 
-        if (HeartRate > 0)
-        {
-            HrData.Add(new ActivityHrDto
-            {
-                HearthRateValue = HeartRate,
-                TimeStamp = timestamp
-            });
-        }
-
         if (location.Altitude.HasValue)
         {
             ElevationData.Add(new ActivityElevationDto
@@ -373,7 +369,7 @@ IsSaving=@isSaving/>
         if (selectedActivity.Indoor)
         {
             mapInitialized = false;
-            await LocationService.StopAsync();
+            await ActivityTrackingService.StopAsync();
             StopCompass();
         }
         else
@@ -421,22 +417,36 @@ IsSaving=@isSaving/>
         startTime = DateTime.UtcNow;
         route.Clear();
         durationCts = new CancellationTokenSource();
+        await ActivityTrackingService.StartAsync(selectedActivity.Indoor, true);
         await InvokeAsync(StateHasChanged);
 
         await JSRuntime.InvokeVoidAsync("scrollToTrackingSection");
-        _ = Task.Run(() => UpdateDuration(durationCts.Token)); 
+        _ = UpdateActivityData(durationCts.Token); 
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
     }
 
 
-    private async Task UpdateDuration(CancellationToken token)
+    private async Task UpdateActivityData(CancellationToken token)
     {
         try
         {
             while (!token.IsCancellationRequested)
             {
+                CaloriesBurned = (selectedActivity.AverageCaloriesPerHour / 3600.0) * Duration.TotalSeconds;
+                if (HeartRate > 0)
+                {
+                    HrData.Add(new ActivityHrDto
+                    {
+                        HearthRateValue = HeartRate,
+                        TimeStamp = DateTime.UtcNow
+                    });
+                }
                 Duration = DateTime.UtcNow - startTime;
-                await InvokeAsync(() => StateHasChanged());
+
+                if (!AppStateService.IsInBackground)
+                {
+                    await InvokeAsync(() => StateHasChanged());
+                }
                 await Task.Delay(1000, token);
             }
         }
@@ -445,13 +455,20 @@ IsSaving=@isSaving/>
 
     private async Task StopTracking()
     {
-        isTracking = false;
-        isPaused = true;
-        durationCts?.Cancel();
-        await LocationService.StopAsync();
-        _ = JSRuntime.InvokeVoidAsync("resizeMap");
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            isTracking = false;
+            isPaused = true;
+            durationCts?.Cancel();
+            durationCts?.Dispose();
+            await ActivityTrackingService.PauseAsync();
+            _ = JSRuntime.InvokeVoidAsync("resizeMap");
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
 
+        }
     }
 
     private async Task ResumeTracking()
@@ -461,10 +478,8 @@ IsSaving=@isSaving/>
         isTracking = true;
         durationCts = new CancellationTokenSource();
 
-        await LocationService.StartAsync();
-
-
-        _ = Task.Run(() => UpdateDuration(durationCts.Token));
+        await ActivityTrackingService.ResumeAsync(selectedActivity.Indoor);
+        _ = UpdateActivityData(durationCts.Token);
         _ = JSRuntime.InvokeVoidAsync("resizeMap");
     }
 
@@ -526,6 +541,7 @@ IsSaving=@isSaving/>
                 HrData = HrData,
                 SpeedData = SpeedData,
                 ElevationData = ElevationData,
+                CaloriesBurned = (int)Math.Round(CaloriesBurned),
                 SensorName = sensor.Name ?? null
             };
 
@@ -593,7 +609,10 @@ IsSaving=@isSaving/>
 
         try
         {
-            _ = JSRuntime.InvokeVoidAsync("updateMarker", currentHeading);
+            if (!AppStateService.IsInBackground)
+            {
+                _ = JSRuntime.InvokeVoidAsync("updateMarker", currentHeading);
+            }
         }
         catch (Exception ex)
         {
@@ -604,12 +623,20 @@ IsSaving=@isSaving/>
 
     public void Dispose()
     {
-        StopCompass();
-        LocationService.LocationUpdated -= OnPositionChangedSync;
-        LocationService.StopAsync();
+        try
+        {
+            StopCompass();
+            ActivityTrackingService.LocationUpdated -= OnPositionChangedSync;
+            ActivityTrackingService.StopAsync();
 
-        mapInitialized = false;
-        durationCts?.Cancel();
+            mapInitialized = false;
+            durationCts?.Cancel();
+            durationCts?.Dispose();
+        }
+        catch
+        {
+            
+        }
     }
 
     private string GetSpeedOrPace()
