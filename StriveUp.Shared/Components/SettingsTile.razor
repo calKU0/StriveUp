@@ -1,0 +1,49 @@
+﻿@inject NavigationManager Navigation
+
+<div class="@TileClass @(isPressed ? "pressed" : "")"
+     @onmousedown="() => isPressed = true"
+     @onmouseup="() => isPressed = false"
+     @onmouseleave="() => isPressed = false"
+     @ontouchstart="() => isPressed = true"
+     @ontouchleave="() => isPressed = false"
+     @ontouchcancel="() => isPressed = false"
+     @ontouchend="() => isPressed = false"
+     @onclick="HandleClick"
+     style="cursor: @(IsClickable ? "pointer" : "default")">
+    <span class="@TextColorClass">@Title</span>
+    @if (!string.IsNullOrEmpty(Description))
+    {
+        <span class="text-muted small">@Description</span>
+    }
+    else if (!string.IsNullOrEmpty(Icon))
+    {
+        <i class="@($"{Icon} {TextColorClass}")"></i>
+    }
+</div>
+
+
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? Link { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public string? Color { get; set; }
+    private bool isPressed = false;
+
+    private string TileClass => $"list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile {BorderColorClass}";
+
+    private string TextColorClass => Color == "danger" ? "text-danger" : "";
+    private string BorderColorClass => Color == "danger" ? "border-danger" : "";
+
+    private bool IsClickable => OnClick.HasDelegate || !string.IsNullOrEmpty(Link);
+
+    private async Task HandleClick()
+    {
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync();
+        else if (!string.IsNullOrEmpty(Link))
+            Navigation.NavigateTo(Link);
+    }
+}

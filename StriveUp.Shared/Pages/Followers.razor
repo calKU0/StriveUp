@@ -1,4 +1,5 @@
 ﻿@page "/followers"
+@page "/followers/{userName?}"
 
 <!-- Usings -->
 @using StriveUp.Shared.DTOs
@@ -11,13 +12,13 @@
 <PageTitle>Followers</PageTitle>
 
 <div class="container py-5">
-    <h2 class="fw-bold text-center d-none d-md-block mb-4">Your followers</h2>
     @if (isLoading)
     {
         <Spinner></Spinner>
     }
     else if (followers.Any())
     {
+        <h2 class="fw-bold text-center d-none d-md-block mb-4">@(isCurrentUser ? "Your followers" : $"{userName}'s followers")</h2>
         <ul class="list-group">
             @foreach (var user in followers)
             {
@@ -29,7 +30,7 @@
                             <span class="text-muted">@user.UserName</span>
                         </div>
                     </div>
-                    <button class="btn btn-sm @(user.IsFollowed ? "btn-outline-danger" : "btn-primary")"
+                    <button class="btn btn-sm @(user.IsFollowed ? "btn-outline-danger" : "btn-primary") @(user.UserName == currentUserName ? "d-none" : "d-flex")"
                             @onclick:stopPropagation
                             @onclick="@(() => ToggleFollow(user))">
                         @(user.IsFollowed ? "Unfollow" : "Follow")
@@ -41,7 +42,7 @@
     else
     {
         <div class="text-center py-5 text-muted">
-            <p class="mb-3">You haven't followed any user yet.</p>
+            <p class="mb-3">@(isCurrentUser ? "You haven't followed any user yet." : $"None followed {userName} yet. Be his first friend!")</p>
             <a href="search" class="btn btn-primary">Search Users</a>
         </div>
     }
@@ -49,9 +50,13 @@
 </div>
 
 @code {
+    [Parameter] public string? Username { get; set; }
+    private string userName = string.Empty;
     private List<UserFollowDto> followers = new();
     private bool isLoading = true;
     private string followErrorMessage = string.Empty;
+    private bool isCurrentUser = false;
+    private string currentUserName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,13 +64,16 @@
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var currentUser = authState.User;
-
-            if (currentUser.Identity?.IsAuthenticated == false)
+            if (currentUser.Identity?.IsAuthenticated == false || currentUser.Identity is null)
             {
                 Navigation.NavigateTo("/login");
             }
 
-            followers = await FollowService.GetUserFollowers();
+            currentUserName = currentUser.Identity.Name;
+            userName = Username ?? currentUserName;
+            isCurrentUser = (userName == currentUser.Identity?.Name);
+
+            followers = await FollowService.GetUserFollowers(userName);
         }
         catch (Exception ex)
         {
@@ -79,35 +87,38 @@
 
     private async Task ToggleFollow(UserFollowDto user)
     {
+        bool originalFollowState = user.IsFollowed;
+        user.IsFollowed = !originalFollowState;
+
         try
         {
-            user.IsFollowed = !user.IsFollowed;
             bool result;
 
             if (user.IsFollowed)
             {
-                user.IsFollowed = !user.IsFollowed;
-                result = await FollowService.UnfollowAsync(user.UserId);
+                result = await FollowService.FollowAsync(user.UserId);
             }
             else
             {
-                user.IsFollowed = !user.IsFollowed;
-                result = await FollowService.FollowAsync(user.UserId);
+                result = await FollowService.UnfollowAsync(user.UserId);
             }
 
             if (!result)
             {
+                // Revert if operation failed
+                user.IsFollowed = originalFollowState;
                 followErrorMessage = $"Error {(user.IsFollowed ? "unfollowing" : "following")} user {user.UserName}. Please try again later.";
-                user.IsFollowed = !user.IsFollowed;
             }
         }
         catch (Exception ex)
         {
-            followErrorMessage = $"Error following user {user.UserName}. Please try again later.";
-            Console.WriteLine($"Error toggling follow status for {user.UserName}: {ex.Message}");
-            user.IsFollowed = !user.IsFollowed;
+            // Revert on exception
+            user.IsFollowed = originalFollowState;
+            followErrorMessage = $"Error toggling follow status for user {user.UserName}. Please try again later.";
+            Console.WriteLine($"Exception: {ex.Message}");
         }
     }
+
 
     private void OnListItemClick(string userName)
     {

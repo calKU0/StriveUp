@@ -11,8 +11,8 @@ namespace StriveUp.Shared.Interfaces
 
         Task<bool> UnfollowAsync(string followedId);
 
-        Task<List<UserFollowDto>> GetUserFollowers();
+        Task<List<UserFollowDto>> GetUserFollowers(string userName);
 
-        Task<List<UserFollowDto>> GetUserFollowing();
+        Task<List<UserFollowDto>> GetUserFollowing(string userName);
     }
 }

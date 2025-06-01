@@ -39,16 +39,16 @@ namespace StriveUp.Infrastructure.Services
             return result.IsSuccessStatusCode;
         }
 
-        public async Task<List<UserFollowDto>> GetUserFollowers()
+        public async Task<List<UserFollowDto>> GetUserFollowers(string userName)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            return await _httpClient.GetFromJsonAsync<List<UserFollowDto>>($"follow/followers") ?? new();
+            return await _httpClient.GetFromJsonAsync<List<UserFollowDto>>($"follow/followers/{userName}") ?? new();
         }
 
-        public async Task<List<UserFollowDto>> GetUserFollowing()
+        public async Task<List<UserFollowDto>> GetUserFollowing(string userName)
         {
             await _httpClient.AddAuthHeaderAsync(_tokenStorage);
-            return await _httpClient.GetFromJsonAsync<List<UserFollowDto>>($"follow/following") ?? new();
+            return await _httpClient.GetFromJsonAsync<List<UserFollowDto>>($"follow/following/{userName}") ?? new();
         }
     }
 }

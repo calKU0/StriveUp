@@ -29,13 +29,18 @@ namespace StriveUp.API.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpGet("followers")]
-        public async Task<ActionResult<List<UserFollowDto>>> GetUserFollowers()
+        [HttpGet("followers/{userName}")]
+        public async Task<ActionResult<List<UserFollowDto>>> GetUserFollowers(string userName)
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _context.Users.Where(u => u.UserName == userName).FirstOrDefaultAsync();
+                if (user is null)
+                {
+                    return BadRequest("No user with such nickname found.");
+                }
 
+                var userId = user.Id;
                 // Get IDs the current user is following
                 var followingIds = await _context.UserFollowers
                     .Where(f => f.FollowerId == userId)
@@ -66,12 +71,18 @@ namespace StriveUp.API.Controllers
             }
         }
 
-        [HttpGet("following")]
-        public async Task<ActionResult<List<UserFollowDto>>> GetUserFollowing()
+        [HttpGet("following/{userName}")]
+        public async Task<ActionResult<List<UserFollowDto>>> GetUserFollowing(string userName)
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _context.Users.Where(u => u.UserName == userName).FirstOrDefaultAsync();
+                if (user is null)
+                {
+                    return BadRequest("No user with such nickname found.");
+                }
+
+                var userId = user.Id;
 
                 // Get IDs of users who follow the current user (to check mutual follows)
                 var followersOfCurrentUser = await _context.UserFollowers

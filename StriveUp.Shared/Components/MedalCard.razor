@@ -5,11 +5,16 @@
 @inject IJSRuntime JS
 
 <div class="position-relative w-100 h-100">
-    <div class="position-relative medal-card h-100 d-flex flex-column @(isPressed ? "pressed" : "") @(IsAchieved || isClaimable ? "" : "opacity-50") @(isJustAchieved ? "claimed" : "")" 
+    <div class="position-relative medal-card h-100 d-flex flex-column @(isPressed ? "pressed" : "") @(IsAchieved || isClaimable ? "" : "opacity-50") @(isJustAchieved ? "claimed" : "")"
         @onmousedown="() => isPressed = true"
         @onmouseup="() => isPressed = false"
         @onmouseleave="() => isPressed = false"
+        @ontouchstart="() => isPressed = true"
+        @ontouchleave="() => isPressed = false"
+        @ontouchcancel="() => isPressed = false"
+        @ontouchend="() => isPressed = false"
         @onclick="HandleClick" @onclick:stopPropagation="false">
+
         @if (MedalDto.TimesClaimed > 0)
         {
             <span class="badge bg-primary position-absolute top-0 start-100 translate-middle badge-rounded-pill">

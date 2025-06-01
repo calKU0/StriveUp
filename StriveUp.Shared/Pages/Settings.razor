@@ -32,80 +32,54 @@
 
         <!-- Synchronize Activities -->
         <div class="col-12 col-md-6 d-flex">
-            <a href="/synchronize" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
-                <span>Synchronize Activities</span>
-                <i class="bi bi-arrow-repeat text-muted"></i>
-            </a>
+            <div class="col-12 col-md-6 d-flex">
+                <SettingsTile Title="Synchronize Activities" Icon="bi bi-arrow-repeat" Link="/synchronize" />
+            </div>
         </div>
 
         @if (PlatformService.IsNativeApp())
         {         
             <!-- Heart Rate Sensor -->
             <div class="col-12 col-md-6 d-flex">
-                <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile" @onclick="LoadSensorModal" style="cursor: pointer;">
-                    <span>Heart Rate Sensor</span>
-                    <i class="bi bi-phone text-muted"></i>
-                </div>
+                <SettingsTile Title="Heart Rate Sensor" Icon="bi bi-phone" OnClick="LoadSensorModal" />
             </div>
         }
 
         <!-- Appearance -->
         <div class="col-12 col-md-6 d-flex">
-            <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile" @onclick="() => showThemeModal = true" style="cursor: pointer;">
-                <span>Appearance</span>
-                <span class="text-muted small">@selectedTheme</span>
-            </div>
+            <SettingsTile Title="Appearance" Description="@selectedTheme.ToString()" OnClick="() => showThemeModal = true" />
         </div>
 
         <!-- Default Metric -->
         <div class="col-12 col-md-6 d-flex">
-            <div class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile" @onclick="() => showMetricModal = true" style="cursor: pointer;">
-                <span>Default Metric</span>
-                <span class="text-muted small">@selectedMetric</span>
-            </div>
+            <SettingsTile Title="Default Metric" Description="@selectedMetric.ToString()" OnClick="() => showMetricModal = true" />
         </div>
 
         <!-- Privacy Control -->
         <div class="col-12 col-md-6 d-flex">
-            <a href="/privacy-control" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
-                <span>Privacy Control</span>
-                <i class="bi bi-shield-lock text-muted"></i>
-            </a>
+            <SettingsTile Title="Privacy Control" Icon="bi bi-shield-lock" Link="/privacy-control" />
         </div>
 
         <!-- Terms of Service -->
         <div class="col-12 col-md-6 d-flex">
-            <a href="/terms-of-service" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
-                <span>Terms Of Service</span>
-                <i class="bi bi-file-earmark-text text-muted"></i>
-            </a>
+            <SettingsTile Title="Terms Of Service" Icon="bi bi-file-earmark-text" Link="/terms-of-service" />
         </div>
 
         <!-- Privacy Policy -->
         <div class="col-12 col-md-6 d-flex">
-            <a href="/privacy-policy" class="list-group-item list-group-item-action shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile">
-                <span>Privacy Policy</span>
-                <i class="bi bi-file-earmark-text text-muted"></i>
-            </a>
+            <SettingsTile Title="Privacy Policy" Icon="bi bi-file-earmark-text" Link="/privacy-policy" />
         </div>
 
         <!-- Delete Account -->
         <div class="col-12 col-md-6 d-flex">
-            <button class="list-group-item list-group-item-action text-danger shadow-sm rounded
-                   d-flex justify-content-between align-items-center w-100 h-100"
-                    @onclick="HandleDeleteAccount">
-                <span>Delete Account</span>
-                <i class="bi bi-trash"></i>
-            </button>
+            <SettingsTile Title="Delete Account" Icon="bi bi-trash" Color="danger" OnClick="HandleDeleteAccount" />
         </div>
 
         <!-- Log Out -->
         <div class="col-12 col-md-6 d-flex">
-            <button class="list-group-item list-group-item-action text-danger shadow-sm rounded d-flex justify-content-between align-items-center w-100 h-100 settings-tile" @onclick="HandleLogout">
-                <span>Log Out</span>
-                <i class="bi bi-box-arrow-right"></i>
-            </button>
+            <SettingsTile Title="Log Out" Icon="bi bi-box-arrow-right" Color="danger" OnClick="HandleLogout" />
         </div>
+
     </div>
 </div>
 
