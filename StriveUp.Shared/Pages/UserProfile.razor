@@ -17,6 +17,7 @@
 @inject IJSRuntime JSRuntime
 @inject IActivityService ActivityService
 @inject ILeaderboardService LeaderboardService
+@inject IFollowService FollowService
 @implements IDisposable
 
 <PageTitle>Profile</PageTitle>
@@ -81,17 +82,24 @@
                                 aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
 
-
                         <!-- Followers / Following -->
-                        <div class="d-flex flex-wrap gap-3 mt-3 mb-md-0 mb-2">
-                            <a class="text-muted" href="followers">
+                        <div class="d-flex flex-wrap gap-3 align-items-center mt-3 mb-md-0 mb-2">
+                            <a class="text-muted" href="followers/@userName">
                                 <i class="fas fa-users me-1"></i>
                                 <strong>@userProfile.Followers.Count</strong> Followers
                             </a>
-                            <a class="text-muted" href="following">
+                            <a class="text-muted" href="following/@userName">
                                 <i class="fas fa-user-plus me-1"></i>
                                 <strong>@userProfile.Following.Count</strong> Following
                             </a>
+                            @if (!isEditable)
+                            {
+                                <button class="btn btn-sm @(IsFollowing ? "btn-outline-danger" : "btn-primary")"
+                                        @onclick:stopPropagation
+                                        @onclick="ToggleFollow">
+                                    @(IsFollowing ? "Unfollow" : "Follow")
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>
@@ -340,6 +348,8 @@
     </div>
 </div>
 
+<ErrorToast Message="@followErrorMessage"></ErrorToast>
+
 
 @code {
     [Parameter] public string? Username { get; set; }
@@ -367,6 +377,8 @@
     private List<UserBestEffortsStatsDto>? BestEffortStatsEntries;
     private enum UserTabType { Activities, Medals, Statistics }
     private UserTabType SelectedUserTabType = UserTabType.Activities;
+    private string followErrorMessage = string.Empty;
+    private bool IsFollowing = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -395,6 +407,41 @@
         }
     }
 
+    private async Task ToggleFollow()
+    {
+        bool originalFollowState =IsFollowing;
+        IsFollowing = !originalFollowState;
+
+        try
+        {
+            bool result;
+
+            if (IsFollowing)
+            {
+                userProfile.Followers.Add(new SimpleUserDto { UserName = userName });
+                result = await FollowService.FollowAsync(userProfile.Id);
+            }
+            else
+            {
+                userProfile.Followers.RemoveAt(0);
+                result = await FollowService.UnfollowAsync(userProfile.Id);
+            }
+
+            if (!result)
+            {
+                // Revert if operation failed
+                IsFollowing = originalFollowState;
+                followErrorMessage = $"Error {(IsFollowing ? "unfollowing" : "following")} user {userName}. Please try again later.";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Revert on exception
+            IsFollowing = originalFollowState;
+            followErrorMessage = $"Error toggling follow status for user {userName}. Please try again later.";
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
 
     private async Task LoadInitialProfile()
     {
@@ -410,6 +457,7 @@
             if (success && profile != null)
             {
                 userProfile = profile;
+                IsFollowing = userProfile.Followers.Any(f => f.UserName == currentUser.Identity.Name);
                 isEditable = (userName == currentUser.Identity?.Name);
             }
             else

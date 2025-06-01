@@ -1,0 +1,31 @@
+﻿<li class="list-group-item d-flex justify-content-between align-items-start notification-item border-bottom @(!Notification.IsRead ? "unred" : "") @(isPressed ? "pressed" : "")"
+    @onmousedown="() => isPressed = true"
+    @onmouseup="() => isPressed = false"
+    @onmouseleave="() => isPressed = false"
+    @ontouchstart="() => isPressed = true"
+    @ontouchleave="() => isPressed = false"
+    @ontouchcancel="() => isPressed = false"
+    @ontouchend="() => isPressed = false"
+    @onclick="HandleClick">
+
+    <div class="d-flex align-items-start">
+        <img src="@Notification.ActorAvatar" alt="Avatar" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+        <div>
+            <div class="fw-bold">@Notification.Title</div>
+            <div><strong>@Notification.ActorName</strong> @Notification.Message</div>
+            <div class="text-muted small">@Notification.TimeAgo</div>
+        </div>
+    </div>
+</li>
+
+@code {
+    [Parameter] public NotificationDto Notification { get; set; } = default!;
+    [Parameter] public EventCallback<NotificationDto> OnClick { get; set; }
+
+    private bool isPressed = false;
+
+    private async Task HandleClick()
+    {
+        await OnClick.InvokeAsync(Notification);
+    }
+}

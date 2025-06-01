@@ -166,6 +166,7 @@
         "Following",
         "Goals",
         "Add goal",
+        "Tos",
     };
 
     protected override async Task OnInitializedAsync()
@@ -244,9 +245,18 @@
     {
         string uri = Navigation.Uri;
         var segments = new Uri(uri).Segments;
-        string pageName = (segments.LastOrDefault()?.TrimEnd('/')).Replace("-"," ");
 
-        return CapitalizeFirstLetter(String.IsNullOrEmpty(pageName) ? "home" : pageName);
+        // Check if there's at least one segment after the domain (segments[0] is always "/")
+        if (segments.Length > 1)
+        {
+            // segments[1] will be the main page segment, e.g. "activity/" or "feed/"
+            string mainSegment = segments[1].TrimEnd('/').Replace("-"," ");
+            mainSegment = mainSegment == "terms of service" ? "TOS" : mainSegment;
+            return CapitalizeFirstLetter(mainSegment);
+        }
+
+        // If no segments, default to "home"
+        return "Home";
     }
 
     private string CapitalizeFirstLetter(string input)

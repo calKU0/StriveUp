@@ -17,6 +17,10 @@
          @onmousedown="() => isPressed = true"
          @onmouseup="() => isPressed = false"
          @onmouseleave="() => isPressed = false"
+         @ontouchstart="() => isPressed = true"
+         @ontouchleave="() => isPressed = false"
+         @ontouchcancel="() => isPressed = false"
+         @ontouchend="() => isPressed = false"
          @onclick="OnCardClick">
         <div class="card h-100 rounded-4 border-0 bg-light-subtle transition hover-shadow">
             <div class="card-body d-flex flex-column gap-3 p-4 position-relative">

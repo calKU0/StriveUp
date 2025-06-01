@@ -22,10 +22,29 @@
 </div>
 
 @code {
+    private double _displayedPercent;
+
     [Parameter]
     public double Percent { get; set; }
+
     [Parameter]
     public string? ActivityImage { get; set; }
 
-    private string DashArray => Math.Clamp(Percent, 0, 100).ToString("0.##");
+    protected override void OnParametersSet()
+    {
+        // Clamp the Percent between 0 and 100
+        var target = Math.Clamp(Percent, 0, 100);
+
+        // Animate: update _displayedPercent gradually towards target
+        // For simplicity, just update instantly here (CSS transition will animate)
+        if (_displayedPercent != target)
+        {
+            _displayedPercent = target;
+            StateHasChanged();
+        }
+        StateHasChanged();
+    }
+
+    private string DashArray => $"{_displayedPercent:0.##}, 100";
 }
+

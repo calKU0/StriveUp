@@ -25,17 +25,7 @@
                     <ul class="list-group list-group-flush">
                         @foreach (var notif in notifications)
                         {
-                            <li class="list-group-item d-flex justify-content-between align-items-start notification-item border-bottom @(!notif.IsRead ? "unred" : "")"
-                                @onclick="() => OnNotificationClick(notif)">
-                                <div class="d-flex align-items-start">
-                                    <img src="@notif.ActorAvatar" alt="Avatar" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
-                                    <div>
-                                        <div class="fw-bold">@notif.Title</div>
-                                        <div><strong>@notif.ActorName</strong> @notif.Message</div>
-                                        <div class="text-muted small">@notif.TimeAgo</div>
-                                    </div>
-                                </div>
-                            </li>
+                            <NotificationItem Notification="notif" OnClick="OnNotificationClick" />
                         }
                     </ul>
                 }

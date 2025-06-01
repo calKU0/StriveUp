@@ -1,0 +1,28 @@
+.notification-item {
+    cursor: pointer;
+    background-color: white !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+    .notification-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .notification-item.pressed {
+        background-color: #f0f0f0 !important;
+        transition: background-color 0.2s ease;
+    }
+
+.unred {
+    background-color: #d4d4d4;
+}
+
+.notification-icon {
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+
+.notification-time {
+    font-size: 0.85rem;
+    color: #6c757d;
+}

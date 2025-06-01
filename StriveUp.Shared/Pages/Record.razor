@@ -294,10 +294,7 @@ IsSaving=@isSaving/>
 
         try
         {
-            if (!AppStateService.IsInBackground)
-            {
-                await InvokeAsync(() => JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false));
-            }
+            await InvokeAsync(() => JSRuntime.InvokeVoidAsync("updateMap", currentLocation.Latitude, currentLocation.Longitude, isTracking, false));           
         }
         catch (Exception ex)
         {
