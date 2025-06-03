@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy dotnet core app to Azure Function App - SyncFunction
+name: Build and deploy Azure Function App - StriveUp.Sync
 
 on:
   push:
@@ -10,44 +7,41 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '8.0.x' # set this to the dotnet version to use
+  FUNCTION_PROJECT_PATH: "StriveUp.Sync/StriveUp.Sync.csproj"
+  DOTNET_VERSION: "8.0.x"
 
 jobs:
   build-and-deploy:
     runs-on: windows-latest
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: 'Checkout GitHub Action'
+      - name: "Checkout Code"
         uses: actions/checkout@v4
 
-      - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+      - name: "Setup .NET ${{ env.DOTNET_VERSION }}"
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 'Resolve Project Dependencies Using Dotnet'
-        shell: pwsh
-        run: |
-          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          dotnet build --configuration Release --output ./output
-          popd
-      
-      - name: Login to Azure
+      - name: "Build Function Project"
+        run: dotnet build ${{ env.FUNCTION_PROJECT_PATH }} --configuration Release
+
+      - name: "Publish Function Project"
+        run: dotnet publish ${{ env.FUNCTION_PROJECT_PATH }} --configuration Release --output ./publish
+
+      - name: "Login to Azure"
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_68F671ACA6F9428A875DDA8E5CA5B4A6 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_440E0B5B8B29478384D5E2BDE3837960 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_56F68B7EDC704310A4838EED31785449 }}
 
-      - name: 'Run Azure Functions Action'
+      - name: "Deploy to Azure Function App"
         uses: Azure/functions-action@v1
-        id: fa
         with:
-          app-name: 'SyncFunction'
-          slot-name: 'Production'
-          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-          
+          app-name: "SyncFunction"
+          slot-name: "Production"
+          package: "./publish"
