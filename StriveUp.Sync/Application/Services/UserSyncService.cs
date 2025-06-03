@@ -135,13 +135,12 @@ namespace StriveUp.Sync.Application.Services
         {
             var loginPayload = new
             {
-                username = _username,
+                login = _username,
                 password = _password
             };
 
             var content = new StringContent(JsonSerializer.Serialize(loginPayload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync("auth/login", content);
-
             if (!response.IsSuccessStatusCode) return null;
 
             var responseBody = await response.Content.ReadAsStringAsync();
