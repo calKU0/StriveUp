@@ -19,27 +19,31 @@
         {
             return activityType switch
             {
-                90009 => 4, // Running
-                91070 => 4, // Incline Running
-                91069 => 4, // Trail Running
-                20049 => 4, // Treadmill Running
+                90009 => 7, // Running
+                91070 => 7, // Incline Running
+                91069 => 7, // Trail Running
+                20049 => 8, // Treadmill Running
 
-                90001 => 5, // Cycling
-                1071 => 5, // Outdoor Cycling
-                91065 => 5, // Stationary Cycling
-                18230 => 6, // Swimming
-                18250 => 6, // Swimming
-                18260 => 6, // Swimming
-                18270 => 6, // Swimming
-                18280 => 6, // Swimming
-                18290 => 6, // Swimming
-                18300 => 6, // Swimming
-                18310 => 6, // Swimming
-                18320 => 6, // Swimming
-                18330 => 6, // Swimming
-                18340 => 6, // Swimming
-                18350 => 6, // Swimming
-                _ => 7, // Swimming
+                90001 => 10, // Cycling
+                1071 => 10, // Outdoor Cycling
+                91065 => 10, // Stationary Cycling
+                18230 => 12, // Swimming
+                18250 => 12, // Swimming
+                18260 => 12, // Swimming
+                18270 => 12, // Swimming
+                18280 => 12, // Swimming
+                18290 => 12, // Swimming
+                18300 => 12, // Swimming
+                18310 => 12, // Swimming
+                18320 => 12, // Swimming
+                18330 => 12, // Swimming
+                18340 => 12, // Swimming
+                18350 => 12, // Swimming
+                27 => 9, // Walking
+                22 => 15, // Weight Lifting
+                29 => 13, // Elliptical
+                90012 => 11, // Hiking
+                _ => 18, // Other
             };
         }
     }

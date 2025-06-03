@@ -7,6 +7,7 @@ using StriveUp.Sync.Application.Models.Fitbit;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Xml.Serialization;
 
 namespace StriveUp.Sync.Application.Services
@@ -28,27 +29,27 @@ namespace StriveUp.Sync.Application.Services
 
             // 0. Activity types => Fetch once and store in a file/database/cache
 
-            //var activityTypesUrl = "1/activities.json";
-            //_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.AccessToken);
-            //var activityTypesResponse = await _httpClient.GetAsync(activityTypesUrl);
-            //if (!activityTypesResponse.IsSuccessStatusCode)
-            //{
-            //    var error = await activityTypesResponse.Content.ReadAsStringAsync();
-            //    _logger.LogWarning($"Failed to get Fitbit activityTypes. Status: {activityTypesResponse.StatusCode}. Response: {error}");
-            //    return result;
-            //}
-            //var activityTypesJson = await activityTypesResponse.Content.ReadAsStringAsync();
-            //var parsedJson = JsonDocument.Parse(activityTypesJson);
-            //var formattedJson = JsonSerializer.Serialize(parsedJson, new JsonSerializerOptions
-            //{
-            //    WriteIndented = true
-            //});
-            //await File.WriteAllTextAsync("fitbit-activity-types.json", formattedJson);
+            var activityTypesUrl = "1/activities.json";
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var activityTypesResponse = await _httpClient.GetAsync(activityTypesUrl);
+            if (!activityTypesResponse.IsSuccessStatusCode)
+            {
+                var error = await activityTypesResponse.Content.ReadAsStringAsync();
+                _logger.LogWarning($"Failed to get Fitbit activityTypes. Status: {activityTypesResponse.StatusCode}. Response: {error}");
+                return result;
+            }
+            var activityTypesJson = await activityTypesResponse.Content.ReadAsStringAsync();
+            var parsedJson = JsonDocument.Parse(activityTypesJson);
+            var formattedJson = JsonSerializer.Serialize(parsedJson, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            await File.WriteAllTextAsync("fitbit-activity-types.json", formattedJson);
 
             //1.Fetch activities for last 5 minutes
 
             var now = DateTime.UtcNow;
-            var fiveMinutesAgo = now.AddDays(-2);
+            var fiveMinutesAgo = now.AddMinutes(-6);
             var afterDate = Uri.EscapeDataString(fiveMinutesAgo.ToString("yyyy-MM-ddTHH:mm:ss"));
 
             var activitiesUrl = $"/1/user/-/activities/list.json?afterDate={afterDate}&sort=asc&offset=0&limit=10";
