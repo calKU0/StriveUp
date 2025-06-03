@@ -282,7 +282,7 @@ IsSaving=@isSaving/>
             : 0;
 
         bool isInBackground = AppStateService.IsInBackground;
-        double acceptableAccuracy = isInBackground ? 35 : 25;
+        double acceptableAccuracy = isInBackground ? 20 : 20;
 
         Console.WriteLine("Got Location with accuracy = " + position.Accuracy + " Background = " + isInBackground);
         if (position.Accuracy > acceptableAccuracy && currentLocation != null)

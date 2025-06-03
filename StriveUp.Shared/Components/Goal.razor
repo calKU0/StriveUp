@@ -30,24 +30,26 @@
             <BlazorSlickCarouselContent>
                 @foreach (var goal in goals)
                 {
-                    <div class="goal-card @(isPressed ? "pressed" : "")"
-                         @onmousedown="() => isPressed = true"
-                         @onmouseup="() => isPressed = false"
-                         @onmouseleave="() => isPressed = false"
-                         @ontouchstart="() => isPressed = true"
-                         @ontouchleave="() => isPressed = false"
-                         @ontouchcancel="() => isPressed = false"
-                         @ontouchend="() => isPressed = false"
-                         @onclick="OnCardClick">
-                        <div class="goal-content d-flex align-items-center">
-                            <div class="progress-circle">
-                                <GoalProgressCircle Percent="@goal.PercentCompleted" ActivityImage="@ActivityUtils.GetActivityImageUrl(goal.ActivityName ?? "run", "dark")" />
-                            </div>
-                            <div class="goal-details ms-3">
-                                <p class="fw-bold mt-2 mb-0">
-                                    @FormatProgress(goal.Type, goal.AmountCompleted, goal.TargetValue)
-                                </p>
-                                <small class="text-muted">@FormatGoalTimeframe(goal.Timeframe)</small>
+                    <div class="goal-wrapper">
+                        <div class="goal-card @(isPressed ? "pressed" : "")"
+                             @onmousedown="() => isPressed = true"
+                             @onmouseup="() => isPressed = false"
+                             @onmouseleave="() => isPressed = false"
+                             @ontouchstart="() => isPressed = true"
+                             @ontouchleave="() => isPressed = false"
+                             @ontouchcancel="() => isPressed = false"
+                             @ontouchend="() => isPressed = false"
+                             @onclick="OnCardClick">
+                            <div class="goal-content d-flex align-items-center">
+                                <div class="progress-circle">
+                                    <GoalProgressCircle Percent="@goal.PercentCompleted" ActivityImage="@ActivityUtils.GetActivityImageUrl(goal.ActivityName ?? "run", "dark")" />
+                                </div>
+                                <div class="goal-details ms-3">
+                                    <p class="fw-bold mt-2 mb-0">
+                                        @FormatProgress(goal.Type, goal.AmountCompleted, goal.TargetValue)
+                                    </p>
+                                    <small class="text-muted">@FormatGoalTimeframe(goal.Timeframe)</small>
+                                </div>
                             </div>
                         </div>
                     </div>
