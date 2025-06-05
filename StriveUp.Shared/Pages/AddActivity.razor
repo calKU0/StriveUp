@@ -1,0 +1,330 @@
+﻿@page "/add-activity"
+
+@using System.Xml.Linq
+@using StriveUp.Shared.DTOs.Activity
+@using System.Globalization
+@using StriveUp.Shared.Helpers
+
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+@inject IActivityService ActivityService
+
+<div class="container-fluid p-0 m-0">
+  <div class="container-md px-0 py-4 px-md-4 py-md-5">
+    <div class="card border-0 rounded-4">
+        <div class="card-body">
+            <h2 class="mb-4 text-center text-primary d-none d-md-block">Add Activity</h2>
+
+                <EditForm Model="@userActivity" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger mb-3" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Title</label>
+                        <InputText @bind-Value="userActivity.Title" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Description</label>
+                        <InputTextArea @bind-Value="userActivity.Description" class="form-control" rows="3" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Activity Type</label>
+                        <!-- Activity Selection -->
+                        <div class="mb-3 position-relative">
+                            <ActivityDropdown Activities="AvaliableActivities"
+                                              SelectedActivity="@SelectedActivity"
+                                              SelectedActivityChanged="@OnActivityChanged" />
+
+                            <input type="hidden" @bind="userActivity.ActivityId" />
+                        </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Start Date</label>
+                        <InputText @bind-Value="startDateTimeString" class="form-control" type="datetime-local" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">End Date</label>
+                        <InputText @bind-Value="endDateTimeString" class="form-control" type="datetime-local" />
+                    </div>
+                </div>
+
+                @if (SelectedActivity.DistanceRelevant)
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Distance (km)</label>
+                        <InputNumber @bind-Value="DistanceKm" class="form-control" step="0.01" />
+                    </div>
+                }
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Upload .tcx File</label>
+                    <InputFile OnChange="HandleFileUpload" class="form-control" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Submit
+                </button>
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(uploadMessage))
+            {
+                <ErrorToast Message="TCX file is not valid. Please upload a valid TCX file" OnDismiss="DismissToast"></ErrorToast>
+            }
+        </div>
+    </div>
+    </div>
+</div>
+
+
+
+
+@code {
+    private CreateUserActivityDto userActivity = new();
+    private List<ActivityDto> AvaliableActivities = new();
+    private ActivityDto? SelectedActivity = new();
+    private string uploadMessage = string.Empty;
+    private string startDateTimeString;
+    private string endDateTimeString;
+    private bool dropdownOpen = false;
+
+    private double DistanceKm
+    {
+        get => userActivity.Distance / 1000.0;
+        set => userActivity.Distance = (int)(value * 1000);
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        AvaliableActivities = await ActivityService.GetAvailableActivitiesAsync() ?? new();
+        SelectedActivity = AvaliableActivities.FirstOrDefault() ?? new();
+        // Set default DateTime values (today's date)
+        userActivity = new CreateUserActivityDto
+        {
+            DateStart = DateTime.Now.AddHours(-1),
+            DateEnd = DateTime.Now
+        };
+
+        // Convert to string for input fields
+        startDateTimeString = userActivity.DateStart.ToString("yyyy-MM-ddTHH:mm");
+        endDateTimeString = userActivity.DateEnd.ToString("yyyy-MM-ddTHH:mm");
+    }
+
+    private void OnActivityChanged(ActivityDto activity)
+    {
+        SelectedActivity = activity;
+        userActivity.ActivityId = activity.Id;
+    }
+
+    private void ToggleDropdown() => dropdownOpen = !dropdownOpen;
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        uploadMessage = string.Empty;
+        var file = e.File;
+        if (file == null || !file.Name.EndsWith(".tcx"))
+        {
+            uploadMessage = "Please upload a valid .tcx file.";
+            return;
+        }
+
+        using var stream = file.OpenReadStream();
+        var xml = await XDocument.LoadAsync(stream, LoadOptions.None, default);
+
+        try
+        {
+            ParseTcx(xml);
+            uploadMessage = "TCX file successfully parsed.";
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"Failed to parse TCX file: {ex.Message}";
+        }
+    }
+
+    private void ParseTcx(XDocument doc)
+    {
+        XNamespace ns = doc.Root?.GetDefaultNamespace() ?? "";
+
+        var activityElement = doc.Descendants(ns + "Activity").FirstOrDefault();
+        if (activityElement == null)
+            return;
+
+        var sportAttr = activityElement.Attribute("Sport")?.Value;
+        if (!string.IsNullOrEmpty(sportAttr))
+        {
+            // Map Sport string to your ActivityId
+            userActivity.ActivityId = sportAttr.ToLower() switch
+            {
+                "running" => 7,
+                "cycling" => 8,
+                "swimming" => 9,
+                _ => 0 // or any default/fallback ID
+            };
+        }
+
+        // Parse Activity start time (DateStart)
+        var activityStartStr = activityElement.Element(ns + "Id")?.Value;
+        if (DateTime.TryParse(activityStartStr, out var activityStart))
+            userActivity.DateStart = activityStart;
+
+        var laps = activityElement.Elements(ns + "Lap").ToList();
+
+        if (laps.Any())
+        {
+            // Aggregate laps info
+            DateTime? earliestLapStart = null;
+            DateTime? latestLapEnd = null;
+            double totalDistance = 0;
+            int totalCalories = 0;
+            int hrSum = 0;
+            int hrCount = 0;
+
+            foreach (var lap in laps)
+            {
+                // Lap start
+                var lapStartStr = lap.Attribute("StartTime")?.Value;
+                if (DateTime.TryParse(lapStartStr, out var lapStart))
+                {
+                    if (earliestLapStart == null || lapStart < earliestLapStart) earliestLapStart = lapStart;
+
+                    // Lap total time
+                    var totalTimeStr = lap.Element(ns + "TotalTimeSeconds")?.Value;
+                    if (double.TryParse(totalTimeStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var totalTimeSeconds))
+                    {
+                        var lapEnd = lapStart.AddSeconds(totalTimeSeconds);
+                        if (latestLapEnd == null || lapEnd > latestLapEnd) latestLapEnd = lapEnd;
+                    }
+                }
+
+                // Distance
+                var distanceStr = lap.Element(ns + "DistanceMeters")?.Value;
+                if (double.TryParse(distanceStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var lapDistance))
+                    totalDistance += lapDistance;
+
+                // Calories
+                var caloriesStr = lap.Element(ns + "Calories")?.Value;
+                if (int.TryParse(caloriesStr, out var calories))
+                    totalCalories += calories;
+
+                // Average HR for this lap
+                var avgHrStr = lap.Element(ns + "AverageHeartRateBpm")?.Element(ns + "Value")?.Value;
+                if (int.TryParse(avgHrStr, out var lapAvgHr))
+                {
+                    hrSum += lapAvgHr;
+                    hrCount++;
+                }
+            }
+
+            // Set combined values
+            if (earliestLapStart != null)
+                userActivity.DateStart = earliestLapStart.Value;
+
+            if (latestLapEnd != null)
+                userActivity.DateEnd = latestLapEnd.Value;
+
+            userActivity.Distance = (int)totalDistance;
+            userActivity.CaloriesBurned = totalCalories;
+
+            if (hrCount > 0)
+                userActivity.AvarageHr = hrSum / hrCount;
+        }
+        else
+        {
+            // If no laps, fallback to activity start time as DateStart and set DateEnd equal to DateStart for safety
+            if (userActivity.DateStart == default)
+                userActivity.DateStart = DateTime.Now;
+            userActivity.DateEnd = userActivity.DateStart;
+        }
+
+        // Parse route (Trackpoints)
+        userActivity.Route = doc.Descendants(ns + "Trackpoint")
+            .Where(x => x.Element(ns + "Position") != null)
+            .Select(x => new GeoPointDto
+            {
+                Latitude = double.Parse(x.Element(ns + "Position")?.Element(ns + "LatitudeDegrees")?.Value ?? "0", CultureInfo.InvariantCulture),
+                Longitude = double.Parse(x.Element(ns + "Position")?.Element(ns + "LongitudeDegrees")?.Value ?? "0", CultureInfo.InvariantCulture),
+                Timestamp = DateTime.Parse(x.Element(ns + "Time")?.Value ?? DateTime.UtcNow.ToString(), CultureInfo.InvariantCulture)
+            }).ToList();
+
+        // If distance is zero after lap parsing, calculate from route points
+        if (userActivity.Distance == 0 && userActivity.Route?.Count > 1)
+        {
+            userActivity.Distance = (int)userActivity.Route
+                .Zip(userActivity.Route.Skip(1), (a, b) => GetDistanceInMeters(a, b))
+                .Sum();
+        }
+
+        // Parse HR, Elevation, Speed data as before...
+
+        // Heart rate data
+        userActivity.HrData = doc.Descendants(ns + "Trackpoint")
+            .Where(x => x.Element(ns + "HeartRateBpm") != null)
+            .Select(x => new ActivityHrDto
+            {
+                UserActivityId = 0,
+                HearthRateValue = int.Parse(x.Element(ns + "HeartRateBpm")?.Element(ns + "Value")?.Value ?? "0"),
+                TimeStamp = DateTime.Parse(x.Element(ns + "Time")?.Value ?? DateTime.UtcNow.ToString(), CultureInfo.InvariantCulture)
+            }).ToList();
+
+        // Elevation data
+        userActivity.ElevationData = doc.Descendants(ns + "Trackpoint")
+            .Where(x => x.Element(ns + "AltitudeMeters") != null)
+            .Select(x => new ActivityElevationDto
+            {
+                UserActivityId = 0,
+                ElevationValue = double.Parse(x.Element(ns + "AltitudeMeters")?.Value ?? "0", CultureInfo.InvariantCulture),
+                TimeStamp = DateTime.Parse(x.Element(ns + "Time")?.Value ?? DateTime.UtcNow.ToString(), CultureInfo.InvariantCulture)
+            }).ToList();
+
+        // Speed data
+        userActivity.SpeedData = doc.Descendants(ns + "Trackpoint")
+            .Where(x => x.Element(ns + "Extensions") != null)
+            .Select(x =>
+            {
+                var ext = x.Element(ns + "Extensions")?.Descendants().FirstOrDefault(e => e.Name.LocalName.Contains("Speed"));
+                return new ActivitySpeedDto
+                {
+                    UserActivityId = 0,
+                    SpeedValue = double.TryParse(ext?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var speed) ? speed : 0,
+                    TimeStamp = DateTime.Parse(x.Element(ns + "Time")?.Value ?? DateTime.UtcNow.ToString(), CultureInfo.InvariantCulture)
+                };
+            }).Where(x => x != null).ToList();
+
+        startDateTimeString = userActivity.DateStart.ToString("yyyy-MM-ddTHH:mm");
+        endDateTimeString = userActivity.DateEnd.ToString("yyyy-MM-ddTHH:mm");
+    }
+
+    private void DismissToast()
+    {
+        uploadMessage = null; // now Blazor will re-render properly
+    }
+
+    private async void HandleValidSubmit()
+    {
+        userActivity.DateStart = DateTime.Parse(startDateTimeString);
+        userActivity.DateEnd = DateTime.Parse(endDateTimeString);
+        userActivity.Distance = userActivity.Distance * 1000;
+        // Call your API or service to save `activity` here
+        uploadMessage = "Activity submitted successfully (simulate saving).";
+        await ActivityService.AddActivityAsync(userActivity);
+    }
+
+    private double GetDistanceInMeters(GeoPointDto p1, GeoPointDto p2)
+    {
+        const double R = 6371000; // Radius of Earth in meters
+        double lat1 = p1.Latitude * Math.PI / 180.0;
+        double lat2 = p2.Latitude * Math.PI / 180.0;
+        double dLat = lat2 - lat1;
+        double dLon = (p2.Longitude - p1.Longitude) * Math.PI / 180.0;
+
+        double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                   Math.Cos(lat1) * Math.Cos(lat2) *
+                   Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return R * c;
+    }
+}

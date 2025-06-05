@@ -7,21 +7,23 @@
 @using WMBlazorSlickCarousel
 @using WMBlazorSlickCarousel.WMBSC
 
-<div class="container mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h4 class="fw-bold pt-3 pt-md-0 mb-0">Your Goals</h4>
-        <a href="add-goal" class="btn btn-sm btn-primary">✛</a>
+<!-- GOALS SECTION -->
+<div class="container-fluid p-0 m-0">
+    <div class="container-md px-0 py-0 px-md-4 py-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">🎯 Your Goals</h4>
+        <a href="add-goal" class="btn btn-sm btn-primary mx-2">✛</a>
     </div>
 
     @if (goals == null)
     {
-        <p>Loading...</p>
+        <p>Loading goals...</p>
     }
     else if (!goals.Any())
     {
-        <div class="alert alert-info">
-            <p class="mb-3">You have no goals set.</p>
-            <a href="add-goal" class="btn btn-primary">Add some goals</a>
+        <div class="card text-center p-4 border-0 shadow-sm rounded-md-4 rounded-0">
+            <p class="text-secondary">Set a goal to track your progress and stay motivated.</p>
+            <a href="add-goal" class="btn btn-primary mt-3 px-4 rounded-pill">Set Your First Goal</a>
         </div>
     }
     else
@@ -57,6 +59,7 @@
             </BlazorSlickCarouselContent>
         </BlazorSlickCarousel>
     }
+</div>
 </div>
 
 @code {
@@ -107,8 +110,8 @@
         return type switch
         {
             GoalType.Duration => $"{FormatTime(done)} / {FormatTime(target)}",
-            GoalType.Distance => $"{done:N0} / {target:N0} m",
-            GoalType.Activities => $"{done:N0} / {target:N0}",
+            GoalType.Distance => $"{done/1000:N0} / {target/1000:N0} km",
+            GoalType.Activities => $"{done:N0} / {target:N0} activities",
             _ => ""
         };
     }

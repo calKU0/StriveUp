@@ -3,6 +3,7 @@
 <!-- Usings -->
 @using Microsoft.Maui.ApplicationModel
 @using Microsoft.Maui.Devices.Sensors
+@using Microsoft.Maui.Storage
 @using StriveUp.Shared.DTOs
 @using StriveUp.Shared.DTOs.Activity
 @using System.Diagnostics
@@ -177,54 +178,33 @@ IsSaving=@isSaving/>
 
     private async Task RequestPermissionsAndStartGps()
     {
-        // Check location permission first
-        var locationStatus = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+        if (!await CheckAndRequestLocationPermission()) return;
+        if (!await CheckAndRequestNotificationPermission()) return;
 
-        if (locationStatus != PermissionStatus.Granted)
-        {
-            locationStatus = await Permissions.RequestAsync<Permissions.LocationAlways>();
-        }
+        // Check if background activity is already allowed before asking
 
-        if (locationStatus != PermissionStatus.Granted)
+        if (AppSettingsService.IsRealmeDevice() && !Preferences.Get("BackgroundActivityPromptShown", false))
         {
-            bool openSettings = await JSRuntime.InvokeAsync<bool>(
-                "confirm",
-                "Background location permission is required to track your activity. Would you like to open app settings to enable it?"
+            Preferences.Set("BackgroundActivityPromptShown", true);
+            bool showPrompt = await ShowPrompt(
+                "⚠️ On Realme devices, please enable 'Allow background activity' manually:\n\n" +
+                "1. Open Settings\n" +
+                "2. Tap 'Battery'\n" +
+                "3. Tap 'More settings'\n" +
+                "4. Tap 'App battery management'\n" +
+                "5. Select StriveUp\n" +
+                "6. Enable 'Allow background activity'\n\n" +
+                "Would you like to open these settings now?"
             );
 
-            if (openSettings)
+            if (showPrompt)
             {
-                AppSettingsService.OpenAppSettings();
+                AppSettingsService.PromptUserToAllowBackgroundActivity();
             }
-
-            Navigation.NavigateTo("/");
-            return;
         }
+        
 
-        // Check notification permission (for Android 13+)
-        var notificationStatus = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
-        if (notificationStatus != PermissionStatus.Granted)
-        {
-            notificationStatus = await Permissions.RequestAsync<Permissions.PostNotifications>();
-        }
-
-        if (notificationStatus != PermissionStatus.Granted)
-        {
-            bool openSettings = await JSRuntime.InvokeAsync<bool>(
-                "confirm",
-                "Notification permission is required to show tracking notification. Would you like to open app settings to enable it?"
-            );
-
-            if (openSettings)
-            {
-                AppSettingsService.OpenAppSettings();
-            }
-
-            Navigation.NavigateTo("/");
-            return;
-        }
-
-        // Now start location tracking if both permissions granted
+        // Proceed to start tracking
         try
         {
             var config = await ProfileService.GetUserConfig();
@@ -239,24 +219,18 @@ IsSaving=@isSaving/>
 
             isLoadingLocation = true;
             ActivityTrackingService.LocationUpdated += OnPositionChangedSync;
-            await ActivityTrackingService.StartAsync(selectedActivity.Indoor, false); // false = don't start timer
+            await ActivityTrackingService.StartAsync(selectedActivity.Indoor, false);
 
-
+            // Wait for initial location fix
             int maxAttempts = 20;
             int attempt = 0;
-
-            while (currentLocation == null && attempt < maxAttempts)
+            while (currentLocation == null && attempt++ < maxAttempts)
             {
                 currentLocation = await ActivityTrackingService.GetLastKnownLocationAsync();
-                if (currentLocation == null)
-                {
-                    attempt++;
-                    await Task.Delay(1000);
-                }
+                await Task.Delay(1000);
             }
-            await InitializeMap(currentLocation);
 
-            Console.WriteLine("Started listening");
+            await InitializeMap(currentLocation);
         }
         catch (Exception ex)
         {
@@ -267,6 +241,45 @@ IsSaving=@isSaving/>
         await InvokeAsync(StateHasChanged);
     }
 
+
+    private async Task<bool> CheckAndRequestLocationPermission()
+    {
+        var status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+        if (status != PermissionStatus.Granted)
+            status = await Permissions.RequestAsync<Permissions.LocationAlways>();
+
+        if (status != PermissionStatus.Granted)
+        {
+            bool shouldOpen = await ShowPrompt("Background location is required to track your activity. Open app settings?");
+            if (shouldOpen) AppSettingsService.OpenAppSettings();
+            Navigation.NavigateTo("/");
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<bool> CheckAndRequestNotificationPermission()
+    {
+        var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+        if (status != PermissionStatus.Granted)
+            status = await Permissions.RequestAsync<Permissions.PostNotifications>();
+
+        if (status != PermissionStatus.Granted)
+        {
+            bool shouldOpen = await ShowPrompt("Notification permission is required to show tracking status. Open app settings?");
+            if (shouldOpen) AppSettingsService.OpenAppSettings();
+            Navigation.NavigateTo("/");
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<bool> ShowPrompt(string message)
+    {
+        return await JSRuntime.InvokeAsync<bool>("confirm", message);
+    }
 
 
     private async Task OnPositionChanged(Microsoft.Maui.Devices.Sensors.Location position)

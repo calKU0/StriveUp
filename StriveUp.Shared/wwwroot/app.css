@@ -8,7 +8,7 @@
     --body-color: hsl(var(--hue), var(--sat), 98%);
     --icon-color: #8c4bd6;
     --container-color: #fff;
-    --body-font: "Poppins", sans-serif;
+    --body-font: "Exo", sans-serif;
     --big-font-size: 3.5rem;
     --h1-font-size: 2.25rem;
     --h2-font-size: 1.5rem;
@@ -95,7 +95,7 @@
 }
 
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--body-font);
     scroll-behavior: smooth;
     overflow-x: hidden;
 }
@@ -143,7 +143,6 @@ a, .btn-link {
 .custom-select-wrapper {
     position: relative;
     width: auto;
-    font-family: 'Segoe UI', sans-serif;
 }
 
 .custom-select-toggle {

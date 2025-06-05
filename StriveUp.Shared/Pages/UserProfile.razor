@@ -348,7 +348,7 @@
     </div>
 </div>
 
-<ErrorToast Message="@followErrorMessage"></ErrorToast>
+<ErrorToast Message="@followErrorMessage" OnDismiss="DismissToast"></ErrorToast>
 
 
 @code {
@@ -441,6 +441,11 @@
             followErrorMessage = $"Error toggling follow status for user {userName}. Please try again later.";
             Console.WriteLine($"Exception: {ex.Message}");
         }
+    }
+
+    private void DismissToast()
+    {
+        followErrorMessage = null;
     }
 
     private async Task LoadInitialProfile()

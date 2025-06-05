@@ -1,7 +1,7 @@
 ﻿@if (!string.IsNullOrEmpty(Message))
 {
     <div class="toast-container position-fixed top-0 end-0">
-        <div class="toast show align-items-center text-bg-danger border-0" role="alert" style="background-color: #dc3545; color: white;">
+        <div class="toast show align-items-center text-bg-danger border-0 toast-animate" role="alert">
             <div class="d-flex">
                 <div class="toast-body">
                     @Message
@@ -23,7 +23,6 @@
 
     private async Task Dismiss()
     {
-        Message = null;
         await OnDismiss.InvokeAsync();
     }
 }

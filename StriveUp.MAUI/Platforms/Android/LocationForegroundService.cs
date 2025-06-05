@@ -18,6 +18,7 @@ namespace StriveUp.MAUI.Platforms.Android
         private System.Timers.Timer _notificationTimer;
         private DateTime _startTime;
         private bool _isIndoor;
+        private PowerManager.WakeLock _wakeLock;
 
         public static event EventHandler<Location> LocationUpdated;
 
@@ -27,14 +28,27 @@ namespace StriveUp.MAUI.Platforms.Android
             _fusedLocationProviderClient = LocationServices.GetFusedLocationProviderClient(this);
             _locationCallback = new LocationCallbackImpl();
             CreateNotificationChannel();
+            AcquireWakeLock();
         }
 
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
+            // Immediate, lightweight notification to lock foreground service
+            StartForeground(1, BuildNotification("Starting location service..."));
+
+            // WakeLock if needed
+            //if (_wakeLock == null)
+            //{
+            //    PowerManager powerManager = (PowerManager)GetSystemService(PowerService);
+            //    _wakeLock = powerManager.NewWakeLock(WakeLockFlags.Partial, "MyApp::LocationWakeLock");
+            //    _wakeLock.SetReferenceCounted(false);
+            //    _wakeLock.Acquire(10 * 60 * 1000);
+            //}
+
+            // Continue with logic
             _isIndoor = intent?.GetBooleanExtra("isIndoor", false) ?? false;
             bool startNow = intent?.GetBooleanExtra("startNow", false) ?? false;
             string command = intent?.GetStringExtra("command");
-            StartForeground(1, BuildNotification(GetNotificationMessage()));
 
             if (command == "pause")
             {
@@ -47,10 +61,10 @@ namespace StriveUp.MAUI.Platforms.Android
             {
                 if (_notificationTimer == null)
                 {
-                    _startTime = DateTime.UtcNow; // reset start time or you could keep track externally if needed
+                    _startTime = DateTime.UtcNow;
                 }
                 StartNotificationTimer();
-                StartForeground(1, BuildNotification(GetNotificationMessage(), "00:00:00"));
+                UpdateLiveNotification();
                 if (!_isIndoor)
                     StartLocationUpdates();
             }
@@ -58,7 +72,7 @@ namespace StriveUp.MAUI.Platforms.Android
             {
                 _startTime = DateTime.UtcNow;
                 StartNotificationTimer();
-                StartForeground(1, BuildNotification(GetNotificationMessage(), "00:00:00"));
+                UpdateLiveNotification();
                 if (!_isIndoor)
                     StartLocationUpdates();
             }
@@ -80,6 +94,7 @@ namespace StriveUp.MAUI.Platforms.Android
             {
                 StopLocationUpdates();
             }
+            ReleaseWakeLock();
         }
 
         public override IBinder OnBind(Intent intent) => null;
@@ -158,15 +173,14 @@ namespace StriveUp.MAUI.Platforms.Android
 
         private void StartNotificationTimer()
         {
-            _notificationTimer = new System.Timers.Timer(1000); // 1 sec
+            _notificationTimer = new System.Timers.Timer(10000); // 10 sec
             _notificationTimer.Elapsed += (s, e) =>
             {
                 var duration = DateTime.UtcNow - _startTime;
                 string formatted = $"{(int)duration.TotalHours:00}:{duration.Minutes:00}:{duration.Seconds:00}";
 
                 var notification = BuildNotification(GetNotificationMessage(), formatted);
-                var manager = (NotificationManager)GetSystemService(NotificationService);
-                manager.Notify(1, notification);
+                StartForeground(1, notification);
             };
             _notificationTimer.Start();
         }
@@ -183,6 +197,32 @@ namespace StriveUp.MAUI.Platforms.Android
             var notification = builder.Build();
             var manager = (NotificationManager)GetSystemService(NotificationService);
             manager.Notify(1, notification);
+        }
+
+        private void AcquireWakeLock()
+        {
+            var powerManager = (PowerManager)GetSystemService(PowerService);
+            if (_wakeLock == null)
+            {
+                _wakeLock = powerManager.NewWakeLock(WakeLockFlags.Partial, "StriveUp::LocationLock");
+                _wakeLock.SetReferenceCounted(false);
+                _wakeLock.Acquire(); // No timeout, indefinite until released manually
+            }
+        }
+
+        private void ReleaseWakeLock()
+        {
+            if (_wakeLock?.IsHeld ?? false)
+            {
+                _wakeLock.Release();
+                _wakeLock = null;
+            }
+        }
+
+        private void UpdateLiveNotification()
+        {
+            string msg = GetNotificationMessage();
+            StartForeground(1, BuildNotification(msg, "00:00:00"));
         }
     }
 }

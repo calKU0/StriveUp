@@ -1,0 +1,45 @@
+
+/* Improve form label appearance */
+label.form-label {
+    color: #343a40;
+    font-size: 0.95rem;
+}
+
+/* Add focus outline to form controls */
+.form-control:focus, .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Transition for smoother interactions */
+.form-control,
+.form-select,
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+
+/* Centered h2 styling */
+h2 {
+    font-weight: 600;
+}
+
+/* Shrink the card on smaller screens */
+@media (max-width: 576px) {
+
+    .form-label {
+        font-size: 0.875rem;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    button.btn {
+        padding: 0.5rem;
+        font-size: 0.95rem;
+    }
+}
+

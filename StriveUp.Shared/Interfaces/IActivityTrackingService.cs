@@ -20,5 +20,7 @@ namespace StriveUp.Shared.Interfaces
         Task ResumeAsync(bool isIndoor = false);
 
         Task<Location?> GetLastKnownLocationAsync();
+
+        bool IsBackgroundActivityAllowed();
     }
 }

@@ -67,7 +67,7 @@
         </div>
     }
 
-    <ErrorToast Message="@followErrorMessage"></ErrorToast>
+    <ErrorToast Message="@followErrorMessage" OnDismiss="DismissToast"></ErrorToast>
 </div>
 
 @code {
@@ -92,6 +92,11 @@
         {
             Console.WriteLine(ex);
         }
+    }
+
+    private void DismissToast()
+    {
+        followErrorMessage = null;
     }
 
     private async Task HandleInput(ChangeEventArgs e)
