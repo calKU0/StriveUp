@@ -1,0 +1,14 @@
+.comment-item:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.avatar {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.comment-item.pressed {
+    background-color: #dcdcdc !important;
+    transition: background-color 0.2s ease !important;
+}

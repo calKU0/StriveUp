@@ -35,11 +35,13 @@ namespace StriveUp.API.Mapping
                 .ForMember(dest => dest.ActivityId, opt => opt.MapFrom(src => src.SegmentConfig.ActivityId))
                 .ForMember(dest => dest.SegmentRank, opt => opt.Ignore());
 
-            CreateMap<UserActivity, UserActivityDto>();
+            CreateMap<UserActivity, UserActivityDto>()
+                .ForMember(dest => dest.LikeCount, opt => opt.MapFrom(src => src.ActivityLikes.Count));
 
             // Comment  <-> DTO
             CreateMap<ActivityComment, ActivityCommentDto>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.User.Avatar));
 
             // Activity <-> DTO
             CreateMap<Activity, ActivityDto>()

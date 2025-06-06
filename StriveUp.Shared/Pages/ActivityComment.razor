@@ -1,9 +1,6 @@
 ﻿@page "/activity/{ActivityId:int}/comments"
 
-<!-- Usings -->
 @using StriveUp.Shared.DTOs.Activity
-
-<!-- Injections -->
 @inject IActivityService ActivityService
 @inject ICustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -12,74 +9,119 @@
 
 @if (comments == null)
 {
-    <Spinner text="Loading"></Spinner>
+    <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
 }
 else
 {
-    <div class="container py-4">
-        <h5>@(comments?.Count ?? 0) Comments</h5>
-        <hr />
-        @if (comments?.Any() ?? false)
-        {
-            foreach (var comment in comments)
-            {
-                <div class="mb-3 border-bottom pb-2">
-                    <strong>@comment.UserName</strong>
-                    <div class="text-muted small">@comment.CreatedAt.ToShortDateString()</div>
-                    <p>@comment.Content</p>
-                </div>
-            }
-        }
-        else
-        {
-            <p class="fst-italic text-muted">No comments yet.</p>
-        }
+    <div class="container my-5" style="max-width: 720px;">
+        <div class="mb-4">
+            <h3 class="fw-bold">Comments <span class="text-muted fs-6">(@comments.Count)</span></h3>
+            <hr />
+        </div>
 
-        <div class="mt-4">
-            <textarea class="form-control mb-2" rows="3" placeholder="Write your comment..." @bind="newComment"></textarea>
-            <button class="btn btn-primary" @onclick="PostComment">Post Comment</button>
+        <div class="comment-list">
+            @if (comments.Any())
+            {
+                @foreach (var comment in comments.OrderByDescending(c => c.CreatedAt))
+                {
+                    <div class="d-flex align-items-start p-3 mb-3 border rounded shadow-sm comment-item @(isPressed ? "pressed" : "")"
+                        @onmousedown="() => isPressed = true"
+                        @onmouseup="() => isPressed = false"
+                        @onmouseleave="() => isPressed = false"
+                        @ontouchstart="() => isPressed = true"
+                        @ontouchleave="() => isPressed = false"
+                        @ontouchcancel="() => isPressed = false"
+                        @ontouchend="() => isPressed = false"
+                        @onclick="() => OnUserClick(comment.UserName)">
+                        <div class="me-3">
+                            <img src="@comment.Avatar" class="rounded-circle shadow-sm border" style="width: 48px; height: 48px; object-fit: cover;" alt="@comment.UserName's avatar" />
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0">@comment.UserName</h6>
+                                <small class="text-muted">@comment.CreatedAt.ToString("MMM dd, yyyy")</small>
+                            </div>
+                            <p class="mb-0 text-body">@comment.Content</p>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="fst-italic text-muted">No comments yet. Be the first to say something!</p>
+            }
+        </div>
+
+        <div class="mt-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Add a Comment</h5>
+                    <textarea class="form-control mb-3" rows="3" placeholder="Write something..." @bind="newComment"></textarea>
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary px-4" @onclick="PostComment" disabled="@string.IsNullOrWhiteSpace(newComment)">
+                            Post
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 }
 
 
+
 @code {
     [Parameter] public int ActivityId { get; set; }
+
     private List<ActivityCommentDto>? comments;
+    private string newComment = string.Empty;
+    private bool isPressed = false;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var currentUser = authState.User;
+            var user = authState.User;
 
-            if (currentUser.Identity?.IsAuthenticated == false)
+            if (!user.Identity?.IsAuthenticated ?? true)
             {
                 Navigation.NavigateTo("/login");
+                return;
             }
+
             comments = await ActivityService.GetActivityComments(ActivityId);
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine(ex);
+
         }
     }
 
-    private string newComment;
+    private void OnUserClick(string userName)
+    {
+        Navigation.NavigateTo($"profile/{userName}");
+    }
 
     private async Task PostComment()
     {
         if (!string.IsNullOrWhiteSpace(newComment))
         {
             await ActivityService.AddCommentAsync(ActivityId, newComment);
-            newComment = string.Empty;
-            comments?.Add(new ActivityCommentDto
+
+            comments ??= new();
+            comments.Add(new ActivityCommentDto
             {
                 Content = newComment,
                 CreatedAt = DateTime.UtcNow,
                 UserName = "You"
             });
+
+            newComment = string.Empty;
         }
     }
 }

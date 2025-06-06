@@ -1,5 +1,5 @@
 .settings-tile.pressed {
-    background-color: #f0f0f0 !important;
+    background-color: #dcdcdc !important;
     transition: background-color 0.2s ease;
 }
 

@@ -48,6 +48,7 @@ namespace StriveUp.API.Services
                     ActivityDate = be.UserActivity.DateEnd,
                     ActivityId = be.UserActivityId
                 })
+                .OrderBy(dto => dto.TotalDuration)
                 .ToList();
 
             return bestEfforts;

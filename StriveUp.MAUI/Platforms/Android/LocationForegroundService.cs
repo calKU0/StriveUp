@@ -101,8 +101,10 @@ namespace StriveUp.MAUI.Platforms.Android
 
         private void StartLocationUpdates()
         {
-            var locationRequest = new LocationRequest.Builder(Priority.PriorityHighAccuracy, 5000)
-                .SetMinUpdateIntervalMillis(2500)
+            var locationRequest = new LocationRequest.Builder(Priority.PriorityHighAccuracy, 3000)
+                .SetMinUpdateIntervalMillis(2000)
+                .SetGranularity(Granularity.GranularityFine)
+                .SetWaitForAccurateLocation(true)
                 .Build();
 
             _fusedLocationProviderClient.RequestLocationUpdates(locationRequest, _locationCallback, Looper.MainLooper);
