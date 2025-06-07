@@ -3,19 +3,21 @@
 @inject IJSRuntime JSRuntime
 
 <div class="form-control d-flex align-items-center justify-content-between"
-     role="button"
-     @onclick="ToggleDropdown">
+    role="button"
+    style="@((Disabled ? "cursor: not-allowed; opacity: 0.6;" : ""))"
+    @onclick="ToggleDropdown">
+
     @if (SelectedActivity != null)
-        {
-    <div class="d-flex align-items-center">
-        <img src="@ActivityUtils.GetActivityImageUrl(SelectedActivity.Name, "dark")"
-             alt="icon"
-             class="me-2"
-             style="width: 30px; height: 30px;" />
-        <span>@SelectedActivity.Name</span>
-    </div>
-        }
-        else
+    {
+        <div class="d-flex align-items-center">
+            <img src="@ActivityUtils.GetActivityImageUrl(SelectedActivity.Name, "dark")"
+                    alt="icon"
+                    class="me-2"
+                    style="width: 30px; height: 30px;" />
+            <span>@SelectedActivity.Name</span>
+        </div>
+    }
+    else
     {
         <span class="text-muted">-- Select Activity --</span>
     }
@@ -43,20 +45,19 @@
 }
 
 @code {
-    [Parameter]
-    public List<ActivityDto> Activities { get; set; }
-
-    [Parameter]
-    public ActivityDto SelectedActivity { get; set; }
-
-    [Parameter]
-    public EventCallback<ActivityDto> SelectedActivityChanged { get; set; }
+    [Parameter] public List<ActivityDto> Activities { get; set; }
+    [Parameter] public ActivityDto SelectedActivity { get; set; }
+    [Parameter] public EventCallback<ActivityDto> SelectedActivityChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
 
     private bool dropdownOpen = false;
 
     private void ToggleDropdown()
     {
-        dropdownOpen = !dropdownOpen;
+        if (!Disabled)
+        {
+            dropdownOpen = !dropdownOpen;
+        }
     }
 
     private async Task SelectActivity(ActivityDto activity)

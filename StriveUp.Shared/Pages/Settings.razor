@@ -126,7 +126,7 @@
 
 @if (!string.IsNullOrEmpty(deleteErrorMessage))
 {
-    <ErrorToast Message="@deleteErrorMessage" OnDismiss="DismissToast"></ErrorToast>
+    <Toast Message="@deleteErrorMessage" IsError=true OnDismiss ="DismissToast"></Toast>
 }
 
 @if (showDeletedToast)

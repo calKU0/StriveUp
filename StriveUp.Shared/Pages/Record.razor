@@ -138,6 +138,8 @@ IsSaving=@isSaving/>
     private bool isSaving = false;
     private BluetoothDeviceDto sensor = new();
     private double CaloriesBurned = 0;
+    const double minAltitudeChange = 1.0; // meters
+    const double maxJumpThreshold = 10.0; // meters (sanity check)
 
     protected override async Task OnInitializedAsync()
     {
@@ -357,14 +359,16 @@ IsSaving=@isSaving/>
             TimeStamp = timestamp
         });
 
-        if (location.Altitude.HasValue)
+        if (lastLocation.Altitude.HasValue && location.Altitude.HasValue)
         {
-            ElevationData.Add(new ActivityElevationDto
+            double altitudeDelta = location.Altitude.Value - lastLocation.Altitude.Value;
+
+            if (altitudeDelta > minAltitudeChange && altitudeDelta < maxJumpThreshold)
             {
-                ElevationValue = location.Altitude.Value,
-                TimeStamp = timestamp
-            });
+                elevation += altitudeDelta;
+            }
         }
+
     }
 
 

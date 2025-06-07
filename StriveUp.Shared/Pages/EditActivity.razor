@@ -116,8 +116,8 @@
             </div>
         </EditForm>
 
-        <ErrorToast Message="@deleteErrorMessage" OnDismiss="DismissToast"></ErrorToast>
-        <ErrorToast Message="@updateErrorMessage" OnDismiss="DismissToast"></ErrorToast>
+        <Toast Message="@deleteErrorMessage" IsError=true OnDismiss="DismissToast"></Toast>
+        <Toast Message="@updateErrorMessage" IsError=true OnDismiss="DismissToast"></Toast>
     }
     else
     {

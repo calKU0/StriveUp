@@ -10,11 +10,10 @@
 @inject IActivityService ActivityService
 
 <div class="container-fluid p-0 m-0">
-  <div class="container-md px-0 py-4 px-md-4 py-md-5">
-    <div class="card border-0 rounded-4">
-        <div class="card-body">
-            <h2 class="mb-4 text-center text-primary d-none d-md-block">Add Activity</h2>
-
+    <div class="container-md px-0 py-4 px-md-4 py-md-5">
+        <div class="card border-0 rounded-4">
+            <div class="card-body">
+                <h2 class="mb-4 text-center text-primary d-none d-md-block">Add Activity</h2>
                 <EditForm Model="@userActivity" OnValidSubmit="HandleValidSubmit">
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger mb-3" />
@@ -34,9 +33,9 @@
                         <!-- Activity Selection -->
                         <div class="mb-3 position-relative">
                             <ActivityDropdown Activities="AvaliableActivities"
-                                              SelectedActivity="@SelectedActivity"
-                                              SelectedActivityChanged="@OnActivityChanged" />
-
+                                            SelectedActivity="@SelectedActivity"
+                                            SelectedActivityChanged="@OnActivityChanged"
+                                            Disabled="@isParsedFromTcx" />
                             <input type="hidden" @bind="userActivity.ActivityId" />
                         </div>
                 </div>
@@ -44,11 +43,11 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold">Start Date</label>
-                        <InputText @bind-Value="startDateTimeString" class="form-control" type="datetime-local" />
+                        <InputText @bind-Value="startDateTimeString" class="form-control" type="datetime-local" disabled="@isParsedFromTcx" />
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold">End Date</label>
-                        <InputText @bind-Value="endDateTimeString" class="form-control" type="datetime-local" />
+                        <InputText @bind-Value="endDateTimeString" class="form-control" type="datetime-local" disabled="@isParsedFromTcx" />
                     </div>
                 </div>
 
@@ -56,7 +55,7 @@
                 {
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Distance (km)</label>
-                        <InputNumber @bind-Value="DistanceKm" class="form-control" step="0.01" />
+                        <InputNumber @bind-Value="DistanceKm" class="form-control" step="0.01" disabled="@isParsedFromTcx" />
                     </div>
                 }
 
@@ -69,27 +68,37 @@
                     Submit
                 </button>
             </EditForm>
-
-            @if (!string.IsNullOrEmpty(uploadMessage))
-            {
-                <ErrorToast Message="TCX file is not valid. Please upload a valid TCX file" OnDismiss="DismissToast"></ErrorToast>
-            }
+            </div>
         </div>
-    </div>
     </div>
 </div>
 
+@if (isAdding)
+{
+    <Spinner Overlay=true text="Adding..."></Spinner>
+}
 
+@if (!string.IsNullOrEmpty(successUploadMessage))
+{
+    <Toast Message="@successUploadMessage" IsError=false OnDismiss="DismissToast"></Toast>
+}
+@if (!string.IsNullOrEmpty(errorUploadMessage))
+{
+    <Toast Message="@errorUploadMessage" IsError=true OnDismiss="DismissToast"></Toast>
+}
 
 
 @code {
     private CreateUserActivityDto userActivity = new();
     private List<ActivityDto> AvaliableActivities = new();
     private ActivityDto? SelectedActivity = new();
-    private string uploadMessage = string.Empty;
+    private string? successUploadMessage = string.Empty;
+    private string? errorUploadMessage = string.Empty;
+    private bool isParsedFromTcx = false;
     private string startDateTimeString;
     private string endDateTimeString;
     private bool dropdownOpen = false;
+    private bool isAdding = false;
 
     private double DistanceKm
     {
@@ -123,11 +132,12 @@
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
-        uploadMessage = string.Empty;
+        errorUploadMessage = string.Empty;
+        successUploadMessage = string.Empty;
         var file = e.File;
         if (file == null || !file.Name.EndsWith(".tcx"))
         {
-            uploadMessage = "Please upload a valid .tcx file.";
+            errorUploadMessage = "TCX file is not valid. Please upload a valid .tcx file.";
             return;
         }
 
@@ -137,11 +147,12 @@
         try
         {
             ParseTcx(xml);
-            uploadMessage = "TCX file successfully parsed.";
+            successUploadMessage = "Successfully added TCX file.";
+            isParsedFromTcx = true;
         }
         catch (Exception ex)
         {
-            uploadMessage = $"Failed to parse TCX file: {ex.Message}";
+            errorUploadMessage = $"Failed to parse TCX file: {ex.Message}";
         }
     }
 
@@ -156,14 +167,25 @@
         var sportAttr = activityElement.Attribute("Sport")?.Value;
         if (!string.IsNullOrEmpty(sportAttr))
         {
-            // Map Sport string to your ActivityId
-            userActivity.ActivityId = sportAttr.ToLower() switch
+            string mappedName = sportAttr.ToLowerInvariant() switch
             {
-                "running" => 7,
-                "cycling" => 8,
-                "swimming" => 9,
-                _ => 0 // or any default/fallback ID
+                "running" => "Run",
+                "biking" => "Bike",
+                "cycling" => "Bike",
+                "swimming" => "Swim",
+                "walking" => "Walk",
+                "other" => "Other",
+                _ => "Other"
             };
+
+            var matchedActivity = AvaliableActivities
+                .FirstOrDefault(a => a.Name.Equals(mappedName, StringComparison.OrdinalIgnoreCase));
+
+            if (matchedActivity != null)
+            {
+                userActivity.ActivityId = matchedActivity.Id;
+                SelectedActivity = matchedActivity;
+            }
         }
 
         // Parse Activity start time (DateStart)
@@ -300,17 +322,43 @@
 
     private void DismissToast()
     {
-        uploadMessage = null; // now Blazor will re-render properly
+        errorUploadMessage = null;
+        successUploadMessage = null;
     }
 
     private async void HandleValidSubmit()
     {
-        userActivity.DateStart = DateTime.Parse(startDateTimeString);
-        userActivity.DateEnd = DateTime.Parse(endDateTimeString);
-        userActivity.Distance = userActivity.Distance * 1000;
-        // Call your API or service to save `activity` here
-        uploadMessage = "Activity submitted successfully (simulate saving).";
-        await ActivityService.AddActivityAsync(userActivity);
+        try
+        {
+            isAdding = true;
+            successUploadMessage = null;
+            errorUploadMessage = null;
+
+            userActivity.DateStart = DateTime.Parse(startDateTimeString);
+            userActivity.DateEnd = DateTime.Parse(endDateTimeString);
+            userActivity.Distance = userActivity.Distance * 1000;
+
+            bool success = await ActivityService.AddActivityAsync(userActivity);
+            if (success)
+            {
+                isAdding = false;
+                successUploadMessage = "Activity successfully added.";
+                NavigationManager.NavigateTo("/feed"); // Redirect to activities page
+            }
+            else
+            {
+                errorUploadMessage = "Failed to add activity. Please try again later.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorUploadMessage = "Something went wrong. Please try again later.";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isAdding = false;
+        }
     }
 
     private double GetDistanceInMeters(GeoPointDto p1, GeoPointDto p2)
