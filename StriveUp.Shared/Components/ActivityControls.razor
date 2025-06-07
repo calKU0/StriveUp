@@ -101,14 +101,16 @@
     private List<BluetoothDeviceDto> AvailableSensors { get; set; } = new();
     private bool ShowActivitySelect { get; set; } = false;
     private bool ShowSensorSelect { get; set; } = false;
+    private UserConfigDto UserConfig = new();
 
     protected async override Task OnInitializedAsync()
     {
-        var config = await ProfileService.GetUserConfig();
+        AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
+        UserConfig = await ProfileService.GetUserConfig();
 
-        if (!string.IsNullOrEmpty(config.SensorId))
+        if (!string.IsNullOrEmpty(UserConfig.SensorId))
         {
-            SelectedSensor = AvailableSensors.FirstOrDefault(s => s.Id == config.SensorId);
+            SelectedSensor = AvailableSensors.FirstOrDefault(s => s.Id == UserConfig.SensorId);
         }
     }
 
@@ -139,6 +141,10 @@
         }
 
         AvailableSensors = BleHeartRateService.GetAvailableDevicesAsync();
+        if (!string.IsNullOrEmpty(UserConfig.SensorId))
+        {
+            SelectedSensor = AvailableSensors.FirstOrDefault(s => s.Id == UserConfig.SensorId);
+        }
         ShowSensorSelect = true;
         await InvokeAsync(StateHasChanged);
     }
@@ -185,7 +191,13 @@
     {
         SelectedSensor = sensor;
         SelectedSensorId = sensor.Id;
-        await ProfileService.UpdateUserConfig(new UpdateUserConfigDto { SensorId = sensor.Id, SensorName = sensor.Name });
+        bool success = await ProfileService.UpdateUserConfig(new UpdateUserConfigDto { SensorId = sensor.Id, SensorName = sensor.Name });
+        if (success)
+        {
+            UserConfig.SensorName = sensor.Name;
+            UserConfig.SensorId = sensor.Id;
+        }
+
         await OnSelectedSensorChanged.InvokeAsync(sensor);
         ShowSensorSelect = false;
     }
