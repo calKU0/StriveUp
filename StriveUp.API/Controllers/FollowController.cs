@@ -101,7 +101,7 @@ namespace StriveUp.API.Controllers
                         FullName = f.Followed.FirstName + " " + f.Followed.LastName,
                         UserName = f.Followed.UserName!,
                         Avatar = f.Followed.Avatar,
-                        IsFollowed = followersSet.Contains(f.FollowedId)
+                        IsFollowed = true
                     })
                     .ToListAsync();
 

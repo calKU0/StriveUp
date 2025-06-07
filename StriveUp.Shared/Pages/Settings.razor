@@ -126,7 +126,7 @@
 
 @if (!string.IsNullOrEmpty(deleteErrorMessage))
 {
-    <ErrorToast Message="@deleteErrorMessage"></ErrorToast>
+    <Toast Message="@deleteErrorMessage" IsError=true OnDismiss ="DismissToast"></Toast>
 }
 
 @if (showDeletedToast)
@@ -217,6 +217,11 @@
                 selectedSensorDisplay = config.SensorName;
             }
         }
+    }
+
+    private void DismissToast()
+    {
+        deleteErrorMessage = null;
     }
 
     async Task LoadSensorModal()

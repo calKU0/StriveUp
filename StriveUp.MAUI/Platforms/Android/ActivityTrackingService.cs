@@ -4,6 +4,8 @@ using Android.OS;
 using Microsoft.Maui.Devices.Sensors;
 using StriveUp.Shared.Interfaces;
 using AndroidApp = Android.App.Application;
+using AndroidProvider = Android.Provider;
+using AndroidNet = Android.Net;
 
 namespace StriveUp.MAUI.Platforms.Android;
 
@@ -31,6 +33,8 @@ public class ActivityTrackingService : IActivityTrackingService
         var intent = new Intent(_context, typeof(LocationForegroundService));
         intent.PutExtra("isIndoor", isIndoor);
         intent.PutExtra("startNow", startNow); // Controls whether notification timer starts now
+
+        //RequestIgnoreBatteryOptimizations();
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
             _context.StartForegroundService(intent);
@@ -67,5 +71,38 @@ public class ActivityTrackingService : IActivityTrackingService
     public Task<Location?> GetLastKnownLocationAsync()
     {
         return Task.FromResult(_lastKnownLocation);
+    }
+
+    private void RequestIgnoreBatteryOptimizations()
+    {
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+        {
+            var packageName = _context.PackageName;
+            var pm = (PowerManager)_context.GetSystemService(Context.PowerService);
+            if (!pm.IsIgnoringBatteryOptimizations(packageName))
+            {
+                var intent = new Intent(AndroidProvider.Settings.ActionRequestIgnoreBatteryOptimizations);
+                intent.SetData(AndroidNet.Uri.Parse("package:" + packageName));
+                intent.AddFlags(ActivityFlags.NewTask);
+                _context.StartActivity(intent);
+            }
+        }
+    }
+
+    public bool IsBackgroundActivityAllowed()
+    {
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+        {
+            var pm = (PowerManager)_context.GetSystemService(Context.PowerService);
+            var am = (ActivityManager)_context.GetSystemService(Context.ActivityService);
+
+            bool ignoringBatteryOptimizations = pm.IsIgnoringBatteryOptimizations(_context.PackageName);
+            bool isBackgroundRestricted = Build.VERSION.SdkInt >= BuildVersionCodes.P
+                && ((ActivityManager)_context.GetSystemService(Context.ActivityService))?.IsBackgroundRestricted == true;
+
+            return ignoringBatteryOptimizations && !isBackgroundRestricted;
+        }
+
+        return true;
     }
 }

@@ -53,7 +53,7 @@
             }
         </div>
     }
-    <ErrorToast Message="@followErrorMessage"></ErrorToast>
+    <Toast Message="@followErrorMessage" IsError=true OnDismiss="DismissToast"></Toast>
 </div>
 
 @code {
@@ -91,6 +91,11 @@
         {
             isLoading = false;
         }
+    }
+
+    private void DismissToast()
+    {
+        followErrorMessage = null;
     }
 
     private async Task ToggleFollow(UserFollowDto user)

@@ -8,7 +8,7 @@
     --body-color: hsl(var(--hue), var(--sat), 98%);
     --icon-color: #8c4bd6;
     --container-color: #fff;
-    --body-font: "Poppins", sans-serif;
+    --body-font: "Inter", sans-serif;
     --big-font-size: 3.5rem;
     --h1-font-size: 2.25rem;
     --h2-font-size: 1.5rem;
@@ -25,7 +25,6 @@
     --z-modal: 1000;
     --vh: 100vh;
 }
-
 
 /* Style the dots container */
 .slick-dots {
@@ -61,7 +60,6 @@
         background-color: #0056b3 !important;
     }
 
-
 .leaderboard-cta {
     max-width: 600px;
     margin-left: auto;
@@ -95,7 +93,7 @@
 }
 
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--body-font);
     scroll-behavior: smooth;
     overflow-x: hidden;
 }
@@ -143,7 +141,6 @@ a, .btn-link {
 .custom-select-wrapper {
     position: relative;
     width: auto;
-    font-family: 'Segoe UI', sans-serif;
 }
 
 .custom-select-toggle {
@@ -244,7 +241,6 @@ a, .btn-link {
     margin-top: -65px;
 }
 
-
 .arrow-marker {
     display: flex;
     justify-content: center;
@@ -315,26 +311,25 @@ a, .btn-link {
     transition: box-shadow 0.3s, border-color 0.3s;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    outline: none;
-    border-color: #ff8000;
-    box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.2), 0 4px 12px rgba(255, 128, 0, 0.15);
-}
+    .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+        outline: none;
+        border-color: #ff8000;
+        box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.2), 0 4px 12px rgba(255, 128, 0, 0.15);
+    }
 
 .user-list-item {
     transition: background-color 0.2s ease;
 }
 
-.user-list-item:hover {
-    background-color: #f0f0f0;
-    cursor: pointer;
-}
+    .user-list-item:hover {
+        background-color: #f0f0f0;
+        cursor: pointer;
+    }
 
-.user-list-item:active {
-    background-color: #f0f0f0;
-    cursor: pointer;
-}
-
+    .user-list-item:active {
+        background-color: #f0f0f0;
+        cursor: pointer;
+    }
 
 h1:focus {
     outline: none;
@@ -824,6 +819,7 @@ textarea.form-control {
     .btn-add-friends {
         font-size: 0.8rem;
     }
+
     .slick-dots li button {
         width: 8px !important;
         height: 8px !important;

@@ -92,7 +92,6 @@ namespace StriveUp.Sync.Application.Services
                     // 3. Fetch aggregated detailed data for this session time range
                     var activityTcx = await FetchActivityTcx(activity.LogId);
 
-                    Debug.WriteLine(activity.LogType);
                     // 4. Enrich activityDto with the TCX data
                     EnrichActivityWithActivityTcx(activityDto, activityTcx);
 

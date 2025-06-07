@@ -1,0 +1,53 @@
+﻿@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div class="toast show align-items-center @GetToastClass() @GetAnimateToastClass() border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @Message
+                </div>
+                <button type="button"
+                        class="btn-close btn-close-white me-2 m-auto"
+                        @onclick="Dismiss"></button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public bool IsError { get; set; } = false;
+    [Parameter] public EventCallback OnDismiss { get; set; }
+
+    private bool appear = false;
+
+    private string GetToastClass()
+    {
+        return IsError ? "bg-danger" : "bg-success";
+    }
+    private string GetAnimateToastClass()
+    {
+        return appear ? "toast-animate-in" : "toast-animate-out";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(Message))
+        {
+            appear = true;
+            StateHasChanged();
+            await Task.Delay(400);
+            var delay = IsError ? 10000 : 5000;
+            await Task.Delay(delay);
+            await Dismiss();
+        }
+    }
+
+    private async Task Dismiss()
+    {
+        appear = false;
+        StateHasChanged();
+        await Task.Delay(300);
+        await OnDismiss.InvokeAsync();
+    }
+}

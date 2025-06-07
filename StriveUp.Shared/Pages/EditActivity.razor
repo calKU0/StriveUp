@@ -116,8 +116,8 @@
             </div>
         </EditForm>
 
-        <ErrorToast Message="@deleteErrorMessage"></ErrorToast>
-        <ErrorToast Message="@updateErrorMessage"></ErrorToast>
+        <Toast Message="@deleteErrorMessage" IsError=true OnDismiss="DismissToast"></Toast>
+        <Toast Message="@updateErrorMessage" IsError=true OnDismiss="DismissToast"></Toast>
     }
     else
     {
@@ -166,6 +166,12 @@
         {
             updateErrorMessage = "Failed to update your activity. Please try again later.";
         }
+    }
+
+    private void DismissToast()
+    {
+        deleteErrorMessage = null;
+        updateErrorMessage = null;
     }
 
     private async Task DeleteActivity()

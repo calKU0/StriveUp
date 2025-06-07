@@ -90,8 +90,8 @@ else
         return type switch
         {
             GoalType.Duration => $"{FormatTime(done)} / {FormatTime(target)}",
-            GoalType.Distance => $"{done:N0} / {target:N0} m",
-            GoalType.Activities => $"{done:N0} / {target:N0}",
+            GoalType.Distance => $"{done/1000:N0} / {target/1000:N0} km",
+            GoalType.Activities => $"{done:N0} / {target:N0} activities",
             _ => ""
         };
     }
