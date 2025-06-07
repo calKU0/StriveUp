@@ -144,10 +144,10 @@ else
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Rank</th>
+                                    <th class="narrow-column">#</th>
                                     <th>User</th>
-                                    <th>Duration</th>
-                                    <th>@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
+                                    <th class="duration-column">Duration</th>
+                                    <th class="speed-column">@ActivityUtils.GetSpeedOrPaceLabel(SelectedActivity.MeasurementType)</th>
                                     <th class="d-none d-md-block">Date</th>
                                 </tr>
                             </thead>
@@ -155,7 +155,7 @@ else
                                 @foreach (var entry in LeaderboardEntries.Select((value, index) => new { value, index }))
                                 {
                                     <tr class="@(entry.index < 3 ? "medal-row" : "")" @onclick="() => OnUserClicked(entry.value)">
-                                        <td>
+                                        <td class="narrow-column">
                                             @if (entry.index == 0)
                                             {
                                                 <span class="medal gold">🥇</span>
@@ -175,7 +175,7 @@ else
                                         </td>
                                         <td class="user-cell">
                                             <img class="avatar" src="@entry.value.UserAvatar" alt="Avatar" />
-                                            @entry.value.Username
+                                            <span class="username-text">@entry.value.Username</span>
                                         </td>
                                         <td>@TimeSpan.FromSeconds(entry.value.TotalDuration).ToString(@"mm\:ss")</td>
                                         <td>@(ActivityUtils.GetSpeedOrPace(entry.value.Speed, SelectedActivity.MeasurementType))</td>
@@ -208,7 +208,7 @@ else
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Rank</th>
+                                    <th class="narrow-column">#</th>
                                     <th>User</th>
                                     <th>Total Distance</th>
                                 </tr>
@@ -217,7 +217,7 @@ else
                                 @foreach (var entry in DistanceLeaderboardEntries.Select((value, index) => new { value, index }))
                                 {
                                     <tr class="@(entry.index < 3 ? "medal-row" : "")" @onclick="() => OnUserProfileClicked(entry.value.Username)">
-                                        <td>
+                                        <td class="narrow-column">
                                             @if (entry.index == 0)
                                             {
                                                 <span class="medal gold">🥇</span>
@@ -237,7 +237,7 @@ else
                                         </td>
                                         <td class="user-cell">
                                             <img class="avatar" src="@entry.value.UserAvatar" alt="Avatar" />
-                                            @entry.value.Username
+                                            <span class="username-text">@entry.value.Username</span>
                                         </td>
                                         <td>@entry.value.TotalDistance.ToString("0.##") km</td>
                                     </tr>
@@ -268,7 +268,7 @@ else
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Rank</th>
+                                    <th class="narrow-column">#</th>
                                     <th>User</th>
                                     <th>Level</th>
                                     <th>XP</th>
@@ -278,7 +278,7 @@ else
                                 @foreach (var entry in LevelLeaderboardEntries.Select((value, index) => new { value, index }))
                                 {
                                     <tr class="@(entry.index < 3 ? "medal-row" : "")" @onclick="() => OnUserProfileClicked(entry.value.Username)">
-                                        <td>
+                                        <td class="narrow-column">
                                             @if (entry.index == 0)
                                             {
                                                 <span class="medal gold">🥇</span>
@@ -298,7 +298,7 @@ else
                                         </td>
                                         <td class="user-cell">
                                             <img class="avatar" src="@entry.value.UserAvatar" alt="Avatar" />
-                                            @entry.value.Username
+                                            <span class="username-text">@entry.value.Username</span>
                                         </td>
                                         <td>@entry.value.Level</td>
                                         <td>@entry.value.ExperiencePoints</td>

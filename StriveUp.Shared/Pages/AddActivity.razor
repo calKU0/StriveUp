@@ -9,6 +9,8 @@
 @inject NavigationManager NavigationManager
 @inject IActivityService ActivityService
 
+<PageTitle Title="Add Activity" />
+
 <div class="container-fluid p-0 m-0">
     <div class="container-md px-0 py-4 px-md-4 py-md-5">
         <div class="card border-0 rounded-4">
@@ -110,6 +112,7 @@
     {
         AvaliableActivities = await ActivityService.GetAvailableActivitiesAsync() ?? new();
         SelectedActivity = AvaliableActivities.FirstOrDefault() ?? new();
+        userActivity.ActivityId = SelectedActivity.Id;
         // Set default DateTime values (today's date)
         userActivity = new CreateUserActivityDto
         {
@@ -336,7 +339,8 @@
 
             userActivity.DateStart = DateTime.Parse(startDateTimeString);
             userActivity.DateEnd = DateTime.Parse(endDateTimeString);
-            userActivity.Distance = userActivity.Distance * 1000;
+            userActivity.Distance = userActivity.Distance;
+            userActivity.ActivityId = SelectedActivity.Id;
 
             bool success = await ActivityService.AddActivityAsync(userActivity);
             if (success)
@@ -358,6 +362,7 @@
         finally
         {
             isAdding = false;
+            StateHasChanged();
         }
     }
 
