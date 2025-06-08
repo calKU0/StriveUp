@@ -10,6 +10,26 @@
     }
 }
 
+.provider-icon {
+    height: 48px;
+    width: 48px;
+    object-fit: contain;
+    transition: all 0.2s ease-in-out;
+}
+
+.strava-icon {
+    width: 100%;
+    max-width: 237px;
+}
+
+@media (max-width: 576px) {
+    .provider-icon {
+        width: 100%;
+        height: auto;
+        max-height: 80px;
+    }
+}
+
 .animate-fade-in {
     animation: fade-in 0.3s ease-out;
 }

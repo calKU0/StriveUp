@@ -15,6 +15,7 @@ var host = new HostBuilder()
         services.AddSingleton<IUserSyncService, UserSyncService>();
         services.AddSingleton<GoogleFitProvider>();
         services.AddSingleton<FitbitProvider>();
+        services.AddSingleton<StravaProvider>();
 
         // HTTP Clients
         services.AddHttpClient("GoogleFitClient", (client) =>
@@ -27,11 +28,16 @@ var host = new HostBuilder()
             client.BaseAddress = new Uri("https://api.fitbit.com/");
             client.DefaultRequestHeaders.Add("Accept", "application/json");
         });
+        services.AddHttpClient("StravaClient", (client) =>
+        {
+            client.BaseAddress = new Uri("https://www.strava.com/api/v3/");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
         services.AddHttpClient("StriveUpClient", (client) =>
         {
-            //client.BaseAddress = new Uri("https://localhost:7116/api/");
+            client.BaseAddress = new Uri("https://localhost:7116/api/");
             client.BaseAddress = new Uri("https://striveupapi-emaee9awang6g4ht.polandcentral-01.azurewebsites.net/api/");
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            //client.DefaultRequestHeaders.Add("Accept", "application/json");
         });
 
         services.ConfigureFunctionsApplicationInsights();

@@ -86,11 +86,15 @@
                             var isActive = provider.IsActive;
                             var isSelected = selectedProvider?.Id == provider.Id;
 
-                            <div class="col-6 col-md-4">
-                                <div class="card h-100 text-center p-2 border @(isSelected ? "border-primary" : "") @(isActive ? "" : "opacity-50")"
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <!-- 1 column on mobile, 2 on tablet, 3 on desktop -->
+                                <div class="card h-100 text-center p-3 border @(isSelected ? "border-primary" : "") @(isActive ? "" : "opacity-50")"
                                      style="cursor: @(isActive ? "pointer" : "not-allowed");"
                                      @onclick="@(isActive ? (() => SelectProvider(provider)) : null)">
-                                    <img src="@provider.IconUrl" alt="Icon" class="mx-auto" style="width: 40px; height: 40px; object-fit: contain;" />
+                                    <img src="@provider.IconUrl"
+                                         alt="@provider.Name Icon"
+                                         class="provider-icon mx-auto @(provider.Name == "Strava" ? "strava-icon" : "")"
+                                         data-provider="@provider.Name" />
                                     <div class="mt-2 small fw-semibold">@provider.Name</div>
                                     @if (!isActive)
                                     {
@@ -99,7 +103,6 @@
                                 </div>
                             </div>
                         }
-
                     </div>
                 </div>
                 <div class="modal-footer">

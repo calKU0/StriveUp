@@ -3,7 +3,6 @@ using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Components.WebView.Maui;
 
 namespace StriveUp.MAUI.Services
 {

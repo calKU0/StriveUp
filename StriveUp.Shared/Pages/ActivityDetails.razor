@@ -61,10 +61,20 @@
             }
 
             <div class="card-body p-4">
-                <!-- Title and Description -->
-                <div class="mb-4">
-                    <h3 class="fw-bold">@activity.Title</h3>
-                    <p class="text-muted">@activity.Description</p>
+                <!-- Title, Description, and Powered by Strava -->
+                <div class="mb-4 d-flex justify-content-between align-items-start flex-wrap">
+                    <div class="me-3">
+                        <h3 class="fw-bold mb-1">@activity.Title</h3>
+                        <p class="text-muted mb-0">@activity.Description</p>
+                    </div>
+
+                    <!-- Powered by Strava logo -->
+                    @if(activity.SynchroProviderName == "Strava")
+                    {
+                        <div class="mt-2 mt-md-0">
+                            <img src="images/icons/pwrdBy_strava.webp" alt="Powered by Strava" style="height: 24px;" />
+                        </div>
+                    }
                 </div>
 
                 <!-- Metrics -->

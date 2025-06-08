@@ -23,6 +23,7 @@ namespace StriveUp.Infrastructure.Extensions
             services.Configure<MapboxSettings>(config.GetSection("MapboxSettings"));
             services.Configure<GoogleSettings>(config.GetSection("GoogleSettings"));
             services.Configure<FitbitSettings>(config.GetSection("FitbitSettings"));
+            services.Configure<StravaSettings>(config.GetSection("StravaSettings"));
 
             services.AddIdentity<AppUser, IdentityRole>(options =>
             {
@@ -39,6 +40,7 @@ namespace StriveUp.Infrastructure.Extensions
         {
             services.Configure<GoogleSettings>(config.GetSection("GoogleSettings"));
             services.Configure<FitbitSettings>(config.GetSection("FitbitSettings"));
+            services.Configure<StravaSettings>(config.GetSection("StravaSettings"));
             services.AddScoped<IActivityService, ActivityService>();
             services.AddScoped<IMedalService, MedalService>();
             services.AddScoped<IProfileService, ProfileService>();

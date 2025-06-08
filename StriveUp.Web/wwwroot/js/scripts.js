@@ -164,7 +164,6 @@ window.renderLineChartById = (id, labels, data, label, chartType, minSpeed = 1) 
             };
         }
 
-
         // Colors and other chartType handling unchanged
         let borderColor = 'rgba(255, 167, 192, 0.8)';
         let backgroundColor = 'rgba(255, 167, 38, 0.3)';

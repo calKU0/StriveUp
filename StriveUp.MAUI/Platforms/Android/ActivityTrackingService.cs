@@ -1,11 +1,10 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
-using Microsoft.Maui.Devices.Sensors;
 using StriveUp.Shared.Interfaces;
 using AndroidApp = Android.App.Application;
-using AndroidProvider = Android.Provider;
 using AndroidNet = Android.Net;
+using AndroidProvider = Android.Provider;
 
 namespace StriveUp.MAUI.Platforms.Android;
 

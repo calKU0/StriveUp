@@ -5,25 +5,24 @@
 namespace StriveUp.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class UserGoalTargetValue : Migration
+    public partial class SynchroProviderName : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<double>(
-                name: "TargetValue",
-                table: "UserGoals",
-                type: "float",
-                nullable: false,
-                defaultValue: 0.0);
+            migrationBuilder.AddColumn<string>(
+                name: "SynchroProviderName",
+                table: "UserActivities",
+                type: "nvarchar(max)",
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "TargetValue",
-                table: "UserGoals");
+                name: "SynchroProviderName",
+                table: "UserActivities");
         }
     }
 }

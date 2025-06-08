@@ -56,6 +56,7 @@ namespace StriveUp.Infrastructure.Models
         public bool isSynchronized { get; set; } = false;
 
         public string? SynchroId { get; set; }
+        public string? SynchroProviderName { get; set; }
         public bool IsPrivate { get; set; }
         public bool ShowHeartRate { get; set; } = true;
         public bool ShowSpeed { get; set; } = true;

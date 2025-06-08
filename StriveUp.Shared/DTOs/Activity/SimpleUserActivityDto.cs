@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StriveUp.Shared.DTOs.Activity
+﻿namespace StriveUp.Shared.DTOs.Activity
 {
     public class SimpleUserActivityDto
     {
@@ -24,6 +18,7 @@ namespace StriveUp.Shared.DTOs.Activity
         public string UserName { get; set; }
         public string UserAvatar { get; set; }
         public bool IsPrivate { get; set; }
+        public string? SynchroProviderName { get; set; }
         public bool ShowSpeed { get; set; }
         public int LikeCount { get; set; }
         public bool IsLikedByCurrentUser { get; set; }

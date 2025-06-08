@@ -3,10 +3,6 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Location;
 using Android.OS;
-using Android.Runtime;
-using Microsoft.Maui.Devices.Sensors;
-using System;
-using System.Timers;
 
 namespace StriveUp.MAUI.Platforms.Android
 {

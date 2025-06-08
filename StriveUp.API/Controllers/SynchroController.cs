@@ -25,9 +25,10 @@ namespace StriveUp.API.Controllers
         private readonly IMapper _mapper;
         private readonly IOptions<GoogleSettings> _googleSettings;
         private readonly IOptions<FitbitSettings> _fitbitSettings;
+        private readonly IOptions<StravaSettings> _stravaSettings;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public SynchroController(AppDbContext context, IMapper mapper, UserManager<AppUser> userManager, IOptions<GoogleSettings> googleSettings, IHttpClientFactory httpClientFactory, IOptions<FitbitSettings> fitbitSettings)
+        public SynchroController(AppDbContext context, IMapper mapper, UserManager<AppUser> userManager, IOptions<GoogleSettings> googleSettings, IHttpClientFactory httpClientFactory, IOptions<FitbitSettings> fitbitSettings, IOptions<StravaSettings> stravaSettings)
         {
             _context = context;
             _mapper = mapper;
@@ -35,6 +36,7 @@ namespace StriveUp.API.Controllers
             _googleSettings = googleSettings;
             _httpClientFactory = httpClientFactory;
             _fitbitSettings = fitbitSettings;
+            _stravaSettings = stravaSettings;
         }
 
         [HttpGet("availableProviders")]
@@ -224,6 +226,24 @@ namespace StriveUp.API.Controllers
                     var base64Credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(credentials));
                     tokenRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", base64Credentials);
                 }
+                else if (dto.State.Contains("strava"))
+                {
+                    tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://www.strava.com/oauth/token")
+                    {
+                        Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                        {
+                            { "code", dto.Code },
+                            { "client_id", _stravaSettings.Value.ClientId },
+                            { "client_secret", _stravaSettings.Value.ClientSecret },
+                            //{ "redirect_uri", _stravaSettings.Value.RedirectUri },
+                            { "grant_type", "authorization_code" }
+                        })
+                    };
+
+                    //var credentials = $"{_fitbitSettings.Value.ClientId}:{_fitbitSettings.Value.ClientSecret}";
+                    //var base64Credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(credentials));
+                    //tokenRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", base64Credentials);
+                }
                 else
                 {
                     Console.WriteLine("Invalid provider");
@@ -239,7 +259,7 @@ namespace StriveUp.API.Controllers
                     return BadRequest("Failed to get tokens: " + content);
                 }
 
-                var tokenData = JsonSerializer.Deserialize<GoogleTokenResponse>(content, new JsonSerializerOptions
+                var tokenData = JsonSerializer.Deserialize<OAuthTokenResponse>(content, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
@@ -258,6 +278,10 @@ namespace StriveUp.API.Controllers
                 else if (dto.State.Contains("fitbit"))
                 {
                     synchroId = _context.SynchroProviders.First(p => p.Name == "Fitbit").Id;
+                }
+                else if (dto.State.Contains("strava"))
+                {
+                    synchroId = _context.SynchroProviders.First(p => p.Name == "Strava").Id;
                 }
 
                 var userSynchro = new UserSynchro

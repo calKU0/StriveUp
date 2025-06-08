@@ -64,6 +64,17 @@ namespace StriveUp.Sync.Application.Services
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", base64Credentials);
             }
+            else if (user.SynchroProviderName == "Strava")
+            {
+                endpointUri = "https://www.strava.com/api/v3/oauth/token";
+                payload = new Dictionary<string, string>
+                {
+                    { "client_id", _config["StravaClientId"] },
+                    { "client_secret", _config["StravaClientSecret"] },
+                    { "refresh_token", user.RefreshToken },
+                    { "grant_type", "refresh_token" }
+                };
+            }
 
             var requestContent = new FormUrlEncodedContent(payload);
             var response = await _httpClient.PostAsync(endpointUri, requestContent);
