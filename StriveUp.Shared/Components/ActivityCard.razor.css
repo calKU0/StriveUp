@@ -20,8 +20,18 @@
     .comment-button:hover {
         background-color: var(--bs-primary);
         color: white !important;
-        box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.2); /* blue shadow */
+        box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.2);
     }
+
+.strava-badge {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(150%);
+    height: 12px;
+    pointer-events: none;
+}
+
 
 .new-record-badge {
     position: absolute;

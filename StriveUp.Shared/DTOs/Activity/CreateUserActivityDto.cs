@@ -12,6 +12,7 @@ namespace StriveUp.Shared.DTOs
         public DateTime DateEnd { get; set; }
         public int Distance { get; set; }
         public bool isSynchronized { get; set; } = false;
+        public string? SynchroProviderName { get; set; }
         public string? SynchroId { get; set; }
         public bool IsManuallyAdded { get; set; } = false;
         public string? SensorName { get; set; }
@@ -21,6 +22,7 @@ namespace StriveUp.Shared.DTOs
         public int? MaxHr { get; set; }
         public int? ElevationGain { get; set; }
         public int? CaloriesBurned { get; set; }
+        public bool IsPrivate { get; set; }
         public List<GeoPointDto>? Route { get; set; }
         public List<ActivityHrDto>? HrData { get; set; }
         public List<ActivitySpeedDto>? SpeedData { get; set; }

@@ -46,5 +46,20 @@
                 _ => 18, // Other
             };
         }
+
+        public static int MapStravaActivityType(string activityType)
+        {
+            return activityType switch
+            {
+                "Run" => 7, // Running
+                "Ride" => 10, // Cycling
+                "Swim" => 12, // Swimming
+                "Walk" => 9, // Walking
+                "WeightTraining" => 15, // Weight Lifting
+                "Elliptical" => 13, // Elliptical
+                "Hike" => 11, // Hiking
+                _ => 18, // Other
+            };
+        }
     }
 }

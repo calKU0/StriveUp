@@ -296,6 +296,7 @@ namespace StriveUp.API.Controllers
                         DateStart = ua.DateStart,
                         DateEnd = ua.DateEnd,
                         ActivityName = ua.Activity.Name,
+                        SynchroProviderName = ua.SynchroProviderName,
                         // If PrivateMap is true and caller is NOT the user, exclude route
                         Route = (!isCallerSameUser && targetUser.UserConfig.PrivateMap == true) ? null : ua.Route.Select(p => new GeoPointDto
                         {
@@ -378,6 +379,7 @@ namespace StriveUp.API.Controllers
                     DateStart = ua.DateStart,
                     DateEnd = ua.DateEnd,
                     ActivityName = ua.Activity.Name,
+                    SynchroProviderName = ua.SynchroProviderName,
                     HasNewRecord = CheckIfActivityHasNewRecord(ua.Id),
                     Route = (ua.User.Id == userId || ua.User.UserConfig.PrivateMap != true)
                         ? ua.Route.Select(p => new GeoPointDto

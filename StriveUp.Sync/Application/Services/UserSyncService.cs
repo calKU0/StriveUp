@@ -83,6 +83,7 @@ namespace StriveUp.Sync.Application.Services
                     {
                         "Google Fit" => _serviceProvider.GetRequiredService<GoogleFitProvider>(),
                         "Fitbit" => _serviceProvider.GetRequiredService<FitbitProvider>(),
+                        "Strava" => _serviceProvider.GetRequiredService<StravaProvider>(),
                         _ => throw new NotSupportedException("Unsupported provider")
                     };
 

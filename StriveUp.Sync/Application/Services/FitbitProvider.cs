@@ -79,6 +79,7 @@ namespace StriveUp.Sync.Application.Services
                         Description = "Synchronized from Fitbit",
                         isSynchronized = true,
                         SynchroId = activity.LogId.ToString(),
+                        SynchroProviderName = "Fitbit",
                         IsManuallyAdded = activity.LogType == "manual",
                         AvarageSpeed = activity.Speed / 3.6,
                         AvarageHr = activity.AverageHeartRate,

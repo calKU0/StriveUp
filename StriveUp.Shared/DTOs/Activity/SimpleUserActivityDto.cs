@@ -24,6 +24,7 @@ namespace StriveUp.Shared.DTOs.Activity
         public string UserName { get; set; }
         public string UserAvatar { get; set; }
         public bool IsPrivate { get; set; }
+        public string? SynchroProviderName { get; set; }
         public bool ShowSpeed { get; set; }
         public int LikeCount { get; set; }
         public bool IsLikedByCurrentUser { get; set; }

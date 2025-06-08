@@ -13,13 +13,15 @@ namespace StriveUp.Infrastructure.Services
         private readonly ITokenStorageService _tokenStorage;
         private readonly IOptions<GoogleSettings> _googleSettings;
         private readonly IOptions<FitbitSettings> _fitbitSettings;
+        private readonly IOptions<StravaSettings> _stravaSettings;
 
-        public SynchroService(IHttpClientFactory httpClientFactory, ITokenStorageService tokenStorage, IOptions<GoogleSettings> googleSettings, IOptions<FitbitSettings> fitbitSettings)
+        public SynchroService(IHttpClientFactory httpClientFactory, ITokenStorageService tokenStorage, IOptions<GoogleSettings> googleSettings, IOptions<FitbitSettings> fitbitSettings, IOptions<StravaSettings> stravaSettings)
         {
             _httpClient = httpClientFactory.CreateClient("ApiClient");
             _tokenStorage = tokenStorage;
             _googleSettings = googleSettings;
             _fitbitSettings = fitbitSettings;
+            _stravaSettings = stravaSettings;
         }
 
         public async Task<List<SynchroProviderDto>> GetAvailableProvidersAsync()
@@ -84,6 +86,21 @@ namespace StriveUp.Infrastructure.Services
                           $"&state=fitbit" +
                           $"&scope={Uri.EscapeDataString(string.Join(" ", scopes))}" +
                           $"&prompt=consent";
+            }
+            else if (provider == "strava")
+            {
+                var scopes = new[]
+                {
+                    "activity:read"
+                };
+
+                authUrl = $"https://www.strava.com/oauth/mobile/authorize" +
+                          $"?client_id={Uri.EscapeDataString(_stravaSettings.Value.ClientId)}" +
+                          $"&redirect_uri={Uri.EscapeDataString(_stravaSettings.Value.RedirectUri)}" +
+                          $"&response_type=code" +
+                          $"&state=strava" +
+                          $"&approval_prompt=auto" +
+                          $"&scope={Uri.EscapeDataString(string.Join(" ", scopes))}";
             }
 
             return authUrl;
