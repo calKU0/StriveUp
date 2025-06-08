@@ -1,8 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.OS;
-using Microsoft.Maui.Authentication;
 
 namespace StriveUp.MAUI.Platforms.Android
 {

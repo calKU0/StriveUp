@@ -4,10 +4,8 @@ using StriveUp.Shared.DTOs.Activity;
 using StriveUp.Sync.Application.Helpers;
 using StriveUp.Sync.Application.Interfaces;
 using StriveUp.Sync.Application.Models.Fitbit;
-using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Xml.Serialization;
 
 namespace StriveUp.Sync.Application.Services

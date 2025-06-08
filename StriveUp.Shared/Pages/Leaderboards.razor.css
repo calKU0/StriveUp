@@ -100,8 +100,6 @@
     display: block;
 }
 
-
-
 @media (max-width: 768px) {
     .leaderboard-list table {
         font-size: 0.95rem;

@@ -1,8 +1,6 @@
 ﻿using StriveUp.Infrastructure.Extensions;
 using StriveUp.Shared.DTOs;
-using StriveUp.Shared.DTOs.Profile;
 using StriveUp.Shared.Interfaces;
-using System.Collections.Generic;
 using System.Net.Http.Json;
 
 namespace StriveUp.Infrastructure.Services

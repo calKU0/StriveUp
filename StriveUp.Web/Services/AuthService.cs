@@ -2,7 +2,6 @@
 using StriveUp.Shared.DTOs;
 using StriveUp.Shared.Interfaces;
 using System.Diagnostics;
-using static System.Net.WebRequestMethods;
 
 namespace StriveUp.Web.Services
 {

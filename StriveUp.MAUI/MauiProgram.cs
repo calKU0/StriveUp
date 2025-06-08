@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Shiny;
 using StriveUp.Infrastructure.Extensions;
 using StriveUp.MAUI.Services;
 using StriveUp.Shared.Interfaces;

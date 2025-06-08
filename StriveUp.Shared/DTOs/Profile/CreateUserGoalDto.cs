@@ -1,17 +1,12 @@
 ﻿using StriveUp.Shared.Enums;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StriveUp.Shared.DTOs.Profile
 {
     public class CreateUserGoalDto
     {
         [Required(ErrorMessage = "Activity type is required")]
-        [Range(1,100,ErrorMessage = "Activity type is required")]
+        [Range(1, 100, ErrorMessage = "Activity type is required")]
         public int ActivityId { get; set; }
 
         public GoalType Type { get; set; }

@@ -32,7 +32,6 @@
     pointer-events: none;
 }
 
-
 .new-record-badge {
     position: absolute;
     top: 1rem;
@@ -56,7 +55,3 @@
         font-size: 1rem;
         line-height: 1;
     }
-
-
-
-

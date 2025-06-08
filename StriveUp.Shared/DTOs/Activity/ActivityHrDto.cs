@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace StriveUp.Shared.DTOs.Activity
+﻿namespace StriveUp.Shared.DTOs.Activity
 {
     public class ActivityHrDto
     {

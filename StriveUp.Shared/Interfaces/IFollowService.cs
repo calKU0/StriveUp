@@ -1,5 +1,4 @@
 ﻿using StriveUp.Shared.DTOs;
-using StriveUp.Shared.DTOs.Profile;
 
 namespace StriveUp.Shared.Interfaces
 {

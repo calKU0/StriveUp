@@ -2,14 +2,7 @@
 using Android.OS;
 using StriveUp.MAUI.Platforms.Android;
 using StriveUp.Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AndroidApp = Android.App.Application;
-
-using AndroidContent = Android.Content;
 
 using AndroidDevice = Android;
 
