@@ -1,5 +1,7 @@
 # StriveUp
 
+> 🎓 **Thesis Project** — developed as part of a Bachelor’s thesis for the Applied Informatics at University of Economics in Cracow.
+
 [![CI](https://github.com/calKU0/StriveUp/actions/workflows/master_striveupapi.yml/badge.svg)](https://github.com/calKU0/StriveUp/actions/workflows/master_striveupapi.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
