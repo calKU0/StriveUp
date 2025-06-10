@@ -139,10 +139,8 @@ IsSaving=@isSaving/>
     private BluetoothDeviceDto sensor = new();
     private double CaloriesBurned = 0;
 
-    private const double MinAltitudeChange = 1.5; // meters
+    private const double MinAltitudeChange = 0.5; // meters
     private const double MaxAltitudeJump = 15.0;  // meters
-    private const double MinDistanceDelta = 0.5;  // meters — ignore "vibration"
-    private const double MaxDistanceJump = 100.0; // meters — sanity check
 
 
     protected override async Task OnInitializedAsync()
@@ -338,19 +336,13 @@ IsSaving=@isSaving/>
             distanceDelta = Location.CalculateDistance(lastLocation, location, DistanceUnits.Kilometers) * 1000;
             timeDeltaSeconds = (location.Timestamp - lastLocation.Timestamp).TotalSeconds;
 
-            // --- Distance Filtering ---
-            if (distanceDelta >= MinDistanceDelta && distanceDelta <= MaxDistanceJump)
-            {
-                Distance += (int)Math.Round(distanceDelta);
-                isValidData = true;
-            }
+            Distance += (int)Math.Round(distanceDelta);          
 
             // --- Speed Estimation ---
-            if (timeDeltaSeconds > 0 && distanceDelta >= MinDistanceDelta)
-            {
-                double deltaSpeed = distanceDelta / timeDeltaSeconds; // m/s
-                Speed = location.Speed ?? deltaSpeed;
-            }
+
+            double deltaSpeed = distanceDelta / timeDeltaSeconds; // m/s
+            Speed = location.Speed ?? deltaSpeed;
+            
 
             // --- Elevation Gain Filtering ---
             if (lastLocation.Altitude.HasValue && location.Altitude.HasValue)
@@ -360,34 +352,29 @@ IsSaving=@isSaving/>
                 if (altitudeDelta > MinAltitudeChange && altitudeDelta < MaxAltitudeJump)
                 {
                     elevation += altitudeDelta;
-                    isValidData = true;
                 }
             }
         }
 
-        // Only update state and data lists if meaningful data was recorded
-        if (isValidData)
+        lastLocation = location;
+        route.Add(location);
+
+        var timestamp = location.Timestamp.UtcDateTime;
+
+        SpeedData.Add(new ActivitySpeedDto
         {
-            lastLocation = location;
-            route.Add(location);
+            SpeedValue = Speed,
+            TimeStamp = timestamp
+        });
 
-            var timestamp = location.Timestamp.UtcDateTime;
-
-            SpeedData.Add(new ActivitySpeedDto
+        if (location.Altitude.HasValue)
+        {
+            ElevationData.Add(new ActivityElevationDto
             {
-                SpeedValue = Speed,
+                ElevationValue = location.Altitude.Value,
                 TimeStamp = timestamp
             });
-
-            if (location.Altitude.HasValue)
-            {
-                ElevationData.Add(new ActivityElevationDto
-                {
-                    ElevationValue = location.Altitude.Value,
-                    TimeStamp = timestamp
-                });
-            }
-        }
+        }       
     }
 
 
@@ -674,7 +661,7 @@ IsSaving=@isSaving/>
 
     private string GetSpeedOrPace()
     {
-        const double minMovementThreshold = 0.5; // m/s below which we consider "not moving"
+        const double minMovementThreshold = 0.6; // m/s below which we consider "not moving"
 
         if (Speed < minMovementThreshold)
         {
