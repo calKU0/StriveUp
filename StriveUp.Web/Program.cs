@@ -54,4 +54,34 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(StriveUp.Shared._Imports).Assembly);
 
 app.UseStaticFiles();
+
+// Handle exception - Not Found
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Unhandled exception: {ex.Message}");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("Internal Server Error");
+    }
+});
+
+// Handle 404 - Not Found
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == 404 && !context.Response.HasStarted)
+    {
+        Console.WriteLine($"404 Not Found: {context.Request.Path}");
+
+        context.Response.ContentType = "text/plain";
+        await context.Response.WriteAsync("404 Not Found");
+    }
+});
+
 app.Run();
