@@ -217,6 +217,8 @@ namespace StriveUp.API.Controllers
 
                 if (userActivity.isSynchronized)
                 {
+                    userActivity.IsPrivate = true; // Automatically set to private if synchronized - Strava TOS
+
                     var notifDto = new CreateNotificationDto
                     {
                         UserId = user.Id,
